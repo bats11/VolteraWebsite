@@ -133,7 +133,7 @@ export function initAtmosphericHero(resizeCallbacks) {
 
 
     // Lights & Objects
-    internalLight = new THREE.PointLight(0xffffff, 450, 100);
+    internalLight = new THREE.PointLight(0xffffff, 2000, 100);
     internalLight.position.set(0, POS_PYRAMID.y, 0);
     scene.add(internalLight);
     scene.add(new THREE.AmbientLight(0xffffff, 0.02));
