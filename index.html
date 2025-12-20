@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voltera Studio | Digital Experiences</title>
+
+    <!-- FONTS (Complete from index2.html) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500&family=Syne:wght@400;500;700;800&family=Space+Grotesk:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- LIBRERIE THREE.JS (Core + Addons per post-processing) -->
+    <!-- IMPORT MAP THREE.JS v0.160.0 -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+                "lucide": "https://unpkg.com/lucide@latest/dist/esm/lucide.js"
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <!-- CSS ESTERNO -->
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+
+    <!-- NAVIGAZIONE (primo elemento del body, sopra loader) -->
+    <nav>
+        <div class="logo">VOLTERA</div>
+        <div class="nav-links">
+            <a href="#visione" class="link-hover-std">Visione</a>
+            <a href="#progetti" class="link-hover-std">Progetti</a>
+            <a href="#ambiti" class="link-hover-std">Ambiti</a>
+            <a href="#metodo" class="link-hover-std">Metodo</a>
+            <a href="#collaborazione" class="link-hover-std">Collaborazione</a>
+            <a href="#contatti" class="link-hover-std">Contatti</a>
+        </div>
+        <div class="menu-trigger" id="burger">
+            <i data-lucide="menu" id="burger-icon"></i>
+        </div>
+    </nav>
+
+    <!-- Overlay Mobile -->
+    <div class="mobile-overlay" id="mobile-menu">
+        <a href="#visione" onclick="toggleMenu()">Visione</a>
+        <a href="#progetti" onclick="toggleMenu()">Progetti</a>
+        <a href="#ambiti" onclick="toggleMenu()">Ambiti</a>
+        <a href="#metodo" onclick="toggleMenu()">Metodo</a>
+        <a href="#collaborazione" onclick="toggleMenu()">Collaborazione</a>
+        <a href="#contatti" onclick="toggleMenu()">Contatti</a>
+    </div>
+
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- 1. ATMOSPHERIC HERO (PIRAMIDE) -->
+    <main class="hero-section">
+        <div id="canvas-container"></div>
+        <div class="ui-overlay">
+            <div class="content-wrapper">
+                <h1 class="hero-title">Voltera</h1>
+                <p class="hero-subtitle">Ambienti 3D e sistemi immersivi progettati su misura<br>per valorizzare brand e
+                    luoghi</p>
+            </div>
+            <div class="action-wrapper">
+                <a href="#contatti" class="cta-button">Raccontaci il tuo progetto</a>
+            </div>
+        </div>
+    </main>
+
+    <div id="page-content">
+        <!-- 2. HERO ORIGINALE (ICOSAEDRO) -->
+        <section class="hero-section-icosa" id="visione" style="position: relative;">
+            <canvas id="hero-canvas-icosa"></canvas>
+            <div class="container">
+                <div class="text-overlay" style="position: relative; z-index: 10;">
+                    <!-- Added ID for Fade Effect -->
+                    <h1 class="display-huge" id="fade-title">Costruiamo esperienze digitali che prendono spazio.</h1>
+                    <p style="max-width: 450px; margin-top: 32px;">Ambienti 3D e sistemi immersivi progettati su misura
+                        per valorizzare brand e luoghi.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. STATEMENT -->
+        <section class="main-content">
+            <div class="container">
+                <div class="grid-asym-reverse">
+                    <div></div>
+                    <div>
+                        <h2 class="display-medium">Diamo forma a esperienze a partire dal luogo.</h2>
+                        <p style="margin-bottom: 32px;">Ogni progetto nasce dal contesto e dagli obiettivi di chi lo
+                            utilizza. Traduciamo visioni in realtà digitali solide.</p>
+                        <a href="#" class="link-hover-std">Scopri lo Studio <i data-lucide="arrow-right"
+                                width="14"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. PROGETTI -->
+        <section id="progetti" class="main-content">
+            <div class="container">
+                <h2 class="display-large">Progetti selezionati</h2>
+                <a href="#" class="work-card">
+                    <div class="work-media"><img
+                            src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200"
+                            alt="Work 1"></div>
+                    <h3>Neo-Museum Virtual Tour</h3>
+                    <p style="font-size: 0.8rem; text-transform: uppercase;">WebGL / Experience / 2024</p>
+                </a>
+                <div class="grid-asym">
+                    <a href="#" class="work-card">
+                        <div class="work-media"><img
+                                src="https://images.unsplash.com/photo-1633167606204-2050806e10b5?auto=format&fit=crop&w=800"
+                                alt="Work 2"></div>
+                        <h3>Kynetix Dashboard</h3>
+                        <p style="font-size: 0.8rem; text-transform: uppercase;">UI System / 2023</p>
+                    </a>
+                    <a href="#" class="work-card" style="margin-top: 100px;">
+                        <div class="work-media"><img
+                                src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=800"
+                                alt="Work 3"></div>
+                        <h3>Aero Configurator</h3>
+                        <p style="font-size: 0.8rem; text-transform: uppercase;">3D Real-time / 2024</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. METODO (CHIARO) -->
+        <section id="metodo" class="method-trigger main-content"
+            style="background: transparent; transition: background 1s ease;">
+            <div class="container">
+                <div class="grid-asym">
+                    <h2 class="display-large">Il Metodo</h2>
+                    <div>
+                        <p class="display-medium">Un equilibrio tra tecnica e immaginazione.</p>
+                        <p style="margin-top: 32px;">Un flusso di lavoro trasversale che unisce progettazione e sviluppo
+                            senza passaggi superflui. Gestiamo la complessità per garantire un impatto reale.</p>
+                    </div>
+                </div>
+                <div class="client-grid" style="margin-top: 120px;">
+                    <div
+                        style="height: 60px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--grid-line);">
+                        BRAND A</div>
+                    <div
+                        style="height: 60px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--grid-line);">
+                        BRAND B</div>
+                    <div
+                        style="height: 60px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--grid-line);">
+                        BRAND C</div>
+                    <div
+                        style="height: 60px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--grid-line);">
+                        BRAND D</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. AMBITI -->
+        <section id="ambiti" class="main-content">
+            <div class="container">
+                <h2 class="display-large">Ambiti</h2>
+                <div class="service-item">
+                    <h3>Brand & Prodotto</h3>
+                    <p>Immaginari riconoscibili attraverso lo spazio.</p>
+                </div>
+                <div class="service-item">
+                    <h3>Spazi & Eventi</h3>
+                    <p>Esperienze digitali per luoghi fisici e installazioni.</p>
+                </div>
+                <div class="service-item">
+                    <h3>Sistemi & Configuratori</h3>
+                    <p>Strumenti interattivi per decisioni complesse.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. CONTATTI -->
+        <section id="contatti" class="main-content" style="border-top: 1px solid var(--grid-line);">
+            <div class="container">
+                <div class="grid-asym">
+                    <h2 class="display-large">Insieme a chi le immagina.</h2>
+                    <div>
+                        <p style="margin-bottom: 32px;">Sei un partner o un brand con una visione? Parliamone.</p>
+                        <a href="mailto:info@voltera.studio" class="display-medium"
+                            style="text-decoration: underline;">info@voltera.studio</a>
+                        <div style="display: flex; gap: 40px; margin-top: 64px;">
+                            <a href="#" class="link-hover-std">LinkedIn</a>
+                            <a href="#" class="link-hover-std">Instagram</a>
+                        </div>
+                    </div>
+                </div>
+                <footer>
+                    <p style="font-size: 0.8rem; opacity: 0.4;">© 2024 Voltera Studio. Pistoia, Italia.</p>
+                </footer>
+            </div>
+        </section>
+    </div>
+
+    <!-- MAIN JS MODULE -->
+    <script type="module" src="./js/main.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "voltera-studio",
+  "version": "1.0.0",
+  "description": "Digital Experiences Landing Page - Voltera Studio",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx -y serve ."
+  },
+  "author": "Voltera Studio",
+  "license": "ISC"
+}
