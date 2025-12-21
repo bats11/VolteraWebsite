@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AOX PRO BAKER | Voltera Studio</title>
+
+    <!-- Import Maps for Three.js Modules -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #030303;
+            --bg-secondary: #0a0a0a;
+            --bg-tertiary: #111111;
+            --text-primary: #e8e8e8;
+            --text-secondary: #888888;
+            --accent-cyan: #00d4ff;
+            --accent-platinum: #c8e0f0;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --glow-cyan: rgba(0, 212, 255, 0.3);
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Main Grid Layout */
+        .app-container {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            grid-template-rows: auto 1fr auto;
+            min-height: 100vh;
+            gap: 1px;
+            background: var(--border-subtle);
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: var(--bg-secondary);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: var(--accent-cyan);
+            letter-spacing: 0.1em;
+        }
+
+        .logo-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            color: var(--text-primary);
+        }
+
+        .logo-subtitle {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.15em;
+            margin-top: 2px;
+        }
+
+        .header-status {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.1em;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: var(--accent-cyan);
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                opacity: 0.4;
+                box-shadow: 0 0 4px var(--accent-cyan);
+            }
+
+            50% {
+                opacity: 1;
+                box-shadow: 0 0 12px var(--accent-cyan);
+            }
+        }
+
+        /* Sidebar Panel */
+        .sidebar {
+            background: var(--bg-secondary);
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .panel-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-header {
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 212, 255, 0.03);
+        }
+
+        .drop-zone-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .drop-zone-text {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .drop-zone-text strong {
+            color: var(--accent-cyan);
+            font-weight: 500;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Model Info */
+        .model-info {
+            display: none;
+            padding: 1rem;
+            background: rgba(0, 212, 255, 0.03);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        .model-info.active {
+            display: block;
+        }
+
+        .model-info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .model-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .model-info-label {
+            color: var(--text-secondary);
+        }
+
+        .model-info-value {
+            color: var(--accent-platinum);
+            font-weight: 500;
+        }
+
+        /* Settings Form */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.1em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.8rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #00e5ff;
+            box-shadow: 0 0 20px var(--glow-cyan);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+            margin-top: 0.75rem;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            border-color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Console Log */
+        .console-log {
+            flex: 1;
+            background: var(--bg-primary);
+            font-size: 0.65rem;
+            line-height: 1.8;
+            overflow-y: auto;
+            padding: 1rem;
+            max-height: 200px;
+        }
+
+        .log-entry {
+            opacity: 0.7;
+            padding: 0.2rem 0;
+        }
+
+        .log-entry.success {
+            color: #4ade80;
+        }
+
+        .log-entry.error {
+            color: #f87171;
+        }
+
+        .log-entry.info {
+            color: var(--accent-cyan);
+        }
+
+        .log-timestamp {
+            color: var(--text-secondary);
+            margin-right: 0.5rem;
+        }
+
+        /* Canvas Area */
+        .canvas-area {
+            background: var(--bg-primary);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #preview-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.15em;
+            pointer-events: none;
+        }
+
+        .canvas-stats {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.1em;
+            text-align: right;
+            pointer-events: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            opacity: 0.1;
+            margin-bottom: 1rem;
+        }
+
+        /* Footer */
+        .footer {
+            grid-column: 1 / -1;
+            background: var(--bg-secondary);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid var(--border-subtle);
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.1em;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 2px;
+            background: var(--bg-primary);
+            border-radius: 1px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-cyan);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 60vh auto;
+            }
+
+            .canvas-area {
+                min-height: 400px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">AOX</div>
+                <div>
+                    <div class="logo-text">PRO BAKER</div>
+                    <div class="logo-subtitle">VOLTERA STUDIO UTILITY</div>
+                </div>
+            </div>
+            <div class="header-status">
+                <span class="status-indicator"></span>
+                SYSTEM READY
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <!-- Import Section -->
+            <div class="panel-section">
+                <div class="section-header">01 — IMPORT MODEL</div>
+                <div class="drop-zone" id="drop-zone">
+                    <div class="drop-zone-icon">⬡</div>
+                    <div class="drop-zone-text">
+                        Drop <strong>.GLB</strong> file here<br>
+                        or click to browse
+                    </div>
+                    <input type="file" class="file-input" id="file-input" accept=".glb,.gltf">
+                </div>
+                <div class="model-info" id="model-info">
+                    <div class="model-info-row">
+                        <span class="model-info-label">FILE</span>
+                        <span class="model-info-value" id="info-filename">—</span>
+                    </div>
+                    <div class="model-info-row">
+                        <span class="model-info-label">MESHES</span>
+                        <span class="model-info-value" id="info-meshes">—</span>
+                    </div>
+                    <div class="model-info-row">
+                        <span class="model-info-label">VERTICES</span>
+                        <span class="model-info-value" id="info-vertices">—</span>
+                    </div>
+                    <div class="model-info-row">
+                        <span class="model-info-label">STATUS</span>
+                        <span class="model-info-value" id="info-status">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="panel-section">
+                <div class="section-header">02 — CONFIGURATION</div>
+                <div class="form-group">
+                    <label class="form-label">AMBITO NAME</label>
+                    <input type="text" class="form-input" id="ambito-name"
+                        placeholder="e.g. territorio, societa, economia">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">SAMPLE COUNT</label>
+                    <input type="number" class="form-input" id="sample-count" value="50000" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">TARGET RADIUS</label>
+                    <input type="number" class="form-input" id="target-radius" value="4" step="0.1">
+                </div>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="panel-section">
+                <div class="section-header">03 — GENERATE</div>
+                <button class="btn btn-primary" id="btn-generate" disabled>GENERATE BAKE</button>
+                <button class="btn btn-secondary" id="btn-download" disabled>DOWNLOAD JSON</button>
+                <div class="progress-container" id="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="progress-text">Processing...</div>
+                </div>
+            </div>
+
+            <!-- Console -->
+            <div class="panel-section" style="flex: 1; display: flex; flex-direction: column; padding-bottom: 0;">
+                <div class="section-header">CONSOLE</div>
+                <div class="console-log" id="console-log"></div>
+            </div>
+        </aside>
+
+        <!-- Canvas Area -->
+        <main class="canvas-area" id="canvas-area">
+            <div class="canvas-overlay">PREVIEW // POINT CLOUD</div>
+            <div class="empty-state" id="empty-state">
+                <div class="empty-state-icon">◇</div>
+                <div>NO MODEL LOADED</div>
+            </div>
+            <canvas id="preview-canvas" style="display: none;"></canvas>
+            <div class="canvas-stats" id="canvas-stats" style="display: none;">
+                <div id="stats-points">POINTS: 0</div>
+                <div id="stats-fps">FPS: 0</div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div>AOX PRO BAKER v1.0 — THREE.JS r160</div>
+            <div>© 2024 VOLTERA STUDIO</div>
+        </footer>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { MeshSurfaceSampler } from 'three/addons/math/MeshSurfaceSampler.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+
+        // ============================================
+        // STATE
+        // ============================================
+        const state = {
+            loadedModel: null,
+            mergedGeometry: null,
+            sampledPoints: null,
+            scene: null,
+            camera: null,
+            renderer: null,
+            controls: null,
+            pointCloud: null,
+            animationId: null,
+            lastTime: performance.now()
+        };
+
+        // ============================================
+        // DOM ELEMENTS
+        // ============================================
+        const dom = {
+            dropZone: document.getElementById('drop-zone'),
+            fileInput: document.getElementById('file-input'),
+            modelInfo: document.getElementById('model-info'),
+            infoFilename: document.getElementById('info-filename'),
+            infoMeshes: document.getElementById('info-meshes'),
+            infoVertices: document.getElementById('info-vertices'),
+            infoStatus: document.getElementById('info-status'),
+            ambitoName: document.getElementById('ambito-name'),
+            sampleCount: document.getElementById('sample-count'),
+            targetRadius: document.getElementById('target-radius'),
+            btnGenerate: document.getElementById('btn-generate'),
+            btnDownload: document.getElementById('btn-download'),
+            progressContainer: document.getElementById('progress-container'),
+            progressFill: document.getElementById('progress-fill'),
+            progressText: document.getElementById('progress-text'),
+            consoleLog: document.getElementById('console-log'),
+            canvasArea: document.getElementById('canvas-area'),
+            emptyState: document.getElementById('empty-state'),
+            canvas: document.getElementById('preview-canvas'),
+            canvasStats: document.getElementById('canvas-stats'),
+            statsPoints: document.getElementById('stats-points'),
+            statsFps: document.getElementById('stats-fps')
+        };
+
+        // ============================================
+        // CONSOLE LOGGER
+        // ============================================
+        function log(message, type = '') {
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `<span class="log-timestamp">[${time}]</span>${message}`;
+            dom.consoleLog.appendChild(entry);
+            dom.consoleLog.scrollTop = dom.consoleLog.scrollHeight;
+        }
+
+        // ============================================
+        // THREE.JS SETUP
+        // ============================================
+        function initThree() {
+            const container = dom.canvasArea;
+            const canvas = dom.canvas;
+
+            state.scene = new THREE.Scene();
+
+            state.camera = new THREE.PerspectiveCamera(
+                50,
+                container.clientWidth / container.clientHeight,
+                0.1,
+                1000
+            );
+            state.camera.position.set(0, 0, 12);
+
+            state.renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                antialias: true,
+                alpha: true
+            });
+            state.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            state.renderer.setSize(container.clientWidth, container.clientHeight);
+            state.renderer.setClearColor(0x030303, 1);
+
+            // Orbit Controls
+            state.controls = new OrbitControls(state.camera, canvas);
+            state.controls.enableDamping = true;
+            state.controls.dampingFactor = 0.05;
+            state.controls.enablePan = false;
+            state.controls.minDistance = 5;
+            state.controls.maxDistance = 30;
+
+            // Grid Helper (subtle)
+            const gridHelper = new THREE.GridHelper(10, 20, 0x222222, 0x111111);
+            gridHelper.position.y = -5;
+            state.scene.add(gridHelper);
+
+            // Resize handler
+            window.addEventListener('resize', () => {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                state.camera.aspect = width / height;
+                state.camera.updateProjectionMatrix();
+                state.renderer.setSize(width, height);
+            });
+
+            animate();
+        }
+
+        function animate() {
+            state.animationId = requestAnimationFrame(animate);
+
+            // FPS calculation
+            const now = performance.now();
+            const delta = now - state.lastTime;
+            state.lastTime = now;
+            const fps = Math.round(1000 / delta);
+            dom.statsFps.textContent = `FPS: ${fps}`;
+
+            // Rotate point cloud
+            if (state.pointCloud) {
+                state.pointCloud.rotation.y += 0.002;
+            }
+
+            state.controls.update();
+            state.renderer.render(state.scene, state.camera);
+        }
+
+        // ============================================
+        // FILE HANDLING
+        // ============================================
+        function handleFile(file) {
+            if (!file.name.match(/\.(glb|gltf)$/i)) {
+                log('ERROR: Invalid file format. Use .GLB or .GLTF', 'error');
+                return;
+            }
+
+            log(`Loading model: ${file.name}`, 'info');
+            dom.infoFilename.textContent = file.name;
+            dom.modelInfo.classList.add('active');
+            dom.infoStatus.textContent = 'LOADING...';
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                loadGLTF(e.target.result, file.name);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function loadGLTF(arrayBuffer, filename) {
+            const loader = new GLTFLoader();
+
+            loader.parse(arrayBuffer, '', (gltf) => {
+                log('Model parsed successfully', 'success');
+                processGLTF(gltf, filename);
+            }, (error) => {
+                log(`ERROR: ${error.message}`, 'error');
+                dom.infoStatus.textContent = 'ERROR';
+            });
+        }
+
+        function processGLTF(gltf, filename) {
+            const geometries = [];
+            let meshCount = 0;
+            let totalVertices = 0;
+
+            // Traverse and collect all geometries
+            gltf.scene.traverse((child) => {
+                if (child.isMesh && child.geometry) {
+                    meshCount++;
+
+                    // Clone geometry and apply world matrix
+                    const geo = child.geometry.clone();
+                    child.updateWorldMatrix(true, false);
+                    geo.applyMatrix4(child.matrixWorld);
+
+                    // Ensure geometry has position attribute
+                    if (geo.attributes.position) {
+                        // Remove non-position attributes for merging compatibility
+                        const positionOnly = new THREE.BufferGeometry();
+                        positionOnly.setAttribute('position', geo.attributes.position.clone());
+
+                        // Handle indexed geometry
+                        if (geo.index) {
+                            positionOnly.setIndex(geo.index.clone());
+                        }
+
+                        geometries.push(positionOnly);
+                        totalVertices += geo.attributes.position.count;
+                    }
+                }
+            });
+
+            if (geometries.length === 0) {
+                log('ERROR: No valid meshes found in model', 'error');
+                dom.infoStatus.textContent = 'NO MESHES';
+                return;
+            }
+
+            log(`Found ${meshCount} mesh(es) with ${totalVertices.toLocaleString()} vertices`, 'info');
+            dom.infoMeshes.textContent = meshCount;
+            dom.infoVertices.textContent = totalVertices.toLocaleString();
+
+            // Merge all geometries
+            try {
+                state.mergedGeometry = BufferGeometryUtils.mergeGeometries(geometries, false);
+                log('Geometries merged successfully', 'success');
+            } catch (err) {
+                log(`Merge error: ${err.message}`, 'error');
+                // Fallback: use first geometry
+                state.mergedGeometry = geometries[0];
+                log('Using first geometry as fallback', 'info');
+            }
+
+            // Center and normalize
+            state.mergedGeometry.computeBoundingBox();
+            state.mergedGeometry.center();
+
+            const box = state.mergedGeometry.boundingBox;
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const targetRadius = parseFloat(dom.targetRadius.value) || 4;
+            const scale = (targetRadius * 2) / maxDim;
+
+            state.mergedGeometry.scale(scale, scale, scale);
+            log(`Geometry normalized to radius ${targetRadius}`, 'info');
+
+            // Store model reference
+            state.loadedModel = gltf;
+            dom.infoStatus.textContent = 'READY';
+            dom.btnGenerate.disabled = false;
+
+            // Show preview mesh (wireframe)
+            showPreviewMesh();
+
+            log('Model ready for baking', 'success');
+        }
+
+        function showPreviewMesh() {
+            // Remove existing preview
+            if (state.previewMesh) {
+                state.scene.remove(state.previewMesh);
+                state.previewMesh.geometry.dispose();
+                state.previewMesh.material.dispose();
+            }
+
+            // Show canvas
+            dom.emptyState.style.display = 'none';
+            dom.canvas.style.display = 'block';
+            dom.canvasStats.style.display = 'block';
+
+            // Initialize Three.js if not done
+            if (!state.scene) {
+                initThree();
+            }
+
+            // Create wireframe preview
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x00d4ff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3
+            });
+
+            state.previewMesh = new THREE.Mesh(state.mergedGeometry, material);
+            state.scene.add(state.previewMesh);
+
+            log('Preview mesh displayed', 'info');
+        }
+
+        // ============================================
+        // BAKING PROCESS
+        // ============================================
+        async function generateBake() {
+            if (!state.mergedGeometry) {
+                log('ERROR: No geometry loaded', 'error');
+                return;
+            }
+
+            const sampleCount = parseInt(dom.sampleCount.value) || 50000;
+            log(`Starting bake process: ${sampleCount.toLocaleString()} samples`, 'info');
+
+            dom.progressContainer.classList.add('active');
+            dom.progressFill.style.width = '0%';
+            dom.progressText.textContent = 'Initializing sampler...';
+            dom.btnGenerate.disabled = true;
+
+            // Create mesh for sampler
+            const tempMesh = new THREE.Mesh(state.mergedGeometry, new THREE.MeshBasicMaterial());
+
+            // Initialize sampler
+            let sampler;
+            try {
+                sampler = new MeshSurfaceSampler(tempMesh).build();
+                log('Surface sampler initialized', 'success');
+            } catch (err) {
+                log(`Sampler error: ${err.message}`, 'error');
+                dom.progressContainer.classList.remove('active');
+                dom.btnGenerate.disabled = false;
+                return;
+            }
+
+            // Sample points with progress updates
+            const points = new Float32Array(sampleCount * 3);
+            const position = new THREE.Vector3();
+            const batchSize = 5000;
+
+            for (let i = 0; i < sampleCount; i++) {
+                sampler.sample(position);
+                points[i * 3] = position.x;
+                points[i * 3 + 1] = position.y;
+                points[i * 3 + 2] = position.z;
+
+                // Update progress periodically
+                if (i % batchSize === 0) {
+                    const progress = Math.round((i / sampleCount) * 100);
+                    dom.progressFill.style.width = `${progress}%`;
+                    dom.progressText.textContent = `Sampling: ${i.toLocaleString()} / ${sampleCount.toLocaleString()}`;
+
+                    // Yield to UI
+                    await new Promise(r => setTimeout(r, 0));
+                }
+            }
+
+            dom.progressFill.style.width = '100%';
+            dom.progressText.textContent = 'Bake complete!';
+
+            state.sampledPoints = points;
+            log(`Baking complete: ${sampleCount.toLocaleString()} points sampled`, 'success');
+
+            // Create point cloud visualization
+            createPointCloud(points);
+
+            dom.btnDownload.disabled = false;
+            dom.btnGenerate.disabled = false;
+
+            // Hide progress after delay
+            setTimeout(() => {
+                dom.progressContainer.classList.remove('active');
+            }, 2000);
+        }
+
+        function createPointCloud(points) {
+            // Remove existing point cloud
+            if (state.pointCloud) {
+                state.scene.remove(state.pointCloud);
+                state.pointCloud.geometry.dispose();
+                state.pointCloud.material.dispose();
+            }
+
+            // Remove preview mesh
+            if (state.previewMesh) {
+                state.scene.remove(state.previewMesh);
+                state.previewMesh.geometry.dispose();
+                state.previewMesh.material.dispose();
+                state.previewMesh = null;
+            }
+
+            // Create point cloud geometry
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(points, 3));
+
+            // Platinum azure material
+            const material = new THREE.PointsMaterial({
+                color: 0xc8e0f0,
+                size: 0.02,
+                transparent: true,
+                opacity: 0.7,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                sizeAttenuation: true
+            });
+
+            state.pointCloud = new THREE.Points(geometry, material);
+            state.scene.add(state.pointCloud);
+
+            // Update stats
+            dom.statsPoints.textContent = `POINTS: ${(points.length / 3).toLocaleString()}`;
+
+            log('Point cloud visualization created', 'success');
+        }
+
+        // ============================================
+        // EXPORT
+        // ============================================
+        function downloadJSON() {
+            if (!state.sampledPoints) {
+                log('ERROR: No baked data to export', 'error');
+                return;
+            }
+
+            const ambito = dom.ambitoName.value.trim() || 'unnamed_ambito';
+            const count = state.sampledPoints.length / 3;
+
+            const data = {
+                ambito: ambito,
+                count: count,
+                points: Array.from(state.sampledPoints)
+            };
+
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `aox-bake-${ambito.replace(/\s+/g, '_')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            log(`Exported: aox-bake-${ambito}.json (${(json.length / 1024).toFixed(1)} KB)`, 'success');
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+
+        // Drop Zone
+        dom.dropZone.addEventListener('click', () => dom.fileInput.click());
+
+        dom.dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dom.dropZone.classList.add('drag-over');
+        });
+
+        dom.dropZone.addEventListener('dragleave', () => {
+            dom.dropZone.classList.remove('drag-over');
+        });
+
+        dom.dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dom.dropZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        dom.fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        // Buttons
+        dom.btnGenerate.addEventListener('click', generateBake);
+        dom.btnDownload.addEventListener('click', downloadJSON);
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        log('AOX PRO BAKER initialized', 'success');
+        log('Awaiting model import...', 'info');
+
+        // Pre-initialize Three.js
+        initThree();
+
+    </script>
+</body>
+
+</html>
