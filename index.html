@@ -37,7 +37,7 @@
         <div class="logo">VOLTERA</div>
         <div class="nav-links">
             <a href="#visione" class="link-hover-std">Visione</a>
-            <a href="#progetti" class="link-hover-std">Progetti</a>
+            <a href="#aox" class="link-hover-std">AOX</a>
             <a href="#ambiti" class="link-hover-std">Ambiti</a>
             <a href="#metodo" class="link-hover-std">Metodo</a>
             <a href="#collaborazione" class="link-hover-std">Collaborazione</a>
@@ -51,7 +51,7 @@
     <!-- Overlay Mobile -->
     <div class="mobile-overlay" id="mobile-menu">
         <a href="#visione" onclick="toggleMenu()">Visione</a>
-        <a href="#progetti" onclick="toggleMenu()">Progetti</a>
+        <a href="#aox" onclick="toggleMenu()">AOX</a>
         <a href="#ambiti" onclick="toggleMenu()">Ambiti</a>
         <a href="#metodo" onclick="toggleMenu()">Metodo</a>
         <a href="#collaborazione" onclick="toggleMenu()">Collaborazione</a>
@@ -108,32 +108,64 @@
             </div>
         </section>
 
-        <!-- 4. PROGETTI -->
-        <section id="progetti" class="main-content">
-            <div class="container">
-                <h2 class="display-large">Progetti selezionati</h2>
-                <a href="#" class="work-card">
-                    <div class="work-media"><img
-                            src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200"
-                            alt="Work 1"></div>
-                    <h3>Neo-Museum Virtual Tour</h3>
-                    <p style="font-size: 0.8rem; text-transform: uppercase;">WebGL / Experience / 2024</p>
-                </a>
-                <div class="grid-asym">
-                    <a href="#" class="work-card">
-                        <div class="work-media"><img
-                                src="https://images.unsplash.com/photo-1633167606204-2050806e10b5?auto=format&fit=crop&w=800"
-                                alt="Work 2"></div>
-                        <h3>Kynetix Dashboard</h3>
-                        <p style="font-size: 0.8rem; text-transform: uppercase;">UI System / 2023</p>
-                    </a>
-                    <a href="#" class="work-card" style="margin-top: 100px;">
-                        <div class="work-media"><img
-                                src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=800"
-                                alt="Work 3"></div>
-                        <h3>Aero Configurator</h3>
-                        <p style="font-size: 0.8rem; text-transform: uppercase;">3D Real-time / 2024</p>
-                    </a>
+        <!-- 4. AOX - AMBITI DI INTERVENTO -->
+        <section id="aox" class="main-content">
+            <div class="container aox-container">
+                <!-- Header -->
+                <div class="aox-header">
+                    <h2 class="display-large aox-title">Ambiti di Intervento</h2>
+                    <span class="aox-badge">AOX-SYSTEM V.2025</span>
+                </div>
+
+                <!-- 3D Canvas Placeholder -->
+                <div id="aox-canvas-container"></div>
+
+                <!-- Grid 12 colonne con layout staggered -->
+                <div class="aox-tiles-grid">
+                    <!-- Tile 1: Brand -->
+                    <div class="aox-tile aox-tile-1" data-ambito="brand">
+                        <div class="tile-scanner-line"></div>
+                        <h3 class="tile-title">Brand, Prodotto & Comunicazione</h3>
+                        <p class="tile-desc">Esperienze digitali pensate per distinguere, rafforzare l'identità e
+                            costruire una relazione memorabile tra brand e pubblico.</p>
+                        <span class="tile-coords">AOX.01 / 45.7°N</span>
+                    </div>
+
+                    <!-- Tile 2: Spazi -->
+                    <div class="aox-tile aox-tile-2" data-ambito="spazi">
+                        <div class="tile-scanner-line"></div>
+                        <h3 class="tile-title">Spazi Fisici, Eventi & Exhibit</h3>
+                        <p class="tile-desc">Sistemi e ambienti digitali che integrano fisico e virtuale, progettati per
+                            essere attraversati, esplorati e vissuti nello spazio.</p>
+                        <span class="tile-coords">AOX.02 / 32.1°E</span>
+                    </div>
+
+                    <!-- Tile 3: Web -->
+                    <div class="aox-tile aox-tile-3" data-ambito="web">
+                        <div class="tile-scanner-line"></div>
+                        <h3 class="tile-title">Web Esperienziale & App Interattive</h3>
+                        <p class="tile-desc">Esperienze web e web app in cui interazione, 3D e logica applicativa
+                            lavorano insieme in modo fluido e coerente.</p>
+                        <span class="tile-coords">AOX.03 / 18.4°S</span>
+                    </div>
+
+                    <!-- Tile 4: Sistemi -->
+                    <div class="aox-tile aox-tile-4" data-ambito="sistemi">
+                        <div class="tile-scanner-line"></div>
+                        <h3 class="tile-title">Sistemi, Configuratori & Automazioni</h3>
+                        <p class="tile-desc">Soluzioni che combinano interfacce visive e automazioni per rendere
+                            esperienze e processi più solidi ed efficienti.</p>
+                        <span class="tile-coords">AOX.04 / 67.2°W</span>
+                    </div>
+
+                    <!-- Tile 5: Immersive -->
+                    <div class="aox-tile aox-tile-5" data-ambito="immersive">
+                        <div class="tile-scanner-line"></div>
+                        <h3 class="tile-title">Esperienze Immersive AR & VR</h3>
+                        <p class="tile-desc">Progetti immersivi dove lo spazio digitale diventa strumento attivo
+                            dell'esperienza per apprendimento, presentazione o simulazione.</p>
+                        <span class="tile-coords">AOX.05 / 89.0°Z</span>
+                    </div>
                 </div>
             </div>
         </section>

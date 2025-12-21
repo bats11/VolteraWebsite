@@ -16,6 +16,7 @@ window.onload = function () {
     initIcosahedronHero(resizeCallbacks);
     initThemeObserver();
     initTitleFade();
+    initAoxInteraction(resizeCallbacks);
 };
 
 // --- 2. MOBILE MENU ---
@@ -71,3 +72,35 @@ function initTitleFade() {
     window.addEventListener('scroll', onScroll);
     onScroll();
 }
+
+// --- 5. AOX INTERACTION SYSTEM ---
+function initAoxInteraction(resizeCallbacks) {
+    const tiles = document.querySelectorAll('.aox-tile');
+    const canvasContainer = document.getElementById('aox-canvas-container');
+
+    tiles.forEach(tile => {
+        tile.addEventListener('mouseenter', () => {
+            const ambito = tile.dataset.ambito;
+            console.log(`[AOX] Ambito attivo: ${ambito}`);
+            // CustomEvent per sistema 3D disaccoppiato
+            window.dispatchEvent(new CustomEvent('aoxStateChange', {
+                detail: { ambito }
+            }));
+        });
+
+        tile.addEventListener('mouseleave', () => {
+            console.log('[AOX] Ambito disattivato');
+            window.dispatchEvent(new CustomEvent('aoxStateChange', {
+                detail: { ambito: null }
+            }));
+        });
+    });
+
+    // Resize callback per futuro canvas container
+    if (canvasContainer) {
+        resizeCallbacks.push(() => {
+            // Futuro: resize morphing core
+        });
+    }
+}
+
