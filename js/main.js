@@ -1,5 +1,6 @@
 import { initAtmosphericHero } from './scene-atmospheric.js';
 import { initIcosahedronHero } from './scene-icosa.js';
+import { initAoxCore } from './scene-aox.js';
 
 // --- GLOBAL RESIZE MANAGER ---
 const resizeCallbacks = [];
@@ -17,6 +18,7 @@ window.onload = function () {
     initThemeObserver();
     initTitleFade();
     initAoxInteraction(resizeCallbacks);
+    initAoxCore(resizeCallbacks);
 };
 
 // --- 2. MOBILE MENU ---
