@@ -110,21 +110,42 @@ export function initAoxCore(resizeCallbacks) {
         const time = performance.now() * 0.001;
 
         // Ultra-slow Y rotation
-        pointCloud.rotation.y += 0.001;
+        pointCloud.rotation.y += 0.002;
 
-        // Pulsation + Jitter
         const posAttr = geometry.getAttribute('position');
         const baseAttr = geometry.getAttribute('basePosition');
-        const pulse = 1 + Math.sin(time * 0.8) * 0.02;
+
+        // Morphing parameters - SLOWER BUT DEEPER
+        const waveFreq = 0.4;  // Lower frequency for larger waves
+        const waveAmp = 0.8;   // Much higher amplitude for consistent deformation
+        const slowTime = time * 0.3; // Slow down the wave movement
+        const pulse = 1 + Math.sin(slowTime * 1.5) * 0.05;
 
         for (let i = 0; i < COUNT; i++) {
-            const jitterX = (Math.random() - 0.5) * 0.002;
-            const jitterY = (Math.random() - 0.5) * 0.002;
-            const jitterZ = (Math.random() - 0.5) * 0.002;
+            const ix = i * 3;
+            const iy = i * 3 + 1;
+            const iz = i * 3 + 2;
 
-            posAttr.array[i * 3] = baseAttr.array[i * 3] * pulse + jitterX;
-            posAttr.array[i * 3 + 1] = baseAttr.array[i * 3 + 1] * pulse + jitterY;
-            posAttr.array[i * 3 + 2] = baseAttr.array[i * 3 + 2] * pulse + jitterZ;
+            const bx = baseAttr.array[ix];
+            const by = baseAttr.array[iy];
+            const bz = baseAttr.array[iz];
+
+            // 3D Noise-like wave combination using slowTime
+            const noise = Math.sin(bx * waveFreq + slowTime) *
+                Math.cos(by * waveFreq + slowTime * 0.8) *
+                Math.sin(bz * waveFreq + slowTime * 1.2);
+
+            const displacement = noise * waveAmp;
+
+            // Micro-jitter for "active" look (kept fast)
+            const jitterX = (Math.random() - 0.5) * 0.005;
+            const jitterY = (Math.random() - 0.5) * 0.005;
+            const jitterZ = (Math.random() - 0.5) * 0.005;
+
+            // Apply: active morphing
+            posAttr.array[ix] = bx * (pulse + displacement) + jitterX;
+            posAttr.array[iy] = by * (pulse + displacement) + jitterY;
+            posAttr.array[iz] = bz * (pulse + displacement) + jitterZ;
         }
         posAttr.needsUpdate = true;
 
