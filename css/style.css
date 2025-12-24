@@ -525,38 +525,7 @@ footer {
     margin-top: var(--space-sm);
 }
 
-/* Scanner Line */
-.tile-scanner-line {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-    opacity: 0;
-}
 
-.aox-tile:hover .tile-scanner-line {
-    animation: scanner-sweep 1.2s ease-out;
-}
-
-@keyframes scanner-sweep {
-    0% {
-        width: 0;
-        left: 0;
-        opacity: 0;
-    }
-
-    20% {
-        opacity: 1;
-    }
-
-    100% {
-        width: 100%;
-        left: 0;
-        opacity: 0;
-    }
-}
 
 /* Tile Typography */
 .tile-title {
