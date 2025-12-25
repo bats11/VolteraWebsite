@@ -540,6 +540,7 @@ footer {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 0 40px var(--tile-glow);
+    overflow: visible;
 }
 
 /* Staggered Grid Layout */
@@ -603,6 +604,70 @@ footer {
     opacity: 0.4;
 }
 
+/* --- Satellite Info-Boxes --- */
+.aox-panel {
+    position: absolute;
+    top: 0;
+    width: 280px;
+    padding: var(--space-sm);
+    border: 0.5px solid rgba(200, 200, 210, 0.15);
+    background: rgba(8, 8, 8, 0);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 20;
+}
+
+/* Smart Docking */
+.panel-right {
+    left: 100%;
+    margin-left: var(--space-xs);
+    transform: translateX(-20px);
+}
+
+.panel-left {
+    right: 100%;
+    margin-right: var(--space-xs);
+    transform: translateX(20px);
+}
+
+/* Reveal on Hover */
+.aox-tile:hover .aox-panel {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+}
+
+/* Panel Typography */
+.panel-title {
+    font-family: var(--font-main);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #FFFFFF;
+    margin-bottom: var(--space-xs);
+    padding-bottom: 8px;
+    border-bottom: 0.5px solid rgba(200, 200, 210, 0.1);
+}
+
+.panel-specs {
+    list-style: none;
+    font-family: var(--font-tech);
+    font-weight: 400;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.panel-specs li::before {
+    content: '—';
+    margin-right: 8px;
+    opacity: 0.4;
+}
+
 /* Responsive AOX */
 @media (max-width: 1024px) {
     .aox-tiles-grid {
@@ -616,6 +681,23 @@ footer {
     .aox-tile-5 {
         grid-column: span 3;
         margin-top: 0;
+    }
+
+    /* Panel Mobile Behavior */
+    .aox-panel {
+        position: relative;
+        top: auto;
+        left: auto !important;
+        right: auto !important;
+        width: 100%;
+        margin-top: var(--space-xs);
+        margin-left: 0;
+        margin-right: 0;
+        transform: translateY(-10px);
+    }
+
+    .aox-tile:hover .aox-panel {
+        transform: translateY(0);
     }
 }
 
