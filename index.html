@@ -38,6 +38,7 @@
         <div class="nav-links">
             <a href="#visione" class="link-hover-std">Visione</a>
             <a href="#aox" class="link-hover-std">AOX</a>
+            <a href="#showcase" class="link-hover-std">Showcase</a>
             <a href="#ambiti" class="link-hover-std">Ambiti</a>
             <a href="#metodo" class="link-hover-std">Metodo</a>
             <a href="#collaborazione" class="link-hover-std">Collaborazione</a>
@@ -52,6 +53,7 @@
     <div class="mobile-overlay" id="mobile-menu">
         <a href="#visione" onclick="toggleMenu()">Visione</a>
         <a href="#aox" onclick="toggleMenu()">AOX</a>
+        <a href="#showcase" onclick="toggleMenu()">Showcase</a>
         <a href="#ambiti" onclick="toggleMenu()">Ambiti</a>
         <a href="#metodo" onclick="toggleMenu()">Metodo</a>
         <a href="#collaborazione" onclick="toggleMenu()">Collaborazione</a>
@@ -236,6 +238,30 @@
                             <span class="panel-coords">DATA_REF: 89.0 / 15.3 | STATUS: ACTIVE</span>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4.5 SHOWCASE - THE INFINITE MAP -->
+        <section id="showcase">
+            <div class="showcase-sticky">
+                <div id="showcase-canvas"></div>
+
+                <!-- UI Overlay -->
+                <div class="showcase-ui">
+                    <div class="showcase-label">SHOWCASE</div>
+                    <div id="showcase-hud">
+                        <span class="hud-ref"></span>
+                        <span class="hud-status"></span>
+                    </div>
+                    <a href="#" class="showcase-cta">Vedi tutti i case studies</a>
+                </div>
+
+                <!-- Project Detail Overlay (hidden by default) -->
+                <div id="project-detail" class="project-detail hidden">
+                    <h2 class="project-title"></h2>
+                    <p class="project-meta"></p>
+                    <button class="project-close">×</button>
                 </div>
             </div>
         </section>
