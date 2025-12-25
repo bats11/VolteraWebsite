@@ -1,6 +1,7 @@
 import { initAtmosphericHero } from './scene-atmospheric.js';
 import { initIcosahedronHero } from './scene-icosa.js';
 import { initAoxCore } from './scene-aox.js';
+import { initShowcaseMap } from './scene-showcase.js';
 
 // --- GLOBAL RESIZE MANAGER ---
 const resizeCallbacks = [];
@@ -19,6 +20,7 @@ window.onload = function () {
     initTitleFade();
     initAoxInteraction(resizeCallbacks);
     initAoxCore(resizeCallbacks);
+    initShowcaseMap(resizeCallbacks);
 };
 
 // --- 2. MOBILE MENU ---
@@ -36,16 +38,33 @@ if (burger) {
     burger.addEventListener('click', window.toggleMenu);
 }
 
-// --- 3. THEME OBSERVER ---
+// --- 3. THEME OBSERVER (Bidirectional Dark-Lock) ---
 function initThemeObserver() {
-    const observer = new IntersectionObserver((entries) => {
+    // Light theme trigger (Metodo section)
+    const lightObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.isIntersecting) { document.body.classList.add('light-theme'); }
-            else { document.body.classList.remove('light-theme'); }
+            if (entry.isIntersecting) {
+                document.body.classList.add('light-theme');
+            } else {
+                document.body.classList.remove('light-theme');
+            }
         });
     }, { threshold: 0.2 });
-    const trigger = document.querySelector('.method-trigger');
-    if (trigger) observer.observe(trigger);
+
+    const metodoTrigger = document.querySelector('.method-trigger');
+    if (metodoTrigger) lightObserver.observe(metodoTrigger);
+
+    // Dark theme lock (Showcase section - "buffer di oscurità assoluta")
+    const darkObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                document.body.classList.remove('light-theme');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    const showcaseSection = document.getElementById('showcase');
+    if (showcaseSection) darkObserver.observe(showcaseSection);
 }
 
 // --- 4. TITLE SCROLL FADE ---

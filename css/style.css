@@ -791,3 +791,165 @@ footer {
         gap: var(--space-xs);
     }
 }
+
+/* --- 8. SHOWCASE SECTION (The Infinite Map) --- */
+#showcase {
+    height: 300vh;
+    background: #080808;
+    position: relative;
+}
+
+.showcase-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+}
+
+#showcase-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+/* UI Overlay - Wireframe/Technical Style */
+.showcase-ui {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    padding: var(--space-sm) 5%;
+}
+
+.showcase-label {
+    font-family: var(--font-main);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.4;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    padding-left: 12px;
+}
+
+.showcase-cta {
+    position: absolute;
+    bottom: var(--space-md);
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-main);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 16px 32px;
+    pointer-events: auto;
+    transition: all 0.5s var(--ease-out-expo);
+}
+
+.showcase-cta:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* HUD Container - Technical Display */
+#showcase-hud {
+    position: absolute;
+    bottom: 120px;
+    left: 5%;
+    font-family: var(--font-main);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+}
+
+#showcase-hud.active {
+    opacity: 0.6;
+}
+
+#showcase-hud .hud-ref,
+#showcase-hud .hud-status {
+    display: block;
+    line-height: 1.8;
+}
+
+/* Project Detail Overlay */
+.project-detail {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(8, 8, 8, 0.95);
+    opacity: 1;
+    transition: opacity 0.8s var(--ease-out-expo);
+}
+
+.project-detail.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.project-title {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-align: center;
+    line-height: 1;
+}
+
+.project-meta {
+    font-family: var(--font-main);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-top: var(--space-sm);
+}
+
+.project-close {
+    position: absolute;
+    top: var(--space-sm);
+    right: 5%;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.project-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Showcase Responsive */
+@media (max-width: 768px) {
+    .showcase-label {
+        font-size: 0.6rem;
+    }
+
+    .showcase-cta {
+        font-size: 0.65rem;
+        padding: 12px 24px;
+    }
+
+    #showcase-hud {
+        bottom: 100px;
+        font-size: 0.55rem;
+    }
+
+    .project-title {
+        padding: 0 5%;
+    }
+}
