@@ -10,7 +10,7 @@ window.addEventListener('resize', () => {
 });
 
 // --- 1. GLOBAL INIT ---
-window.onload = async function () {
+window.onload = function () {
     if (window.lucide) {
         window.lucide.createIcons();
     }
@@ -24,16 +24,12 @@ window.onload = async function () {
     const icosa = initIcosahedronHero(resizeCallbacks);
     if (icosa) sceneControllers.set('hero-canvas-icosa', icosa);
 
+    const showcase = initShowcaseMap(resizeCallbacks);
+    if (showcase) sceneControllers.set('showcase-canvas', showcase);
+
     initThemeObserver();
     initTitleFade();
     initAoxInteraction(resizeCallbacks);
-
-    // Async init for AOX
-    const aox = await initAoxCore(resizeCallbacks);
-    if (aox) sceneControllers.set('aox-canvas-container', aox);
-
-    const showcase = initShowcaseMap(resizeCallbacks);
-    if (showcase) sceneControllers.set('showcase-canvas', showcase);
 
     // --- VISIBILITY MANAGEMENT (IntersectionObserver) ---
     const visibilityObserver = new IntersectionObserver((entries) => {
@@ -54,10 +50,28 @@ window.onload = async function () {
         threshold: 0
     });
 
-    // Observe all registered scene containers
+    // Observe synchronous scenes
     sceneControllers.forEach((_, id) => {
         const el = document.getElementById(id);
         if (el) visibilityObserver.observe(el);
+    });
+
+    // --- ASYNC AOX (Parallel & Non-Blocking) ---
+    initAoxCore(resizeCallbacks).then(aox => {
+        if (aox) {
+            const id = 'aox-canvas-container';
+            sceneControllers.set(id, aox);
+
+            const el = document.getElementById(id);
+            if (el) {
+                visibilityObserver.observe(el);
+                // Manual check if already in view after async load
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight + 200 && rect.bottom > 0) {
+                    aox.start();
+                }
+            }
+        }
     });
 };
 
