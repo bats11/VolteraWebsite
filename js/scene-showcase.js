@@ -37,6 +37,11 @@ export function initShowcaseMap(resizeCallbacks) {
             status: 'STATUS: IMMERSIVE',
             meta: 'Brand Experience / WebGL',
             position: new THREE.Vector3(-4, 0, 5),
+            light: {
+                intensity: 5,
+                color: 0xffffff,
+                offset: { x: 0, y: 0.5, z: 2 }
+            },
             geometry: 'fragmented'
         },
         {
@@ -46,6 +51,10 @@ export function initShowcaseMap(resizeCallbacks) {
             status: 'SECTOR: LOGISTICS',
             meta: 'VR Training / Simulation',
             position: new THREE.Vector3(5, 0, -5),
+            light: {
+                intensity: 5,
+                color: 0xff0000
+            },
             geometry: 'plates'
         },
         {
@@ -112,11 +121,11 @@ export function initShowcaseMap(resizeCallbacks) {
     container.appendChild(renderer.domElement);
 
     // --- LIGHTING ---
-    ambientLight = new THREE.AmbientLight(0xffffff, 0.02);
+    ambientLight = new THREE.AmbientLight(0xffffff, 1);
     scene.add(ambientLight);
 
-    pointLight = new THREE.PointLight(0xffffff, 5, 15, 2);
-    pointLight.position.set(0, 3, CAMERA_START_Z);
+    pointLight = new THREE.PointLight(0xffffff, 0.2, 0, 2);
+    pointLight.position.set(0, 50, CAMERA_START_Z); // Zenithal position
     scene.add(pointLight);
 
     // Torchlight breathing for touch devices
@@ -130,12 +139,18 @@ export function initShowcaseMap(resizeCallbacks) {
         });
     }
 
-    // --- GRID PLANE ---
-    const gridHelper = new THREE.GridHelper(100, 50, 0x111111, 0x111111);
-    gridHelper.material.opacity = 0.05;
-    gridHelper.material.transparent = true;
-    gridHelper.position.y = -1.5;
-    scene.add(gridHelper);
+    // --- NOCTURNAL PLANE ---
+    const ground = new THREE.Mesh(
+        new THREE.PlaneGeometry(200, 200),
+        new THREE.MeshStandardMaterial({
+            color: 0x050505,
+            roughness: 0.9,
+            metalness: 0.1
+        })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -1.5;
+    scene.add(ground);
 
     // --- SHARED MATERIAL ---
     const sharedMaterial = new THREE.MeshStandardMaterial({
@@ -250,6 +265,27 @@ export function initShowcaseMap(resizeCallbacks) {
 
         monolith.position.copy(project.position);
         monolith.userData = project;
+
+        // --- BEACON LIGHT ---
+        const defaultLight = {
+            color: 0xffffff,
+            intensity: 2.0,
+            distance: 10,
+            decay: 2.0,
+            offset: { x: 0, y: 2, z: 0 }
+        };
+
+        const config = {
+            ...defaultLight,
+            ...project.light,
+            offset: { ...defaultLight.offset, ...(project.light?.offset || {}) }
+        };
+
+        const beacon = new THREE.PointLight(config.color, config.intensity, config.distance, config.decay);
+        beacon.position.set(config.offset.x, config.offset.y, config.offset.z);
+        beacon.castShadow = false;
+        monolith.add(beacon);
+
         scene.add(monolith);
         monoliths.push(monolith);
     });
@@ -271,7 +307,8 @@ export function initShowcaseMap(resizeCallbacks) {
         raycaster.setFromCamera(mouse, camera);
         raycaster.ray.intersectPlane(planeZ, mouseWorld);
 
-        // Mouse light tracking (desktop only)
+        // Mouse light tracking (disabled for Beacons system)
+        /*
         if (!isTouchDevice && typeof gsap !== 'undefined') {
             gsap.to(pointLight.position, {
                 x: mouseWorld.x,
@@ -280,6 +317,7 @@ export function initShowcaseMap(resizeCallbacks) {
                 ease: "power2.out"
             });
         }
+        */
 
         // Raycast for hover detection
         updateHoverState();
