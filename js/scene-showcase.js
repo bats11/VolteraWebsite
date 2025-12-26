@@ -38,9 +38,10 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'Brand Experience / WebGL',
             position: new THREE.Vector3(-4, 0, 5),
             light: {
-                intensity: 5,
+                intensity: 10,
                 color: 0xffffff,
-                offset: { x: 0, y: 0.5, z: 2 }
+                offset: { x: 0, y: 0.5, z: 3 },
+                distance: 30
             },
             geometry: 'fragmented'
         },
@@ -52,8 +53,10 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'VR Training / Simulation',
             position: new THREE.Vector3(5, 0, -5),
             light: {
-                intensity: 5,
-                color: 0xff0000
+                intensity: 30,
+                color: 0xff0000,
+                distance: 30,
+
             },
             geometry: 'plates'
         },
@@ -118,6 +121,9 @@ export function initShowcaseMap(resizeCallbacks) {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setClearColor(0x080808, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
     container.appendChild(renderer.domElement);
 
     // --- LIGHTING ---
@@ -145,7 +151,8 @@ export function initShowcaseMap(resizeCallbacks) {
         new THREE.MeshStandardMaterial({
             color: 0x050505,
             roughness: 0.9,
-            metalness: 0.1
+            metalness: 0.1,
+            dithering: true
         })
     );
     ground.rotation.x = -Math.PI / 2;
@@ -158,7 +165,8 @@ export function initShowcaseMap(resizeCallbacks) {
         roughness: 0.8,
         metalness: 0.2,
         emissive: 0x222222,
-        emissiveIntensity: 0.1
+        emissiveIntensity: 0.1,
+        dithering: true
     });
 
     // --- GEOMETRY FACTORIES ---
