@@ -920,8 +920,10 @@ footer {
 
 .project-close {
     position: absolute;
-    top: var(--space-sm);
+    top: 120px;
     right: 5%;
+    z-index: 1001;
+    pointer-events: auto;
     background: none;
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: var(--text-primary);

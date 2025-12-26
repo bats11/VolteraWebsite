@@ -94,6 +94,7 @@ export function initShowcaseMap(resizeCallbacks) {
     let monoliths = [];
     let raycaster, mouse;
     let isZooming = false;
+    let cameraSnapshot = new THREE.Vector3(); // Snapshot for exact return
     let currentHoveredMonolith = null;
     let scrollProgress = 0;
     let isRunning = false;
@@ -306,6 +307,8 @@ export function initShowcaseMap(resizeCallbacks) {
     let mouseWorld = new THREE.Vector3(0, 0, 0);
 
     function onMouseMove(event) {
+        if (isZooming) return; // Block HUD/Light updates during zoom/return
+
         const rect = container.getBoundingClientRect();
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -413,6 +416,10 @@ export function initShowcaseMap(resizeCallbacks) {
     // --- DOLLY ZOOM ---
     function zoomToProject(monolith) {
         if (!projectDetail || !projectTitle || !projectMeta) return;
+
+        // Save current camera position before zoom
+        cameraSnapshot.copy(camera.position);
+
         isZooming = true;
 
         const targetPos = monolith.position.clone();
@@ -444,12 +451,25 @@ export function initShowcaseMap(resizeCallbacks) {
         if (!projectDetail) return;
         projectDetail.classList.add('hidden');
 
-        // Reset camera based on current scroll
-        updateCameraFromScroll();
-
-        setTimeout(() => {
+        // Smooth return to snapshot
+        if (typeof gsap !== 'undefined') {
+            gsap.to(camera.position, {
+                x: cameraSnapshot.x,
+                y: cameraSnapshot.y,
+                z: cameraSnapshot.z,
+                duration: 1.2,
+                ease: VOLTERA_EASE,
+                onComplete: () => {
+                    isZooming = false;
+                    // Sync with scroll only after animation finishes to prevent jumps
+                    updateCameraFromScroll();
+                }
+            });
+        } else {
+            // Fallback if GSAP missing (should not happen based on requirements)
             isZooming = false;
-        }, 800);
+            updateCameraFromScroll();
+        }
     }
 
     // --- SCROLL-DRIVEN CAMERA ---
