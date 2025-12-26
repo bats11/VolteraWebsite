@@ -10,17 +10,55 @@ window.addEventListener('resize', () => {
 });
 
 // --- 1. GLOBAL INIT ---
-window.onload = function () {
+window.onload = async function () {
     if (window.lucide) {
         window.lucide.createIcons();
     }
-    initAtmosphericHero(resizeCallbacks);
-    initIcosahedronHero(resizeCallbacks);
+
+    // Map to store scene controllers keyed by container ID
+    const sceneControllers = new Map();
+
+    const atmospheric = initAtmosphericHero(resizeCallbacks);
+    if (atmospheric) sceneControllers.set('canvas-container', atmospheric);
+
+    const icosa = initIcosahedronHero(resizeCallbacks);
+    if (icosa) sceneControllers.set('hero-canvas-icosa', icosa);
+
     initThemeObserver();
     initTitleFade();
     initAoxInteraction(resizeCallbacks);
-    initAoxCore(resizeCallbacks);
-    initShowcaseMap(resizeCallbacks);
+
+    // Async init for AOX
+    const aox = await initAoxCore(resizeCallbacks);
+    if (aox) sceneControllers.set('aox-canvas-container', aox);
+
+    const showcase = initShowcaseMap(resizeCallbacks);
+    if (showcase) sceneControllers.set('showcase-canvas', showcase);
+
+    // --- VISIBILITY MANAGEMENT (IntersectionObserver) ---
+    const visibilityObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const containerId = entry.target.id;
+            const scene = sceneControllers.get(containerId);
+
+            if (scene) {
+                if (entry.isIntersecting) {
+                    scene.start();
+                } else {
+                    scene.stop();
+                }
+            }
+        });
+    }, {
+        rootMargin: '0px 0px 200px 0px', // Start slightly before entering viewport
+        threshold: 0
+    });
+
+    // Observe all registered scene containers
+    sceneControllers.forEach((_, id) => {
+        const el = document.getElementById(id);
+        if (el) visibilityObserver.observe(el);
+    });
 };
 
 // --- 2. MOBILE MENU ---

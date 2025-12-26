@@ -84,6 +84,8 @@ export function initShowcaseMap(resizeCallbacks) {
     let isZooming = false;
     let currentHoveredMonolith = null;
     let scrollProgress = 0;
+    let isRunning = false;
+    let rafId = null;
 
     // --- SCENE SETUP ---
     scene = new THREE.Scene();
@@ -476,7 +478,8 @@ export function initShowcaseMap(resizeCallbacks) {
 
     // --- ANIMATION LOOP ---
     function animate() {
-        requestAnimationFrame(animate);
+        if (!isRunning) return;
+        rafId = requestAnimationFrame(animate);
 
         // Slow rotation for monoliths
         monoliths.forEach((m, i) => {
@@ -485,10 +488,24 @@ export function initShowcaseMap(resizeCallbacks) {
 
         renderer.render(scene, camera);
     }
-    animate();
 
     // Initial scroll position
     updateCameraFromScroll();
 
     console.log('[Showcase] The Infinite Map initialized');
+
+    return {
+        start: () => {
+            if (isRunning) return;
+            isRunning = true;
+            animate();
+            console.log('[Showcase] Scene started');
+        },
+        stop: () => {
+            isRunning = false;
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = null;
+            console.log('[Showcase] Scene stopped');
+        }
+    };
 }

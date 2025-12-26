@@ -14,6 +14,8 @@ export async function initAoxCore(resizeCallbacks) {
     // --- VARIABLES ---
     let scene, camera, renderer;
     let pointCloud, geometry, shaderMaterial;
+    let isRunning = false;
+    let rafId = null;
 
     const container = document.getElementById('aox-canvas-container');
     if (!container) return;
@@ -173,7 +175,8 @@ export async function initAoxCore(resizeCallbacks) {
 
     // --- ANIMATION LOOP ---
     function animate() {
-        requestAnimationFrame(animate);
+        if (!isRunning) return;
+        rafId = requestAnimationFrame(animate);
 
         // Update uTime uniform for shader breathing effect
         shaderMaterial.uniforms.uTime.value = performance.now() * 0.001;
@@ -183,5 +186,19 @@ export async function initAoxCore(resizeCallbacks) {
 
         renderer.render(scene, camera);
     }
-    animate();
+
+    return {
+        start: () => {
+            if (isRunning) return;
+            isRunning = true;
+            animate();
+            console.log('[AOX] Scene started');
+        },
+        stop: () => {
+            isRunning = false;
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = null;
+            console.log('[AOX] Scene stopped');
+        }
+    };
 }

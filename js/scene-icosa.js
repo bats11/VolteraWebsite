@@ -15,6 +15,9 @@ export function initIcosahedronHero(resizeCallbacks) {
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.z = 18;
 
+    let isRunning = false;
+    let rafId = null;
+
     // ═══════════════════════════════════════════════════════════════
     // SPATIAL MODULE GROUP
     // ═══════════════════════════════════════════════════════════════
@@ -52,8 +55,8 @@ export function initIcosahedronHero(resizeCallbacks) {
     // ═══════════════════════════════════════════════════════════════
     // FORCE-LINE AXES (3 main structural axes)
     // ═══════════════════════════════════════════════════════════════
-    const axisMaterial = new THREE.MeshBasicMaterial({ 
-        color: gridColor, transparent: true, opacity: 0.4 
+    const axisMaterial = new THREE.MeshBasicMaterial({
+        color: gridColor, transparent: true, opacity: 0.4
     });
     const axisThickness = 0.06;
     const axisLength = 12;
@@ -130,9 +133,9 @@ export function initIcosahedronHero(resizeCallbacks) {
     // MOUSE INTERACTION
     // ═══════════════════════════════════════════════════════════════
     let mx = 0, my = 0;
-    window.addEventListener('mousemove', (e) => { 
-        mx = e.clientX - window.innerWidth / 2; 
-        my = e.clientY - window.innerHeight / 2; 
+    window.addEventListener('mousemove', (e) => {
+        mx = e.clientX - window.innerWidth / 2;
+        my = e.clientY - window.innerHeight / 2;
     });
 
     // ═══════════════════════════════════════════════════════════════
@@ -144,11 +147,11 @@ export function initIcosahedronHero(resizeCallbacks) {
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // ═══════════════════════════════════════════════════════════════
     // ANIMATION: Asymmetric rotation + Breathing + Parallax
     // ═══════════════════════════════════════════════════════════════
     function anim() {
-        requestAnimationFrame(anim);
+        if (!isRunning) return;
+        rafId = requestAnimationFrame(anim);
 
         const time = Date.now() * 0.001;
 
@@ -166,5 +169,19 @@ export function initIcosahedronHero(resizeCallbacks) {
 
         renderer.render(scene, camera);
     }
-    anim();
+
+    return {
+        start: () => {
+            if (isRunning) return;
+            isRunning = true;
+            anim();
+            console.log('[Icosa] Scene started');
+        },
+        stop: () => {
+            isRunning = false;
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = null;
+            console.log('[Icosa] Scene stopped');
+        }
+    };
 }

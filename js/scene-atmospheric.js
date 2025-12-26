@@ -22,6 +22,8 @@ export function initAtmosphericHero(resizeCallbacks) {
     let scene, camera, renderer, composer, controls;
     let pyramidGroup, ring, floatingObj, atmosphere;
     let internalLight, ambient;
+    let isRunning = false;
+    let rafId = null;
 
     const container = document.getElementById('canvas-container');
     if (!container) return;
@@ -168,7 +170,9 @@ export function initAtmosphericHero(resizeCallbacks) {
 
     // Animate
     function animate() {
-        requestAnimationFrame(animate);
+        if (!isRunning) return;
+        rafId = requestAnimationFrame(animate);
+
         const time = performance.now() * 0.001;
         controls.update();
 
@@ -181,5 +185,19 @@ export function initAtmosphericHero(resizeCallbacks) {
 
         composer.render();
     }
-    animate();
+
+    return {
+        start: () => {
+            if (isRunning) return;
+            isRunning = true;
+            animate();
+            console.log('[Atmospheric] Scene started');
+        },
+        stop: () => {
+            isRunning = false;
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = null;
+            console.log('[Atmospheric] Scene stopped');
+        }
+    };
 }
