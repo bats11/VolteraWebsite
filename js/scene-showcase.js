@@ -435,6 +435,7 @@ export function initShowcaseMap(resizeCallbacks) {
                 ease: VOLTERA_EASE,
                 onComplete: () => {
                     showProjectDetail(monolith.userData);
+                    lockScroll();
                 }
             });
         }
@@ -461,6 +462,7 @@ export function initShowcaseMap(resizeCallbacks) {
                 ease: VOLTERA_EASE,
                 onComplete: () => {
                     isZooming = false;
+                    unlockScroll();
                     // Sync with scroll only after animation finishes to prevent jumps
                     updateCameraFromScroll();
                 }
@@ -468,6 +470,7 @@ export function initShowcaseMap(resizeCallbacks) {
         } else {
             // Fallback if GSAP missing (should not happen based on requirements)
             isZooming = false;
+            unlockScroll();
             updateCameraFromScroll();
         }
     }
@@ -574,4 +577,16 @@ export function initShowcaseMap(resizeCallbacks) {
             console.log('[Showcase] Scene stopped');
         }
     };
+    // --- SCROLL LOCK HELPERS ---
+    function lockScroll() {
+        // Calculate scrollbar width
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        document.body.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+        document.body.classList.add('scroll-lock');
+    }
+
+    function unlockScroll() {
+        document.body.classList.remove('scroll-lock');
+        document.body.style.removeProperty('--scrollbar-width');
+    }
 }

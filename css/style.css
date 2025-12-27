@@ -84,6 +84,11 @@ body {
     transition: background-color 1.2s var(--ease-out-expo), color 1s ease;
 }
 
+body.scroll-lock {
+    overflow: hidden;
+    padding-right: var(--scrollbar-width, 0px);
+}
+
 /* --- 2. STILI HERO SECTION (ATMOSPHERIC) --- */
 .hero-section {
     position: relative;
@@ -893,6 +898,8 @@ footer {
     background: rgba(8, 8, 8, 0.95);
     opacity: 1;
     transition: opacity 0.8s var(--ease-out-expo);
+    overflow-y: auto;
+    pointer-events: auto;
 }
 
 .project-detail.hidden {
