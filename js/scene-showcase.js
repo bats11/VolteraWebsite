@@ -38,10 +38,10 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'Brand Experience / WebGL',
             position: new THREE.Vector3(-4, 0, 5),
             light: {
-                intensity: 10,
+                intensity: 15,
                 color: 0xffffff,
                 offset: { x: 0, y: 0.5, z: 3 },
-                distance: 30
+                distance: 10,
             },
             geometry: 'fragmented'
         },
