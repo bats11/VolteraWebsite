@@ -399,22 +399,42 @@ export function initShowcaseMap(resizeCallbacks) {
     ]);
 
     // Strategic UV mapping: center video on each triangular face
+    // Remapped (* 0.6 + 0.2) to center video content
     const uvs = new Float32Array([
-        // Each face: top-center, bottom-left, bottom-right
-        0.5, 1.0, 0.0, 0.0, 1.0, 0.0,  // Face 1
-        0.5, 1.0, 0.0, 0.0, 1.0, 0.0,  // Face 2
-        0.5, 1.0, 0.0, 0.0, 1.0, 0.0,  // Face 3
-        0.5, 1.0, 0.0, 0.0, 1.0, 0.0   // Face 4
+        // Each face: top-center, bottom-left, bottom-right (remapped)
+        0.5 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2,  // Face 1
+        0.5 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2,  // Face 2
+        0.5 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2,  // Face 3
+        0.5 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2   // Face 4
     ]);
 
     const coreGeometry = new THREE.BufferGeometry();
     coreGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     coreGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    coreGeometry.getAttribute('position').setUsage(THREE.DynamicDrawUsage); // Enable frequent updates
     coreGeometry.computeVertexNormals(); // Vital for FogExp2 interaction
 
     const coreMesh = new THREE.Mesh(coreGeometry, coreMaterial);
     // No position/rotation needed - geometry already aligned to neon vertices
     propsGroup.add(coreMesh);
+
+    // --- OSCILLATION REFERENCE DATA (fixed references for animation, no allocations) ---
+    const coreOscillation = {
+        // Original neon vertices (fixed)
+        refV0: { x: V0.x, y: V0.y, z: V0.z },
+        refV1: { x: V1.x, y: V1.y, z: V1.z },
+        refV2: { x: V2.x, y: V2.y, z: V2.z },
+        refV3: { x: V3.x, y: V3.y, z: V3.z },
+        // Centroid (fixed)
+        cx: centroid.x,
+        cy: centroid.y,
+        cz: centroid.z,
+        // Speed and phase offset per vertex (asymmetric)
+        speeds: [1.2, 0.9, 1.5, 1.1],
+        offsets: [0, 1.5, 3.0, 4.5],
+        // Inward scale factor (20% lerp toward centroid)
+        inwardLerp: 0.2
+    };
 
     propsGroup.position.set(0, 3, -80);
     scene.add(propsGroup);
@@ -679,10 +699,70 @@ export function initShowcaseMap(resizeCallbacks) {
         renderer.setSize(width, height);
     });
 
+    // --- CORE OSCILLATION UPDATE (optimized: no allocations in loop) ---
+    function updateCoreOscillation(time) {
+        const posArr = coreGeometry.attributes.position.array;
+        const { refV0, refV1, refV2, refV3, cx, cy, cz, speeds, offsets, inwardLerp } = coreOscillation;
+        const refs = [refV0, refV1, refV2, refV3];
+
+        // Temporary storage for oscillated + inward-scaled vertices (reused each frame)
+        let ox0, oy0, oz0, ox1, oy1, oz1, ox2, oy2, oz2, ox3, oy3, oz3;
+
+        // Calculate oscillated positions for each vertex
+        for (let i = 0; i < 4; i++) {
+            const ref = refs[i];
+            // Oscillation factor: 0.2 to 0.8
+            const factor = 0.5 + Math.sin(time * speeds[i] + offsets[i]) * 0.3;
+            // Glitch: small random disturbance
+            const glitch = (Math.random() - 0.5) * 0.05;
+
+            // Lerp from original vertex toward centroid by factor, add glitch
+            const oscX = ref.x + (cx - ref.x) * factor + glitch;
+            const oscY = ref.y + (cy - ref.y) * factor + glitch;
+            const oscZ = ref.z + (cz - ref.z) * factor + glitch;
+
+            // Apply inward scaling (20% lerp toward centroid)
+            const finalX = oscX + (cx - oscX) * inwardLerp;
+            const finalY = oscY + (cy - oscY) * inwardLerp;
+            const finalZ = oscZ + (cz - oscZ) * inwardLerp;
+
+            // Store in temp variables
+            if (i === 0) { ox0 = finalX; oy0 = finalY; oz0 = finalZ; }
+            else if (i === 1) { ox1 = finalX; oy1 = finalY; oz1 = finalZ; }
+            else if (i === 2) { ox2 = finalX; oy2 = finalY; oz2 = finalZ; }
+            else { ox3 = finalX; oy3 = finalY; oz3 = finalZ; }
+        }
+
+        // Write directly to position buffer (12 vertices = 4 faces × 3 verts)
+        // Face 1: Base (p1, p2, p3)
+        posArr[0] = ox1; posArr[1] = oy1; posArr[2] = oz1;
+        posArr[3] = ox2; posArr[4] = oy2; posArr[5] = oz2;
+        posArr[6] = ox3; posArr[7] = oy3; posArr[8] = oz3;
+        // Face 2: (p0, p2, p1)
+        posArr[9] = ox0; posArr[10] = oy0; posArr[11] = oz0;
+        posArr[12] = ox2; posArr[13] = oy2; posArr[14] = oz2;
+        posArr[15] = ox1; posArr[16] = oy1; posArr[17] = oz1;
+        // Face 3: (p0, p3, p2)
+        posArr[18] = ox0; posArr[19] = oy0; posArr[20] = oz0;
+        posArr[21] = ox3; posArr[22] = oy3; posArr[23] = oz3;
+        posArr[24] = ox2; posArr[25] = oy2; posArr[26] = oz2;
+        // Face 4: (p0, p1, p3)
+        posArr[27] = ox0; posArr[28] = oy0; posArr[29] = oz0;
+        posArr[30] = ox1; posArr[31] = oy1; posArr[32] = oz1;
+        posArr[33] = ox3; posArr[34] = oy3; posArr[35] = oz3;
+
+        // Flag GPU update
+        coreGeometry.attributes.position.needsUpdate = true;
+        // Recalculate normals for proper fog/reflection interaction
+        coreGeometry.computeVertexNormals();
+    }
+
     // --- ANIMATION LOOP ---
     function animate() {
         if (!isRunning) return;
         rafId = requestAnimationFrame(animate);
+
+        const time = performance.now() * 0.001; // Convert to seconds
 
         // Slow rotation for monoliths
         monoliths.forEach((m, i) => {
@@ -691,8 +771,11 @@ export function initShowcaseMap(resizeCallbacks) {
 
         // Props rotation (Y-axis only) + breathing
         propsGroup.rotation.y += 0.001;
-        const pulse = 6.5 + 3.5 * Math.sin(performance.now() * 0.002);
+        const pulse = 6.5 + 3.5 * Math.sin(time * 2);
         propMaterials.forEach(m => m.emissiveIntensity = pulse);
+
+        // --- CORE OSCILLATION ---
+        updateCoreOscillation(time);
 
         renderer.render(scene, camera);
     }
