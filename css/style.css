@@ -763,11 +763,11 @@ footer {
         /* Critical: allows panel to float */
     }
 
-    /* 2. HUD Navigation Grid */
+    /* 2. HUD Navigation Grid - Flexible auto-fit layout */
     .aox-tiles-grid {
         position: relative;
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 10px;
         width: 100%;
         order: 1;
@@ -779,23 +779,92 @@ footer {
         display: none;
     }
 
-    /* 4. HUD Button Styling */
-    .tile-title {
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 15px;
-        text-align: center;
-        font-size: 0.75rem;
-        background: rgba(255, 255, 255, 0.05);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin-bottom: 0;
+    /* --- BREATHING BORDER ANIMATION --- */
+    @keyframes breathing-border {
+
+        0%,
+        100% {
+            opacity: 0.1;
+        }
+
+        50% {
+            opacity: 0.3;
+        }
     }
 
-    /* 5. Active Button State */
+    /* 4. HUD Button Styling - Technical HUD Aesthetic */
+    .tile-title {
+        position: relative;
+        min-height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 16px 20px;
+        text-align: left;
+
+        /* Typography: Space Grotesk technical feel */
+        font-family: 'Space Grotesk', var(--font-main), sans-serif;
+        font-size: 0.65rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        line-height: 1.6;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.85);
+
+        /* Visual: Subtle glass background */
+        background: rgba(255, 255, 255, 0.03);
+        border: none;
+        margin-bottom: 0;
+
+        /* Transitions */
+        transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Bracket Border - Top-Left Corner */
+    .tile-title::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 20px;
+        height: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        border-left: 1px solid rgba(255, 255, 255, 0.2);
+        pointer-events: none;
+        animation: breathing-border 3s ease-in-out infinite;
+    }
+
+    /* Bracket Border - Bottom-Right Corner */
+    .tile-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 20px;
+        height: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        border-right: 1px solid rgba(255, 255, 255, 0.2);
+        pointer-events: none;
+        animation: breathing-border 3s ease-in-out infinite;
+        animation-delay: 1.5s;
+    }
+
+    /* :active Press Effect */
+    .tile-title:active {
+        transform: scale(0.97);
+    }
+
+    /* 5. Active Button State (.is-active managed by JS) */
     .aox-tile.is-active .tile-title {
-        border-color: #fff;
-        background: rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .aox-tile.is-active .tile-title::before,
+    .aox-tile.is-active .tile-title::after {
+        border-color: rgba(255, 255, 255, 0.9);
+        animation: none;
+        opacity: 1;
     }
 
     /* 6. STERILE TILE (Cruciale): Complete style reset to prevent panel anchoring */
