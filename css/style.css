@@ -967,3 +967,79 @@ footer {
         padding: 0 5%;
     }
 }
+
+/* --- 9. SPATIAL HUD LABELS (CSS2DRenderer) --- */
+#showcase-css-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* Project Tag Container */
+.project-tag {
+    font-family: 'Space Grotesk', var(--font-main), sans-serif;
+    font-size: 0.6rem;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    pointer-events: none;
+    white-space: nowrap;
+
+    /* Positioning */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+
+    /* HUD Feel */
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    /* Inerzia Voltera */
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Linea di ancoraggio verticale */
+.project-tag::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom,
+            rgba(255, 255, 255, 0.35),
+            rgba(255, 255, 255, 0.05));
+    pointer-events: none;
+}
+
+/* Title styling */
+.project-tag__title {
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+}
+
+/* Metadata row */
+.project-tag__meta {
+    font-size: 0.5rem;
+    opacity: 0.5;
+    letter-spacing: 0.12em;
+}
+
+/* Separator */
+.project-tag__meta::before {
+    content: '';
+    display: block;
+    width: 16px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 4px auto;
+}

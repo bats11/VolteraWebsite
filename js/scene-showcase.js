@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
 /**
  * Showcase "The Infinite Map" - Three.js Scene Module
@@ -131,6 +132,10 @@ export function initShowcaseMap(resizeCallbacks) {
     let isRunning = false;
     let rafId = null;
 
+    // --- CSS2D LABEL SYSTEM ---
+    let labelRenderer;
+    let projectLabels = []; // { object: CSS2DObject, element: HTMLElement }
+
     // --- PROPS STATE ---
     let propsGroup;
     let propMaterials = [];
@@ -189,6 +194,18 @@ export function initShowcaseMap(resizeCallbacks) {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
     container.appendChild(renderer.domElement);
+
+    // --- CSS2D LABEL RENDERER ---
+    const cssLayer = document.getElementById('showcase-css-layer');
+    if (cssLayer) {
+        labelRenderer = new CSS2DRenderer();
+        labelRenderer.setSize(container.clientWidth, container.clientHeight);
+        labelRenderer.domElement.style.position = 'absolute';
+        labelRenderer.domElement.style.top = '0';
+        labelRenderer.domElement.style.left = '0';
+        labelRenderer.domElement.style.pointerEvents = 'none';
+        cssLayer.appendChild(labelRenderer.domElement);
+    }
 
     // Imposta anisotropia massima per video nitido di taglio
     videoTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -388,6 +405,25 @@ export function initShowcaseMap(resizeCallbacks) {
         );
     }
 
+    // --- PROJECT LABEL FACTORY ---
+    function createProjectLabel(project) {
+        const container = document.createElement('div');
+        container.className = 'project-tag';
+
+        container.innerHTML = `
+            <span class="project-tag__title">${project.title}</span>
+            <div class="project-tag__meta">
+                ${project.ref} • ${project.status}
+            </div>
+        `;
+
+        const label = new CSS2DObject(container);
+        label.userData.currentOpacity = 0;
+        label.userData.targetOpacity = 0;
+
+        return { object: label, element: container };
+    }
+
     // --- NEON STRUT FACTORY ---
     function createStrut(vStart, vEnd, thickness) {
         const direction = new THREE.Vector3().subVectors(vEnd, vStart);
@@ -573,6 +609,12 @@ export function initShowcaseMap(resizeCallbacks) {
 
         scene.add(monolith);
         monoliths.push(monolith);
+
+        // --- CREATE PROJECT LABEL ---
+        const labelData = createProjectLabel(project);
+        labelData.object.position.set(0, 2.5, 0); // Offset above monolith
+        monolith.add(labelData.object); // Parented to monolith for position tracking
+        projectLabels.push(labelData);
     });
 
     // --- NEON TETRAHEDRON PROPS ---
@@ -1030,6 +1072,9 @@ export function initShowcaseMap(resizeCallbacks) {
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
         composer.setSize(width, height);
+        if (labelRenderer) {
+            labelRenderer.setSize(width, height);
+        }
     });
 
     // --- CORE OSCILLATION UPDATE (optimized: no allocations in loop) ---
@@ -1155,6 +1200,45 @@ export function initShowcaseMap(resizeCallbacks) {
         }
     }
 
+    // --- LABEL OPACITY CALCULATION (Distance-based with Voltera Inertia) ---
+    const LABEL_VISIBILITY = {
+        fadeInStart: 25,   // opacity 0 above this distance
+        fadeInEnd: 10,     // opacity 1 below this distance
+        inertiaFactor: 0.08 // Smooth interpolation (expo.out feel)
+    };
+    const labelWorldPos = new THREE.Vector3(); // Reusable vector (no allocations)
+
+    function updateLabelOpacity(labelData, cameraPos) {
+        labelData.object.getWorldPosition(labelWorldPos);
+
+        const distance = cameraPos.distanceTo(labelWorldPos);
+
+        // Calculate target opacity based on distance
+        let targetOpacity;
+        if (distance >= LABEL_VISIBILITY.fadeInStart) {
+            targetOpacity = 0;
+        } else if (distance <= LABEL_VISIBILITY.fadeInEnd) {
+            targetOpacity = 1;
+        } else {
+            // Linear interpolation between fade points
+            targetOpacity = 1 - (distance - LABEL_VISIBILITY.fadeInEnd) /
+                (LABEL_VISIBILITY.fadeInStart - LABEL_VISIBILITY.fadeInEnd);
+        }
+
+        // Check if behind camera (Z-axis perspective exit)
+        if (labelWorldPos.z > cameraPos.z + 5) {
+            targetOpacity = 0;
+        }
+
+        // Apply Voltera inertia (expo.out-like smoothing)
+        const current = labelData.object.userData.currentOpacity;
+        const newOpacity = current + (targetOpacity - current) * LABEL_VISIBILITY.inertiaFactor;
+        labelData.object.userData.currentOpacity = newOpacity;
+
+        // Apply to DOM element
+        labelData.element.style.opacity = newOpacity.toFixed(3);
+    }
+
     // --- ANIMATION LOOP ---
     function animate() {
         if (!isRunning) return;
@@ -1223,6 +1307,16 @@ export function initShowcaseMap(resizeCallbacks) {
             const baseOpacity = satellite.userData.isHovered ? 1.0 : satellite.userData.baseOpacity;
             mat.opacity = baseOpacity + Math.sin(time * 3.0 + angle) * 0.1;
         });
+
+        // --- UPDATE LABEL VISIBILITY ---
+        projectLabels.forEach(labelData => {
+            updateLabelOpacity(labelData, camera.position);
+        });
+
+        // --- RENDER CSS2D LAYER ---
+        if (labelRenderer) {
+            labelRenderer.render(scene, camera);
+        }
 
         composer.render();
     }
