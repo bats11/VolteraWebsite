@@ -21,8 +21,11 @@ export function initShowcaseMap(resizeCallbacks) {
     if (!container || !section) return;
 
     // --- CONSTANTS ---
-    const CAMERA_START_Z = 20;
-    const CAMERA_END_Z = -30;
+    const TRAVEL_CONFIG = {
+        startZ: 20,
+        endZ: -60,
+        travelFinishThreshold: 0.8
+    };
     const VOLTERA_EASE = "power4.out"; // Closest to cubic-bezier(0.16, 1, 0.3, 1)
 
     // --- DEVICE DETECTION ---
@@ -107,7 +110,7 @@ export function initShowcaseMap(resizeCallbacks) {
     // --- SCENE SETUP ---
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x080808);
-    scene.fog = new THREE.FogExp2(0x080808, 0.04);
+    scene.fog = new THREE.FogExp2(0x080808, 0.03);
 
     camera = new THREE.PerspectiveCamera(
         50,
@@ -115,7 +118,7 @@ export function initShowcaseMap(resizeCallbacks) {
         0.1,
         200
     );
-    camera.position.set(0, 2, CAMERA_START_Z);
+    camera.position.set(0, 2, TRAVEL_CONFIG.startZ);
     camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({
@@ -136,7 +139,7 @@ export function initShowcaseMap(resizeCallbacks) {
     scene.add(ambientLight);
 
     pointLight = new THREE.PointLight(0xffffff, 0.2, 0, 2);
-    pointLight.position.set(0, 50, CAMERA_START_Z); // Zenithal position
+    pointLight.position.set(0, 50, TRAVEL_CONFIG.startZ); // Zenithal position
     scene.add(pointLight);
 
     // Torchlight breathing for touch devices
@@ -263,7 +266,7 @@ export function initShowcaseMap(resizeCallbacks) {
             emissive: 0xffffff,
             emissiveIntensity: 5.0,
             toneMapped: false,
-            fog: false
+            fog: true
         });
         propMaterials.push(material);
 
@@ -530,7 +533,21 @@ export function initShowcaseMap(resizeCallbacks) {
         scrollProgress = Math.max(0, Math.min(1, scrolled / sectionHeight));
 
         if (!isZooming) {
-            const targetZ = CAMERA_START_Z + (CAMERA_END_Z - CAMERA_START_Z) * scrollProgress;
+            const { startZ, endZ, travelFinishThreshold } = TRAVEL_CONFIG;
+            let targetZ;
+
+            if (scrollProgress < travelFinishThreshold) {
+                // Normalized travel progress (0 to 1 within travel range)
+                const travelProgress = scrollProgress / travelFinishThreshold;
+
+                // Apply easeOutQuad for smooth damping approaching endZ
+                const easedProgress = 1 - (1 - travelProgress) * (1 - travelProgress);
+                targetZ = startZ + (endZ - startZ) * easedProgress;
+            } else {
+                // Buffer zone: camera stays fixed at endZ
+                targetZ = endZ;
+            }
+
             camera.position.z = targetZ;
 
             // Torchlight follows camera on touch devices

@@ -17,6 +17,8 @@
     --font-main: 'Space Grotesk', sans-serif;
 
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+    --showcase-height: 400vh;
 }
 
 body.light-theme {
@@ -802,7 +804,7 @@ footer {
 
 /* --- 8. SHOWCASE SECTION (The Infinite Map) --- */
 #showcase {
-    height: 300vh;
+    height: var(--showcase-height);
     background: #080808;
     position: relative;
 }
