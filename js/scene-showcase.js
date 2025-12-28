@@ -29,6 +29,11 @@ export function initShowcaseMap(resizeCallbacks) {
         endZ: -60,
         travelFinishThreshold: 0.8
     };
+    const NEON_CONFIG = {
+        baseIntensity: 0.5,    // Punto di partenza (luminosità media)
+        pulseAmplitude: 0.5,   // Quantità di variazione (+/- rispetto alla base)
+        pulseSpeed: 2.0        // Velocità dell'oscillazione
+    };
     const VOLTERA_EASE = "power4.out"; // Closest to cubic-bezier(0.16, 1, 0.3, 1)
 
     // --- DEVICE DETECTION ---
@@ -61,6 +66,7 @@ export function initShowcaseMap(resizeCallbacks) {
             light: {
                 intensity: 60,
                 color: 0xff0000,
+                offset: { x: 0, y: 2, z: 0 },
                 distance: 30,
             },
             geometry: 'plates'
@@ -87,7 +93,7 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'Coming Soon',
             position: new THREE.Vector3(6, 0, -25),
             light: {
-                intensity: 70,
+                intensity: 120,
                 color: 0xffffff,
                 offset: { x: -1, y: 3, z: 3 },
                 distance: 10,
@@ -102,7 +108,7 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'Coming Soon',
             position: new THREE.Vector3(-5, 0, -35),
             light: {
-                intensity: 60,
+                intensity: 100,
                 color: 0xffffff,
                 offset: { x: 1, y: 2, z: 2 },
                 distance: 10,
@@ -322,7 +328,7 @@ export function initShowcaseMap(resizeCallbacks) {
         const material = new THREE.MeshStandardMaterial({
             color: 0xffffff,
             emissive: 0xffffff,
-            emissiveIntensity: 0,
+            emissiveIntensity: NEON_CONFIG.baseIntensity,
             toneMapped: false,
             fog: true
         });
@@ -1032,7 +1038,8 @@ export function initShowcaseMap(resizeCallbacks) {
 
         // Props rotation (Y-axis only) + breathing
         propsGroup.rotation.y += 0.001;
-        const pulse = 6.5 + 3.5 * Math.sin(time * 2);
+        const pulse = NEON_CONFIG.baseIntensity +
+            NEON_CONFIG.pulseAmplitude * Math.sin(time * NEON_CONFIG.pulseSpeed);
         propMaterials.forEach(m => m.emissiveIntensity = pulse);
 
         // --- CORE OSCILLATION ---
