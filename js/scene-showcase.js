@@ -241,13 +241,49 @@ export function initShowcaseMap(resizeCallbacks) {
     ground.position.y = -1.5;
     scene.add(ground);
 
-    // --- BACKDROP SPHERE (Physical 'unlit' background for Bloom compatibility) ---
+    // --- BACKDROP SPHERE (Vertical Gradient Shader for Bloom compatibility) ---
     const backdropGeometry = new THREE.SphereGeometry(500, 32, 32);
-    const backdropMaterial = new THREE.MeshBasicMaterial({
-        color: 0x1a1a1a,        // Dark grey - clearly visible
-        side: THREE.BackSide,   // Render inner surface
-        fog: false,             // Disable fog to show true color
-        toneMapped: false       // Bypass ACES compression
+
+    const backdropUniforms = {
+        uHeight: { value: 200.0 },
+        uOffset: { value: 50.0 },
+        uColorTop: { value: new THREE.Color(0x1a1a1a) },
+        uColorBottom: { value: new THREE.Color(0x000000) }
+    };
+
+    const backdropVertexShader = `
+        varying float vWorldY;
+
+        void main() {
+            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+            vWorldY = worldPosition.y;
+            gl_Position = projectionMatrix * viewMatrix * worldPosition;
+        }
+    `;
+
+    const backdropFragmentShader = `
+        uniform float uHeight;
+        uniform float uOffset;
+        uniform vec3 uColorTop;
+        uniform vec3 uColorBottom;
+
+        varying float vWorldY;
+
+        void main() {
+            float adjustedY = vWorldY + uOffset;
+            float gradientFactor = smoothstep(0.0, uHeight, adjustedY);
+            vec3 finalColor = mix(uColorBottom, uColorTop, gradientFactor);
+            gl_FragColor = vec4(finalColor, 1.0);
+        }
+    `;
+
+    const backdropMaterial = new THREE.ShaderMaterial({
+        uniforms: backdropUniforms,
+        vertexShader: backdropVertexShader,
+        fragmentShader: backdropFragmentShader,
+        side: THREE.BackSide,
+        fog: false,
+        toneMapped: false
     });
     const backdropMesh = new THREE.Mesh(backdropGeometry, backdropMaterial);
     backdropMesh.name = 'backdrop';
