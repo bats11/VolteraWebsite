@@ -269,10 +269,21 @@ export function initShowcaseMap(resizeCallbacks) {
 
         varying float vWorldY;
 
+        // Funzione per generare rumore granulare (Dithering)
+        float random(vec2 st) {
+            return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+        }
+
         void main() {
             float adjustedY = vWorldY + uOffset;
             float gradientFactor = smoothstep(0.0, uHeight, adjustedY);
             vec3 finalColor = mix(uColorBottom, uColorTop, gradientFactor);
+
+            // Applica dithering per rompere le bande di colore (attenuato solo nell'ultimo 20%)
+            float noise = (random(gl_FragCoord.xy) - 0.5) * (1.0 / 255.0);
+            float ditherFade = 1.0 - smoothstep(0.8, 1.0, gradientFactor);
+            finalColor += noise * ditherFade;
+
             gl_FragColor = vec4(finalColor, 1.0);
         }
     `;
