@@ -91,14 +91,15 @@ export async function initAoxCore(resizeCallbacks) {
     const vertexShader = `
         uniform float uTransition;
         uniform float uTime;
+        attribute vec3 sourcePosition;
         attribute vec3 targetPosition;
 
         void main() {
-            // Morphing tra la sfera (position) e il target caricato (targetPosition)
-            vec3 mixedPos = mix(position, targetPosition, uTransition);
+            // Morphing fluido: source (posizione corrente catturata) → target (nuova forma)
+            vec3 mixedPos = mix(sourcePosition, targetPosition, uTransition);
             
             // Effetto "Senziente": Jitter casuale e respiro organico
-            float noise = sin(uTime * 2.0 + position.y * 5.0) * 0.02;
+            float noise = sin(uTime * 2.0 + mixedPos.y * 5.0) * 0.02;
             mixedPos += noise * (1.0 - uTransition * 0.5); 
 
             vec4 mvPosition = modelViewMatrix * vec4(mixedPos, 1.0);
@@ -142,31 +143,62 @@ export async function initAoxCore(resizeCallbacks) {
     pointCloud = new THREE.Points(geometry, shaderMaterial);
     scene.add(pointCloud);
 
+    // --- SMOOTH TRANSITION STATE ---
+    // sourcePosition: posizione di partenza per l'interpolazione (catturata al momento del cambio)
+    const sourcePositionAttr = new THREE.BufferAttribute(basePositions.slice(), 3);
+    sourcePositionAttr.setUsage(THREE.DynamicDrawUsage);
+    geometry.setAttribute('sourcePosition', sourcePositionAttr);
+
+    // Aggiorna lo shader uniform per usare sourcePosition
+    shaderMaterial.uniforms.uTransition.value = 0.0;
+
+    /**
+     * Cattura la posizione CORRENTE di ogni particella basata sul progresso attuale
+     * e la imposta come nuovo punto di partenza (sourcePosition)
+     */
+    function captureCurrentState() {
+        const sourceAttr = geometry.getAttribute('sourcePosition');
+        const targetAttr = geometry.getAttribute('targetPosition');
+        const t = shaderMaterial.uniforms.uTransition.value;
+
+        // Interpola la posizione corrente: mix(source, target, t)
+        for (let i = 0; i < COUNT * 3; i++) {
+            sourceAttr.array[i] = sourceAttr.array[i] * (1 - t) + targetAttr.array[i] * t;
+        }
+        sourceAttr.needsUpdate = true;
+    }
+
     // --- EVENT LISTENER: aoxStateChange ---
     window.addEventListener('aoxStateChange', (e) => {
         const ambito = e.detail.ambito;
         console.log(`[AOX] Scena 3D: Ricevuto comando per ambito ${ambito}`);
 
-        if (ambito && morphTargets[ambito]) {
-            // Update targetPosition with morph target data
-            const targetAttr = geometry.getAttribute('targetPosition');
-            targetAttr.array.set(morphTargets[ambito]);
-            targetAttr.needsUpdate = true;
+        // STEP 1: Ferma qualsiasi animazione in corso
+        gsap.killTweensOf(shaderMaterial.uniforms.uTransition);
 
-            // Animate transition 0 → 1
-            gsap.to(shaderMaterial.uniforms.uTransition, {
-                value: 1.0,
-                duration: 1.5,
-                ease: "expo.out"
-            });
+        // STEP 2: Cattura la posizione CORRENTE delle particelle come nuovo source
+        captureCurrentState();
+
+        // STEP 3: Resetta il progresso a 0 (ora source = posizione corrente, quindi nessun salto)
+        shaderMaterial.uniforms.uTransition.value = 0.0;
+
+        // STEP 4: Imposta il nuovo target
+        const targetAttr = geometry.getAttribute('targetPosition');
+        if (ambito && morphTargets[ambito]) {
+            // Target = forma dell'ambito
+            targetAttr.array.set(morphTargets[ambito]);
         } else {
-            // Return to sphere (transition → 0)
-            gsap.to(shaderMaterial.uniforms.uTransition, {
-                value: 0.0,
-                duration: 1.5,
-                ease: "expo.out"
-            });
+            // Target = sfera originale (basePositions)
+            targetAttr.array.set(basePositions);
         }
+        targetAttr.needsUpdate = true;
+
+        // STEP 5: Anima da 0 a 1 (source corrente → nuovo target)
+        gsap.to(shaderMaterial.uniforms.uTransition, {
+            value: 1.0,
+            duration: 1.5,
+            ease: "expo.out"
+        });
     });
 
     // --- RESIZE ---
