@@ -436,6 +436,44 @@ export function initShowcaseMap(resizeCallbacks) {
         inwardLerp: 0.2
     };
 
+    // --- LIGHTNING DISCHARGE SYSTEM ---
+    const LIGHTNING_COUNT = 3; // Max concurrent discharges
+    const LIGHTNING_SEGMENTS = 5; // Points per discharge (creates 4 line segments)
+
+    const lightningMaterial = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.9,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+
+    // Pre-allocate geometry buffer for all lightning bolts
+    // Each bolt: LIGHTNING_SEGMENTS points × 3 components (x,y,z)
+    const lightningPositions = new Float32Array(LIGHTNING_COUNT * LIGHTNING_SEGMENTS * 3);
+    const lightningGeometry = new THREE.BufferGeometry();
+    lightningGeometry.setAttribute('position', new THREE.BufferAttribute(lightningPositions, 3));
+    lightningGeometry.getAttribute('position').setUsage(THREE.DynamicDrawUsage);
+
+    const lightningMesh = new THREE.LineSegments(lightningGeometry, lightningMaterial);
+    lightningMesh.frustumCulled = false;
+    propsGroup.add(lightningMesh);
+
+    // Lightning state
+    const lightningState = {
+        active: false,
+        flickerChance: 0.05, // 5% chance per frame
+        // Reference to edges for random source point
+        edges: edges,
+        // Cached current core vertex positions (updated by updateCoreOscillation)
+        coreVerts: [
+            { x: 0, y: 0, z: 0 },
+            { x: 0, y: 0, z: 0 },
+            { x: 0, y: 0, z: 0 },
+            { x: 0, y: 0, z: 0 }
+        ]
+    };
+
     propsGroup.position.set(0, 3, -80);
     scene.add(propsGroup);
 
@@ -751,10 +789,75 @@ export function initShowcaseMap(resizeCallbacks) {
         posArr[30] = ox1; posArr[31] = oy1; posArr[32] = oz1;
         posArr[33] = ox3; posArr[34] = oy3; posArr[35] = oz3;
 
+        // Update lightning state with current oscillated vertices
+        lightningState.coreVerts[0].x = ox0; lightningState.coreVerts[0].y = oy0; lightningState.coreVerts[0].z = oz0;
+        lightningState.coreVerts[1].x = ox1; lightningState.coreVerts[1].y = oy1; lightningState.coreVerts[1].z = oz1;
+        lightningState.coreVerts[2].x = ox2; lightningState.coreVerts[2].y = oy2; lightningState.coreVerts[2].z = oz2;
+        lightningState.coreVerts[3].x = ox3; lightningState.coreVerts[3].y = oy3; lightningState.coreVerts[3].z = oz3;
+
         // Flag GPU update
         coreGeometry.attributes.position.needsUpdate = true;
         // Recalculate normals for proper fog/reflection interaction
         coreGeometry.computeVertexNormals();
+    }
+
+    // --- LIGHTNING PATH GENERATOR (no allocations) ---
+    function generateLightningPath(boltIndex) {
+        const posArr = lightningGeometry.attributes.position.array;
+        const baseIdx = boltIndex * LIGHTNING_SEGMENTS * 3;
+
+        // Pick random edge and random point along it
+        const edgeIdx = Math.floor(Math.random() * lightningState.edges.length);
+        const [edgeA, edgeB] = lightningState.edges[edgeIdx];
+        const t = Math.random();
+        const startX = edgeA.x + (edgeB.x - edgeA.x) * t;
+        const startY = edgeA.y + (edgeB.y - edgeA.y) * t;
+        const startZ = edgeA.z + (edgeB.z - edgeA.z) * t;
+
+        // Pick random core vertex as target
+        const targetVert = lightningState.coreVerts[Math.floor(Math.random() * 4)];
+        const endX = targetVert.x;
+        const endY = targetVert.y;
+        const endZ = targetVert.z;
+
+        // Generate broken path with random offsets
+        for (let i = 0; i < LIGHTNING_SEGMENTS; i++) {
+            const segT = i / (LIGHTNING_SEGMENTS - 1);
+
+            // Base interpolation
+            let px = startX + (endX - startX) * segT;
+            let py = startY + (endY - startY) * segT;
+            let pz = startZ + (endZ - startZ) * segT;
+
+            // Add jagged offset (except first and last points)
+            if (i > 0 && i < LIGHTNING_SEGMENTS - 1) {
+                const jitter = 0.3;
+                px += (Math.random() - 0.5) * jitter;
+                py += (Math.random() - 0.5) * jitter;
+                pz += (Math.random() - 0.5) * jitter;
+            }
+
+            const idx = baseIdx + i * 3;
+            posArr[idx] = px;
+            posArr[idx + 1] = py;
+            posArr[idx + 2] = pz;
+        }
+    }
+
+    // --- LIGHTNING UPDATE (flicker logic) ---
+    function updateLightning() {
+        const shouldFlicker = Math.random() < lightningState.flickerChance;
+
+        if (shouldFlicker) {
+            // Generate new paths for all bolts
+            for (let i = 0; i < LIGHTNING_COUNT; i++) {
+                generateLightningPath(i);
+            }
+            lightningGeometry.attributes.position.needsUpdate = true;
+            lightningMesh.visible = true;
+        } else {
+            lightningMesh.visible = false;
+        }
     }
 
     // --- ANIMATION LOOP ---
@@ -776,6 +879,9 @@ export function initShowcaseMap(resizeCallbacks) {
 
         // --- CORE OSCILLATION ---
         updateCoreOscillation(time);
+
+        // --- LIGHTNING FLICKER ---
+        updateLightning();
 
         renderer.render(scene, camera);
     }
