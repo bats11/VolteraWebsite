@@ -107,6 +107,31 @@ export function initShowcaseMap(resizeCallbacks) {
     let propsGroup;
     let propMaterials = [];
 
+    // --- VIDEO SOURCE FOR CORE ---
+    const videoEl = document.createElement('video');
+    videoEl.src = './assets/video/showcase-monolith.mp4';
+    videoEl.muted = true;
+    videoEl.loop = true;
+    videoEl.autoplay = true;
+    videoEl.playsInline = true;
+    videoEl.crossOrigin = 'anonymous';
+    videoEl.play().catch(err => console.warn('[Showcase] Video autoplay blocked:', err));
+
+    // --- VIDEO TEXTURE & CORE MATERIAL ---
+    const videoTexture = new THREE.VideoTexture(videoEl);
+    videoTexture.minFilter = THREE.LinearFilter;
+    videoTexture.magFilter = THREE.LinearFilter;
+    videoTexture.format = THREE.RGBAFormat;
+
+    const coreMaterial = new THREE.MeshStandardMaterial({
+        color: 0x000000,           // Base nera
+        emissive: 0xffffff,        // Colore emissione
+        emissiveMap: videoTexture, // Video come emissione
+        emissiveIntensity: 1.0,
+        side: THREE.DoubleSide,    // Visibile da entrambi i lati
+        fog: true                  // Interazione con FogExp2
+    });
+
     // --- SCENE SETUP ---
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x080808);
@@ -344,6 +369,52 @@ export function initShowcaseMap(resizeCallbacks) {
     const innerLight = new THREE.PointLight(0xffffff, 100, 50);
     innerLight.position.set(0, 0, 0);
     propsGroup.add(innerLight);
+
+    // --- VIDEO CORE (Custom BufferGeometry from neon vertices) ---
+    // Calculate centroid for 98% inward scaling
+    const centroid = new THREE.Vector3()
+        .add(V0).add(V1).add(V2).add(V3)
+        .multiplyScalar(0.25);
+
+    // Clone and scale vertices 98% toward centroid
+    const p0 = V0.clone().lerp(centroid, 0.2);
+    const p1 = V1.clone().lerp(centroid, 0.2);
+    const p2 = V2.clone().lerp(centroid, 0.2);
+    const p3 = V3.clone().lerp(centroid, 0.2);
+
+    // Define 4 triangular faces (3 vertices each, CCW winding)
+    // Face 1 (Base): V1, V2, V3
+    // Face 2: V0, V2, V1
+    // Face 3: V0, V3, V2
+    // Face 4: V0, V1, V3
+    const positions = new Float32Array([
+        // Face 1: Base (p1, p2, p3)
+        p1.x, p1.y, p1.z, p2.x, p2.y, p2.z, p3.x, p3.y, p3.z,
+        // Face 2: (p0, p2, p1)
+        p0.x, p0.y, p0.z, p2.x, p2.y, p2.z, p1.x, p1.y, p1.z,
+        // Face 3: (p0, p3, p2)
+        p0.x, p0.y, p0.z, p3.x, p3.y, p3.z, p2.x, p2.y, p2.z,
+        // Face 4: (p0, p1, p3)
+        p0.x, p0.y, p0.z, p1.x, p1.y, p1.z, p3.x, p3.y, p3.z
+    ]);
+
+    // Strategic UV mapping: center video on each triangular face
+    const uvs = new Float32Array([
+        // Each face: top-center, bottom-left, bottom-right
+        0.5, 1.0, 0.0, 0.0, 1.0, 0.0,  // Face 1
+        0.5, 1.0, 0.0, 0.0, 1.0, 0.0,  // Face 2
+        0.5, 1.0, 0.0, 0.0, 1.0, 0.0,  // Face 3
+        0.5, 1.0, 0.0, 0.0, 1.0, 0.0   // Face 4
+    ]);
+
+    const coreGeometry = new THREE.BufferGeometry();
+    coreGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    coreGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+    coreGeometry.computeVertexNormals(); // Vital for FogExp2 interaction
+
+    const coreMesh = new THREE.Mesh(coreGeometry, coreMaterial);
+    // No position/rotation needed - geometry already aligned to neon vertices
+    propsGroup.add(coreMesh);
 
     propsGroup.position.set(0, 3, -80);
     scene.add(propsGroup);
@@ -619,7 +690,7 @@ export function initShowcaseMap(resizeCallbacks) {
         });
 
         // Props rotation (Y-axis only) + breathing
-        propsGroup.rotation.y += 0.0005;
+        propsGroup.rotation.y += 0.001;
         const pulse = 6.5 + 3.5 * Math.sin(performance.now() * 0.002);
         propMaterials.forEach(m => m.emissiveIntensity = pulse);
 
