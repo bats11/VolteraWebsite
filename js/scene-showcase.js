@@ -41,7 +41,7 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'Brand Experience / WebGL',
             position: new THREE.Vector3(-4, 0, 5),
             light: {
-                intensity: 15,
+                intensity: 30,
                 color: 0xffffff,
                 offset: { x: 0, y: 0.5, z: 3 },
                 distance: 10,
@@ -56,7 +56,7 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'VR Training / Simulation',
             position: new THREE.Vector3(5, 0, -5),
             light: {
-                intensity: 30,
+                intensity: 60,
                 color: 0xff0000,
                 distance: 30,
             },
@@ -84,7 +84,7 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'Coming Soon',
             position: new THREE.Vector3(6, 0, -25),
             light: {
-                intensity: 40,
+                intensity: 70,
                 color: 0xffffff,
                 offset: { x: -1, y: 3, z: 3 },
                 distance: 10,
@@ -99,7 +99,7 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'Coming Soon',
             position: new THREE.Vector3(-5, 0, -35),
             light: {
-                intensity: 30,
+                intensity: 60,
                 color: 0xffffff,
                 offset: { x: 1, y: 2, z: 2 },
                 distance: 10,
@@ -112,6 +112,7 @@ export function initShowcaseMap(resizeCallbacks) {
     let scene, camera, renderer, pointLight, ambientLight;
     let monoliths = [];
     let beaconsGroup; // Independent light group (decoupled from monolith rotation)
+    let technicalBeacons = []; // Store beacon groups for animation
     let raycaster, mouse;
     let isZooming = false;
     let cameraSnapshot = new THREE.Vector3(); // Snapshot for exact return
@@ -177,7 +178,7 @@ export function initShowcaseMap(resizeCallbacks) {
     container.appendChild(renderer.domElement);
 
     // --- LIGHTING ---
-    ambientLight = new THREE.AmbientLight(0xffffff, 1);
+    ambientLight = new THREE.AmbientLight(0xffffff, 5);
     scene.add(ambientLight);
 
     pointLight = new THREE.PointLight(0xffffff, 0.2, 0, 2);
@@ -321,6 +322,56 @@ export function initShowcaseMap(resizeCallbacks) {
         return cylinder;
     }
 
+    // --- TECHNICAL BEACON FACTORY ---
+    function createTechnicalBeacon(projectConfig) {
+        const group = new THREE.Group();
+
+        // Nucleo: OctahedronGeometry
+        const nucleoGeo = new THREE.OctahedronGeometry(0.08);
+        const nucleoMat = new THREE.MeshBasicMaterial({
+            color: projectConfig.light?.color || 0xffffff
+        });
+        const nucleo = new THREE.Mesh(nucleoGeo, nucleoMat);
+        group.add(nucleo);
+
+        // Axes: Strictly monochrome white
+        const axesGroup = new THREE.Group();
+        const axisLength = 0.25;
+        const axisMat = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.3
+        });
+
+        const axisDirections = [
+            [new THREE.Vector3(-axisLength, 0, 0), new THREE.Vector3(axisLength, 0, 0)],
+            [new THREE.Vector3(0, -axisLength, 0), new THREE.Vector3(0, axisLength, 0)],
+            [new THREE.Vector3(0, 0, -axisLength), new THREE.Vector3(0, 0, axisLength)]
+        ];
+
+        axisDirections.forEach(([start, end]) => {
+            const geo = new THREE.BufferGeometry().setFromPoints([start, end]);
+            axesGroup.add(new THREE.Line(geo, axisMat));
+        });
+
+        group.add(axesGroup);
+        group.userData.axesGroup = axesGroup;
+        group.userData.axisMaterial = axisMat;
+
+        // PointLight
+        const light = new THREE.PointLight(
+            projectConfig.light?.color || 0xffffff,
+            projectConfig.light?.intensity || 2.0,
+            projectConfig.light?.distance || 10,
+            projectConfig.light?.decay || 2.0
+        );
+        group.add(light);
+        group.userData.light = light;
+        group.userData.baseIntensity = light.intensity;
+
+        return group;
+    }
+
     // --- BEACONS GROUP (World Space, independent from monolith rotation) ---
     beaconsGroup = new THREE.Group();
     beaconsGroup.name = 'beaconsGroup';
@@ -353,7 +404,7 @@ export function initShowcaseMap(resizeCallbacks) {
         monolith.position.copy(project.position);
         monolith.userData = project;
 
-        // --- BEACON LIGHT (World Space - decoupled from monolith rotation) ---
+        // --- TECHNICAL BEACON (World Space - decoupled from monolith rotation) ---
         const defaultLight = {
             color: 0xffffff,
             intensity: 2.0,
@@ -368,7 +419,7 @@ export function initShowcaseMap(resizeCallbacks) {
             offset: { ...defaultLight.offset, ...(project.light?.offset || {}) }
         };
 
-        const beacon = new THREE.PointLight(config.color, config.intensity, config.distance, config.decay);
+        const beacon = createTechnicalBeacon(project);
 
         // World Space position: project.position + light.offset
         beacon.position.set(
@@ -377,10 +428,13 @@ export function initShowcaseMap(resizeCallbacks) {
             project.position.z + config.offset.z
         );
 
-        beacon.castShadow = false;              // Performance: no dynamic shadows
-        beacon.name = 'beacon_' + project.id;   // Debug: identifiable naming
+        beacon.name = 'beacon_' + project.id;
+        beacon.userData.baseY = beacon.position.y;
+        beacon.userData.phaseOffset = Math.random() * Math.PI * 2;
+        beacon.userData.projectId = project.id;
 
         beaconsGroup.add(beacon);
+        technicalBeacons.push(beacon);
 
         scene.add(monolith);
         monoliths.push(monolith);
@@ -574,6 +628,26 @@ export function initShowcaseMap(resizeCallbacks) {
         updateHoverState();
     }
 
+    // --- BEACON HOVER STATE SYNC ---
+    function updateBeaconHoverState(projectId, isHovered) {
+        technicalBeacons.forEach(beacon => {
+            if (beacon.userData.projectId === projectId) {
+                const targetIntensity = isHovered
+                    ? beacon.userData.baseIntensity * 2.5
+                    : beacon.userData.baseIntensity;
+                const targetOpacity = isHovered ? 0.8 : 0.3;
+
+                if (typeof gsap !== 'undefined') {
+                    gsap.to(beacon.userData.light, { intensity: targetIntensity, duration: 0.4 });
+                    gsap.to(beacon.userData.axisMaterial, { opacity: targetOpacity, duration: 0.4 });
+                } else {
+                    beacon.userData.light.intensity = targetIntensity;
+                    beacon.userData.axisMaterial.opacity = targetOpacity;
+                }
+            }
+        });
+    }
+
     function updateHoverState() {
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(monoliths, true);
@@ -586,10 +660,16 @@ export function initShowcaseMap(resizeCallbacks) {
             }
 
             if (obj.userData.id && currentHoveredMonolith !== obj) {
+                // Unhover previous
+                if (currentHoveredMonolith) {
+                    updateBeaconHoverState(currentHoveredMonolith.userData.id, false);
+                }
                 currentHoveredMonolith = obj;
                 showHUD(obj.userData);
+                updateBeaconHoverState(obj.userData.id, true);
             }
         } else if (currentHoveredMonolith) {
+            updateBeaconHoverState(currentHoveredMonolith.userData.id, false);
             currentHoveredMonolith = null;
             hideHUD();
         }
@@ -944,6 +1024,19 @@ export function initShowcaseMap(resizeCallbacks) {
 
         // --- LIGHTNING FLICKER ---
         updateLightning();
+
+        // --- BEACON ANIMATION ---
+        technicalBeacons.forEach(beacon => {
+            // Axes rotation (slow, continuous)
+            if (beacon.userData.axesGroup) {
+                beacon.userData.axesGroup.rotation.x += 0.003;
+                beacon.userData.axesGroup.rotation.y += 0.005;
+            }
+
+            // Vertical oscillation (frequency: 0.8 for slow motion)
+            const phase = beacon.userData.phaseOffset || 0;
+            beacon.position.y = beacon.userData.baseY + Math.sin(time * 0.8 + phase) * 0.05;
+        });
 
         renderer.render(scene, camera);
     }
