@@ -49,9 +49,9 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'Brand Experience / WebGL',
             position: new THREE.Vector3(-4, 0, 5),
             light: {
-                intensity: 30,
+                intensity: 60,
                 color: 0xffffff,
-                offset: { x: 0, y: 0.5, z: 3 },
+                offset: { x: 0, y: 1.5, z: 3 },
                 distance: 10,
             },
             geometry: 'fragmented'
@@ -150,14 +150,18 @@ export function initShowcaseMap(resizeCallbacks) {
     videoTexture.minFilter = THREE.LinearFilter;
     videoTexture.magFilter = THREE.LinearFilter;
     videoTexture.format = THREE.RGBAFormat;
+    videoTexture.colorSpace = THREE.SRGBColorSpace; // Codifica colore corretta
+
+    // NOTE: anisotropy sarà impostata dopo la creazione del renderer
 
     const coreMaterial = new THREE.MeshStandardMaterial({
-        color: 0x000000,           // Base nera
-        emissive: 0xffffff,        // Colore emissione
+        color: 0x000000,           // Base nera profonda
+        emissive: 0xcccccc,        // Colore emissione
         emissiveMap: videoTexture, // Video come emissione
-        emissiveIntensity: 1.0,
-        side: THREE.DoubleSide,    // Visibile da entrambi i lati
-        fog: true                  // Interazione con FogExp2
+        emissiveIntensity: 1.0,    // Boost per 'bucare' il bloom
+        side: THREE.DoubleSide,
+        fog: true,
+        toneMapped: false          // Evita compressione ACES
     });
 
     // --- SCENE SETUP ---
@@ -185,6 +189,9 @@ export function initShowcaseMap(resizeCallbacks) {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
     container.appendChild(renderer.domElement);
+
+    // Imposta anisotropia massima per video nitido di taglio
+    videoTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
 
     // --- EFFECT COMPOSER (Bloom) ---
     composer = new EffectComposer(renderer);
@@ -361,7 +368,7 @@ export function initShowcaseMap(resizeCallbacks) {
         const group = new THREE.Group();
 
         // Nucleo denso luminoso: 256 punti in sfera compatta
-        const pointCount = 256;
+        const pointCount = 128;
         const positions = new Float32Array(pointCount * 3);
         const particleData = []; // Per-particle animation data
         const sphereRadius = 0.1; // Nucleo compatto
