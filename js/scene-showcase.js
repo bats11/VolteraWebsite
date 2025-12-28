@@ -121,7 +121,8 @@ export function initShowcaseMap(resizeCallbacks) {
     let scene, camera, renderer, composer, pointLight, ambientLight;
     let monoliths = [];
     let beaconsGroup; // Independent light group (decoupled from monolith rotation)
-    let technicalBeacons = []; // Store beacon groups for animation
+    let technicalBeacons = []; // Store beacon lights for animation
+    let orbitalSatellites = []; // Store orbital satellites for animation
     let raycaster, mouse;
     let isZooming = false;
     let cameraSnapshot = new THREE.Vector3(); // Snapshot for exact return
@@ -343,52 +344,84 @@ export function initShowcaseMap(resizeCallbacks) {
         return cylinder;
     }
 
-    // --- TECHNICAL BEACON FACTORY ---
+    // --- TECHNICAL BEACON FACTORY (Light only) ---
     function createTechnicalBeacon(projectConfig) {
-        const group = new THREE.Group();
-
-        // Nucleo: OctahedronGeometry
-        const nucleoGeo = new THREE.OctahedronGeometry(0.08);
-        const nucleoMat = new THREE.MeshBasicMaterial({
-            color: projectConfig.light?.color || 0xffffff
-        });
-        const nucleo = new THREE.Mesh(nucleoGeo, nucleoMat);
-        group.add(nucleo);
-
-        // Axes: Strictly monochrome white
-        const axesGroup = new THREE.Group();
-        const axisLength = 0.25;
-        const axisMat = new THREE.LineBasicMaterial({
-            color: 0xffffff,
-            transparent: true,
-            opacity: 0.3
-        });
-
-        const axisDirections = [
-            [new THREE.Vector3(-axisLength, 0, 0), new THREE.Vector3(axisLength, 0, 0)],
-            [new THREE.Vector3(0, -axisLength, 0), new THREE.Vector3(0, axisLength, 0)],
-            [new THREE.Vector3(0, 0, -axisLength), new THREE.Vector3(0, 0, axisLength)]
-        ];
-
-        axisDirections.forEach(([start, end]) => {
-            const geo = new THREE.BufferGeometry().setFromPoints([start, end]);
-            axesGroup.add(new THREE.Line(geo, axisMat));
-        });
-
-        group.add(axesGroup);
-        group.userData.axesGroup = axesGroup;
-        group.userData.axisMaterial = axisMat;
-
-        // PointLight
         const light = new THREE.PointLight(
             projectConfig.light?.color || 0xffffff,
             projectConfig.light?.intensity || 2.0,
             projectConfig.light?.distance || 10,
             projectConfig.light?.decay || 2.0
         );
-        group.add(light);
-        group.userData.light = light;
-        group.userData.baseIntensity = light.intensity;
+        light.userData.baseIntensity = light.intensity;
+        return light;
+    }
+
+    // --- ORBITAL SATELLITE FACTORY ---
+    function createOrbitalSatellite(projectConfig) {
+        const group = new THREE.Group();
+
+        // Nuvola di punti sferica (~32 punti) con jitter organico
+        const pointCount = 32;
+        const positions = new Float32Array(pointCount * 3);
+        const sphereRadius = 0.15;
+        const jitterAmount = 0.02; // Offset casuale per effetto organico
+
+        for (let i = 0; i < pointCount; i++) {
+            // Distribuzione uniforme in sfera via rejection sampling
+            let x, y, z;
+            do {
+                x = (Math.random() - 0.5) * 2;
+                y = (Math.random() - 0.5) * 2;
+                z = (Math.random() - 0.5) * 2;
+            } while (x * x + y * y + z * z > 1);
+
+            // Jitter individuale per ogni punto (effetto organico)
+            const jx = (Math.random() - 0.5) * jitterAmount;
+            const jy = (Math.random() - 0.5) * jitterAmount;
+            const jz = (Math.random() - 0.5) * jitterAmount;
+
+            positions[i * 3] = x * sphereRadius + jx;
+            positions[i * 3 + 1] = y * sphereRadius + jy;
+            positions[i * 3 + 2] = z * sphereRadius + jz;
+        }
+
+        const pointsGeo = new THREE.BufferGeometry();
+        pointsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        // Materiale ottimizzato per profondità
+        const pointsMat = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.02,
+            transparent: true,
+            opacity: 0.8,
+            sizeAttenuation: true,  // Scala con distanza camera
+            depthWrite: false       // Evita artefatti sovrapposizione
+        });
+
+        const pointCloud = new THREE.Points(pointsGeo, pointsMat);
+        group.add(pointCloud);
+        group.userData.pointsMaterial = pointsMat; // Riferimento per hover
+
+        // Assi ridotti (scala 0.5)
+        const axesGroup = new THREE.Group();
+        const axisLength = 0.25 * 0.5; // Ridotto del 50%
+        const axisMat = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.3
+        });
+
+        [[1, 0, 0], [0, 1, 0], [0, 0, 1]].forEach(dir => {
+            const geo = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(-dir[0] * axisLength, -dir[1] * axisLength, -dir[2] * axisLength),
+                new THREE.Vector3(dir[0] * axisLength, dir[1] * axisLength, dir[2] * axisLength)
+            ]);
+            axesGroup.add(new THREE.Line(geo, axisMat));
+        });
+
+        group.add(axesGroup);
+        group.userData.axesGroup = axesGroup;
+        group.userData.axisMaterial = axisMat;
 
         return group;
     }
@@ -425,7 +458,7 @@ export function initShowcaseMap(resizeCallbacks) {
         monolith.position.copy(project.position);
         monolith.userData = project;
 
-        // --- TECHNICAL BEACON (World Space - decoupled from monolith rotation) ---
+        // --- FIXED LIGHT (World Space - decoupled from monolith rotation) ---
         const defaultLight = {
             color: 0xffffff,
             intensity: 2.0,
@@ -440,22 +473,33 @@ export function initShowcaseMap(resizeCallbacks) {
             offset: { ...defaultLight.offset, ...(project.light?.offset || {}) }
         };
 
-        const beacon = createTechnicalBeacon(project);
-
-        // World Space position: project.position + light.offset
-        beacon.position.set(
+        const light = createTechnicalBeacon(project);
+        light.position.set(
             project.position.x + config.offset.x,
             project.position.y + config.offset.y,
             project.position.z + config.offset.z
         );
+        light.name = 'light_' + project.id;
+        light.userData.projectId = project.id;
+        beaconsGroup.add(light);
+        technicalBeacons.push(light);
 
-        beacon.name = 'beacon_' + project.id;
-        beacon.userData.baseY = beacon.position.y;
-        beacon.userData.phaseOffset = Math.random() * Math.PI * 2;
-        beacon.userData.projectId = project.id;
+        // --- ORBITAL SATELLITE ---
+        const satellite = createOrbitalSatellite(project);
+        satellite.name = 'satellite_' + project.id;
+        satellite.userData.projectId = project.id;
+        satellite.userData.monolith = monolith;
 
-        beaconsGroup.add(beacon);
-        technicalBeacons.push(beacon);
+        // Orbit configuration (raggio aumentato per evitare intersezioni)
+        satellite.userData.orbitRadius = 3.5 + Math.random() * 1.5; // 3.5-5.0
+        satellite.userData.orbitSpeed = 0.3 + Math.random() * 0.3;   // 0.3-0.6
+        satellite.userData.orbitAngle = Math.random() * Math.PI * 2;
+        satellite.userData.baseY = project.position.y + config.offset.y;
+        satellite.userData.phaseOffset = Math.random() * Math.PI * 2;
+        satellite.userData.isHovered = false;
+
+        scene.add(satellite);
+        orbitalSatellites.push(satellite);
 
         scene.add(monolith);
         monoliths.push(monolith);
@@ -651,19 +695,41 @@ export function initShowcaseMap(resizeCallbacks) {
 
     // --- BEACON HOVER STATE SYNC ---
     function updateBeaconHoverState(projectId, isHovered) {
-        technicalBeacons.forEach(beacon => {
-            if (beacon.userData.projectId === projectId) {
+        // Update fixed lights intensity
+        technicalBeacons.forEach(light => {
+            if (light.userData.projectId === projectId) {
                 const targetIntensity = isHovered
-                    ? beacon.userData.baseIntensity * 2.5
-                    : beacon.userData.baseIntensity;
-                const targetOpacity = isHovered ? 0.8 : 0.3;
+                    ? light.userData.baseIntensity * 2.5
+                    : light.userData.baseIntensity;
 
                 if (typeof gsap !== 'undefined') {
-                    gsap.to(beacon.userData.light, { intensity: targetIntensity, duration: 0.4 });
-                    gsap.to(beacon.userData.axisMaterial, { opacity: targetOpacity, duration: 0.4 });
+                    gsap.to(light, { intensity: targetIntensity, duration: 0.4 });
                 } else {
-                    beacon.userData.light.intensity = targetIntensity;
-                    beacon.userData.axisMaterial.opacity = targetOpacity;
+                    light.intensity = targetIntensity;
+                }
+            }
+        });
+
+        // Update satellite hover state (rotation + point cloud effects)
+        orbitalSatellites.forEach(satellite => {
+            if (satellite.userData.projectId === projectId) {
+                satellite.userData.isHovered = isHovered;
+
+                const targetAxisOpacity = isHovered ? 0.8 : 0.3;
+                const targetPointsOpacity = isHovered ? 1.0 : 0.8;
+                const targetPointsSize = isHovered ? 0.035 : 0.02;
+
+                if (typeof gsap !== 'undefined') {
+                    gsap.to(satellite.userData.axisMaterial, { opacity: targetAxisOpacity, duration: 0.4 });
+                    gsap.to(satellite.userData.pointsMaterial, {
+                        opacity: targetPointsOpacity,
+                        size: targetPointsSize,
+                        duration: 0.4
+                    });
+                } else {
+                    satellite.userData.axisMaterial.opacity = targetAxisOpacity;
+                    satellite.userData.pointsMaterial.opacity = targetPointsOpacity;
+                    satellite.userData.pointsMaterial.size = targetPointsSize;
                 }
             }
         });
@@ -1048,17 +1114,27 @@ export function initShowcaseMap(resizeCallbacks) {
         // --- LIGHTNING FLICKER ---
         updateLightning();
 
-        // --- BEACON ANIMATION ---
-        technicalBeacons.forEach(beacon => {
-            // Axes rotation (slow, continuous)
-            if (beacon.userData.axesGroup) {
-                beacon.userData.axesGroup.rotation.x += 0.003;
-                beacon.userData.axesGroup.rotation.y += 0.005;
-            }
+        // --- ORBITAL SATELLITES ANIMATION ---
+        orbitalSatellites.forEach(satellite => {
+            const monolith = satellite.userData.monolith;
+            const radius = satellite.userData.orbitRadius;
+            const speed = satellite.userData.orbitSpeed;
+            const angle = satellite.userData.orbitAngle;
+            const phase = satellite.userData.phaseOffset;
 
-            // Vertical oscillation (frequency: 0.8 for slow motion)
-            const phase = beacon.userData.phaseOffset || 0;
-            beacon.position.y = beacon.userData.baseY + Math.sin(time * 0.8 + phase) * 0.05;
+            // Orbital motion around monolith
+            satellite.position.x = monolith.position.x + Math.cos(time * speed + angle) * radius;
+            satellite.position.z = monolith.position.z + Math.sin(time * speed + angle) * radius;
+
+            // Slow vertical oscillation (frequency 0.8)
+            satellite.position.y = satellite.userData.baseY + Math.sin(time * 0.8 + phase) * 0.05;
+
+            // Axes rotation speed (doubled when hovered)
+            const rotSpeed = satellite.userData.isHovered ? 0.01 : 0.005;
+            if (satellite.userData.axesGroup) {
+                satellite.userData.axesGroup.rotation.x += rotSpeed;
+                satellite.userData.axesGroup.rotation.y += rotSpeed * 1.5;
+            }
         });
 
         composer.render();
