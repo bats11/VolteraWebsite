@@ -443,9 +443,11 @@ export function initShowcaseMap(resizeCallbacks) {
     const lightningMaterial = new THREE.LineBasicMaterial({
         color: 0xffffff,
         transparent: true,
-        opacity: 0.9,
+        opacity: 1.0,
+        linewidth: 2, // Note: may not work on all GPUs, but helps where supported
         blending: THREE.AdditiveBlending,
-        depthWrite: false
+        depthWrite: false,
+        toneMapped: false // Bypass tonemapping for brighter appearance
     });
 
     // Pre-allocate geometry buffer for all lightning bolts
@@ -462,7 +464,7 @@ export function initShowcaseMap(resizeCallbacks) {
     // Lightning state
     const lightningState = {
         active: false,
-        flickerChance: 0.05, // 5% chance per frame
+        flickerChance: 0.10, // 10% chance per frame (was 5%)
         // Reference to edges for random source point
         edges: edges,
         // Cached current core vertex positions (updated by updateCoreOscillation)
