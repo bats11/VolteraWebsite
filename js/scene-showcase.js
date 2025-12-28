@@ -398,15 +398,44 @@ export function initShowcaseMap(resizeCallbacks) {
         p0.x, p0.y, p0.z, p1.x, p1.y, p1.z, p3.x, p3.y, p3.z
     ]);
 
-    // Strategic UV mapping: center video on each triangular face
-    // Remapped (* 0.6 + 0.2) to center video content
-    const uvs = new Float32Array([
-        // Each face: top-center, bottom-left, bottom-right (remapped)
-        0.5 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2,  // Face 1
-        0.5 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2,  // Face 2
-        0.5 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2,  // Face 3
-        0.5 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2, 1.0 * 0.6 + 0.2, 0.0 * 0.6 + 0.2   // Face 4
-    ]);
+    // Strategic UV mapping: "Data Crystal" effect
+    // Each face maps to a different quadrant of the video texture
+    // Base triangle UVs (CCW winding: top-center, bottom-left, bottom-right)
+    const baseTriUV = [
+        [0.5, 1.0],  // top-center
+        [0.0, 0.0],  // bottom-left
+        [1.0, 0.0]   // bottom-right
+    ];
+
+    // Quadrant anchors (offsets) for each of the 4 faces
+    const quadrantAnchors = [
+        [0.0, 0.0],   // Face 1: top-left quadrant
+        [0.5, 0.0],   // Face 2: top-right quadrant
+        [0.0, 0.5],   // Face 3: bottom-left quadrant
+        [0.5, 0.5]    // Face 4: bottom-right quadrant
+    ];
+
+    const uvScale = 0.45; // Scale to ~45% to fit within quadrant
+    const jitterMax = 0.05; // Small random offset for organic feel
+
+    // Build UV array: 4 faces × 3 vertices × 2 components
+    const uvData = [];
+    for (let face = 0; face < 4; face++) {
+        const anchor = quadrantAnchors[face];
+        // Add small random jitter per face (computed once at init)
+        const jitterU = Math.random() * jitterMax;
+        const jitterV = Math.random() * jitterMax;
+
+        for (let vert = 0; vert < 3; vert++) {
+            const [baseU, baseV] = baseTriUV[vert];
+            // Scale, offset to quadrant, add jitter
+            const u = baseU * uvScale + anchor[0] + jitterU;
+            const v = baseV * uvScale + anchor[1] + jitterV;
+            uvData.push(u, v);
+        }
+    }
+
+    const uvs = new Float32Array(uvData);
 
     const coreGeometry = new THREE.BufferGeometry();
     coreGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
