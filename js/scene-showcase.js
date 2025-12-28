@@ -59,7 +59,6 @@ export function initShowcaseMap(resizeCallbacks) {
                 intensity: 30,
                 color: 0xff0000,
                 distance: 30,
-
             },
             geometry: 'plates'
         },
@@ -69,7 +68,12 @@ export function initShowcaseMap(resizeCallbacks) {
             ref: 'REF: VT-ARCH',
             status: 'TYPE: VR_VIS',
             meta: 'Architecture / Virtual Tour',
-            position: new THREE.Vector3(-2, 0, -15),
+            position: new THREE.Vector3(-5, -1, -15),
+            light: {
+                intensity: 30,
+                offset: { x: 1, y: 3, z: 3 },
+                distance: 10,
+            },
             geometry: 'tower'
         },
         {
@@ -79,6 +83,12 @@ export function initShowcaseMap(resizeCallbacks) {
             status: 'STATUS: PENDING',
             meta: 'Coming Soon',
             position: new THREE.Vector3(6, 0, -25),
+            light: {
+                intensity: 40,
+                color: 0xffffff,
+                offset: { x: -1, y: 3, z: 3 },
+                distance: 10,
+            },
             geometry: 'octahedron'
         },
         {
@@ -88,6 +98,12 @@ export function initShowcaseMap(resizeCallbacks) {
             status: 'STATUS: PENDING',
             meta: 'Coming Soon',
             position: new THREE.Vector3(-5, 0, -35),
+            light: {
+                intensity: 30,
+                color: 0xffffff,
+                offset: { x: 1, y: 2, z: 2 },
+                distance: 10,
+            },
             geometry: 'tetrahedron'
         }
     ];
@@ -95,6 +111,7 @@ export function initShowcaseMap(resizeCallbacks) {
     // --- SCENE STATE ---
     let scene, camera, renderer, pointLight, ambientLight;
     let monoliths = [];
+    let beaconsGroup; // Independent light group (decoupled from monolith rotation)
     let raycaster, mouse;
     let isZooming = false;
     let cameraSnapshot = new THREE.Vector3(); // Snapshot for exact return
@@ -304,6 +321,11 @@ export function initShowcaseMap(resizeCallbacks) {
         return cylinder;
     }
 
+    // --- BEACONS GROUP (World Space, independent from monolith rotation) ---
+    beaconsGroup = new THREE.Group();
+    beaconsGroup.name = 'beaconsGroup';
+    scene.add(beaconsGroup);
+
     // --- CREATE MONOLITHS ---
     projects.forEach(project => {
         let monolith;
@@ -331,7 +353,7 @@ export function initShowcaseMap(resizeCallbacks) {
         monolith.position.copy(project.position);
         monolith.userData = project;
 
-        // --- BEACON LIGHT ---
+        // --- BEACON LIGHT (World Space - decoupled from monolith rotation) ---
         const defaultLight = {
             color: 0xffffff,
             intensity: 2.0,
@@ -347,9 +369,18 @@ export function initShowcaseMap(resizeCallbacks) {
         };
 
         const beacon = new THREE.PointLight(config.color, config.intensity, config.distance, config.decay);
-        beacon.position.set(config.offset.x, config.offset.y, config.offset.z);
-        beacon.castShadow = false;
-        monolith.add(beacon);
+
+        // World Space position: project.position + light.offset
+        beacon.position.set(
+            project.position.x + config.offset.x,
+            project.position.y + config.offset.y,
+            project.position.z + config.offset.z
+        );
+
+        beacon.castShadow = false;              // Performance: no dynamic shadows
+        beacon.name = 'beacon_' + project.id;   // Debug: identifiable naming
+
+        beaconsGroup.add(beacon);
 
         scene.add(monolith);
         monoliths.push(monolith);
