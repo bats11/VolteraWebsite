@@ -115,7 +115,7 @@ export async function initAoxCore(resizeCallbacks) {
             float strength = 1.0 - (dist * 2.0);
             strength = pow(strength, 3.0);
             
-            gl_FragColor = vec4(uColor, strength * 0.8);
+            gl_FragColor = vec4(uColor, strength * 1.2);
         }
     `;
 
