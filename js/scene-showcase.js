@@ -173,7 +173,7 @@ export function initShowcaseMap(resizeCallbacks) {
         50,
         container.clientWidth / container.clientHeight,
         0.1,
-        200
+        1000
     );
     camera.position.set(0, 2, TRAVEL_CONFIG.startZ);
     camera.lookAt(0, 0, 0);
@@ -196,6 +196,8 @@ export function initShowcaseMap(resizeCallbacks) {
     // --- EFFECT COMPOSER (Bloom) ---
     composer = new EffectComposer(renderer);
     const renderPass = new RenderPass(scene, camera);
+    renderPass.clearColor = new THREE.Color(0x080808);
+    renderPass.clearAlpha = 1;
     composer.addPass(renderPass);
 
     const bloomPass = new UnrealBloomPass(
@@ -238,6 +240,18 @@ export function initShowcaseMap(resizeCallbacks) {
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -1.5;
     scene.add(ground);
+
+    // --- BACKDROP SPHERE (Physical 'unlit' background for Bloom compatibility) ---
+    const backdropGeometry = new THREE.SphereGeometry(500, 32, 32);
+    const backdropMaterial = new THREE.MeshBasicMaterial({
+        color: 0x1a1a1a,        // Dark grey - clearly visible
+        side: THREE.BackSide,   // Render inner surface
+        fog: false,             // Disable fog to show true color
+        toneMapped: false       // Bypass ACES compression
+    });
+    const backdropMesh = new THREE.Mesh(backdropGeometry, backdropMaterial);
+    backdropMesh.name = 'backdrop';
+    scene.add(backdropMesh);
 
     // --- SHARED MATERIAL ---
     const sharedMaterial = new THREE.MeshStandardMaterial({
