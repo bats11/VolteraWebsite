@@ -11,6 +11,12 @@ export async function initAoxCore(resizeCallbacks) {
     const PHI = Math.PI * (3 - Math.sqrt(5));  // Golden angle
     const SPHERE_RADIUS = 3.5;
 
+    // --- CAMERA SCALE CONFIG ---
+    const BASE_Z = 11;
+    const MAX_Z = 30;                  // Limite sicurezza per aspect estremi
+    const THRESHOLD_ASPECT = 0.86;
+    const RETREAT_SENSITIVITY = 1.0;   // >1 = arretramento più aggressivo
+
     // --- VARIABLES ---
     let scene, camera, renderer;
     let pointCloud, geometry, shaderMaterial;
@@ -43,7 +49,7 @@ export async function initAoxCore(resizeCallbacks) {
     scene = new THREE.Scene();
 
     camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-    camera.position.set(0, 0, 11);
+    camera.position.set(0, 0, BASE_Z);
     camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({
@@ -168,7 +174,17 @@ export async function initAoxCore(resizeCallbacks) {
         if (!container) return;
         const width = container.clientWidth;
         const height = container.clientHeight;
-        camera.aspect = width / height;
+        const aspect = width / height;
+
+        // Camera-scaling con limite MAX_Z (Vision-First)
+        if (aspect < THRESHOLD_ASPECT) {
+            const diff = (THRESHOLD_ASPECT / aspect) - 1;
+            camera.position.z = Math.min(MAX_Z, BASE_Z * (1 + (diff * RETREAT_SENSITIVITY)));
+        } else {
+            camera.position.z = BASE_Z;
+        }
+
+        camera.aspect = aspect;
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
     });
