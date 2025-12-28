@@ -100,6 +100,10 @@ export function initShowcaseMap(resizeCallbacks) {
     let isRunning = false;
     let rafId = null;
 
+    // --- PROPS STATE ---
+    let propsGroup;
+    let propMaterials = [];
+
     // --- SCENE SETUP ---
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x080808);
@@ -248,6 +252,30 @@ export function initShowcaseMap(resizeCallbacks) {
         );
     }
 
+    // --- NEON STRUT FACTORY ---
+    function createStrut(vStart, vEnd, thickness) {
+        const direction = new THREE.Vector3().subVectors(vEnd, vStart);
+        const length = direction.length();
+
+        const geometry = new THREE.CylinderGeometry(thickness, thickness, length, 8);
+        const material = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            emissive: 0xffffff,
+            emissiveIntensity: 5.0,
+            toneMapped: false,
+            fog: false
+        });
+        propMaterials.push(material);
+
+        const cylinder = new THREE.Mesh(geometry, material);
+        cylinder.position.copy(vStart).add(vEnd).multiplyScalar(0.5);
+        cylinder.quaternion.setFromUnitVectors(
+            new THREE.Vector3(0, 1, 0),
+            direction.clone().normalize()
+        );
+        return cylinder;
+    }
+
     // --- CREATE MONOLITHS ---
     projects.forEach(project => {
         let monolith;
@@ -298,6 +326,24 @@ export function initShowcaseMap(resizeCallbacks) {
         scene.add(monolith);
         monoliths.push(monolith);
     });
+
+    // --- NEON TETRAHEDRON PROPS ---
+    propsGroup = new THREE.Group();
+    const V0 = new THREE.Vector3(0, -4, 0);
+    const V1 = new THREE.Vector3(4, 2, 0);
+    const V2 = new THREE.Vector3(-2, 2, 3.46);
+    const V3 = new THREE.Vector3(-2, 2, -3.46);
+
+    const edges = [[V0, V1], [V0, V2], [V0, V3], [V1, V2], [V2, V3], [V3, V1]];
+    edges.forEach(([a, b]) => propsGroup.add(createStrut(a, b, 0.08)));
+
+    // Inner PointLight for depth
+    const innerLight = new THREE.PointLight(0xffffff, 100, 50);
+    innerLight.position.set(0, 0, 0);
+    propsGroup.add(innerLight);
+
+    propsGroup.position.set(0, 3, -80);
+    scene.add(propsGroup);
 
     // --- RAYCASTER ---
     raycaster = new THREE.Raycaster();
@@ -554,6 +600,11 @@ export function initShowcaseMap(resizeCallbacks) {
         monoliths.forEach((m, i) => {
             m.rotation.y += 0.001 * (i % 2 === 0 ? 1 : -1);
         });
+
+        // Props rotation (Y-axis only) + breathing
+        propsGroup.rotation.y += 0.0005;
+        const pulse = 6.5 + 3.5 * Math.sin(performance.now() * 0.002);
+        propMaterials.forEach(m => m.emissiveIntensity = pulse);
 
         renderer.render(scene, camera);
     }
