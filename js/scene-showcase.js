@@ -1,4 +1,7 @@
 import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 /**
  * Showcase "The Infinite Map" - Three.js Scene Module
@@ -109,7 +112,7 @@ export function initShowcaseMap(resizeCallbacks) {
     ];
 
     // --- SCENE STATE ---
-    let scene, camera, renderer, pointLight, ambientLight;
+    let scene, camera, renderer, composer, pointLight, ambientLight;
     let monoliths = [];
     let beaconsGroup; // Independent light group (decoupled from monolith rotation)
     let technicalBeacons = []; // Store beacon groups for animation
@@ -166,7 +169,6 @@ export function initShowcaseMap(resizeCallbacks) {
 
     renderer = new THREE.WebGLRenderer({
         antialias: true,
-        alpha: true,
         powerPreference: 'high-performance'
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -176,6 +178,19 @@ export function initShowcaseMap(resizeCallbacks) {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
     container.appendChild(renderer.domElement);
+
+    // --- EFFECT COMPOSER (Bloom) ---
+    composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    const bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(container.clientWidth, container.clientHeight),
+        0.8,   // strength
+        0.3,   // radius
+        0.85   // threshold
+    );
+    composer.addPass(bloomPass);
 
     // --- LIGHTING ---
     ambientLight = new THREE.AmbientLight(0xffffff, 5);
@@ -307,7 +322,7 @@ export function initShowcaseMap(resizeCallbacks) {
         const material = new THREE.MeshStandardMaterial({
             color: 0xffffff,
             emissive: 0xffffff,
-            emissiveIntensity: 5.0,
+            emissiveIntensity: 0,
             toneMapped: false,
             fog: true
         });
@@ -877,6 +892,7 @@ export function initShowcaseMap(resizeCallbacks) {
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
+        composer.setSize(width, height);
     });
 
     // --- CORE OSCILLATION UPDATE (optimized: no allocations in loop) ---
@@ -1038,7 +1054,7 @@ export function initShowcaseMap(resizeCallbacks) {
             beacon.position.y = beacon.userData.baseY + Math.sin(time * 0.8 + phase) * 0.05;
         });
 
-        renderer.render(scene, camera);
+        composer.render();
     }
 
     // Initial scroll position
