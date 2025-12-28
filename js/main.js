@@ -151,28 +151,69 @@ function initAoxInteraction(resizeCallbacks) {
     const tiles = document.querySelectorAll('.aox-tile');
     const canvasContainer = document.getElementById('aox-canvas-container');
 
+    // Viewport detection with resize re-evaluation
+    let isTablet = window.innerWidth <= 1024;
+    resizeCallbacks.push(() => {
+        isTablet = window.innerWidth <= 1024;
+        // Reset active states when switching between modes
+        if (!isTablet) {
+            tiles.forEach(t => t.classList.remove('is-active'));
+        }
+    });
+
     tiles.forEach(tile => {
+        // Desktop hover (bypassed on tablet)
         tile.addEventListener('mouseenter', () => {
+            if (isTablet) return; // Bypass on tablet
             const ambito = tile.dataset.ambito;
             console.log(`[AOX] Ambito attivo: ${ambito}`);
-            // CustomEvent per sistema 3D disaccoppiato
             window.dispatchEvent(new CustomEvent('aoxStateChange', {
                 detail: { ambito }
             }));
         });
 
         tile.addEventListener('mouseleave', () => {
+            if (isTablet) return; // Bypass on tablet
             console.log('[AOX] Ambito disattivato');
             window.dispatchEvent(new CustomEvent('aoxStateChange', {
                 detail: { ambito: null }
             }));
         });
+
+        // Tablet click interaction
+        tile.addEventListener('click', () => {
+            if (!isTablet) return; // Only on tablet
+
+            const wasActive = tile.classList.contains('is-active');
+
+            // Remove active from all tiles
+            tiles.forEach(t => t.classList.remove('is-active'));
+
+            if (wasActive) {
+                // Close panel and reset cloud
+                console.log('[AOX] Panel chiuso, reset nuvola');
+                window.dispatchEvent(new CustomEvent('aoxStateChange', {
+                    detail: { ambito: null }
+                }));
+            } else {
+                // Activate clicked tile
+                tile.classList.add('is-active');
+                const ambito = tile.dataset.ambito;
+                console.log(`[AOX Tablet] Ambito attivo: ${ambito}`);
+                // 50ms delay: allows CSS .is-active to render before 3D morphing
+                setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('aoxStateChange', {
+                        detail: { ambito }
+                    }));
+                }, 50);
+            }
+        });
     });
 
-    // Resize callback per futuro canvas container
+    // Resize callback for canvas container
     if (canvasContainer) {
         resizeCallbacks.push(() => {
-            // Futuro: resize morphing core
+            // Future: resize morphing core
         });
     }
 }
