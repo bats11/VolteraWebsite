@@ -356,15 +356,15 @@ export function initShowcaseMap(resizeCallbacks) {
         return light;
     }
 
-    // --- ORBITAL SATELLITE FACTORY ---
+    // --- ORBITAL SATELLITE FACTORY (Turbulent Nebula) ---
     function createOrbitalSatellite(projectConfig) {
         const group = new THREE.Group();
 
-        // Nuvola di punti sferica (~32 punti) con jitter organico
-        const pointCount = 32;
+        // Nucleo denso luminoso: 256 punti in sfera compatta
+        const pointCount = 256;
         const positions = new Float32Array(pointCount * 3);
-        const sphereRadius = 0.15;
-        const jitterAmount = 0.02; // Offset casuale per effetto organico
+        const particleData = []; // Per-particle animation data
+        const sphereRadius = 0.1; // Nucleo compatto
 
         for (let i = 0; i < pointCount; i++) {
             // Distribuzione uniforme in sfera via rejection sampling
@@ -375,53 +375,53 @@ export function initShowcaseMap(resizeCallbacks) {
                 z = (Math.random() - 0.5) * 2;
             } while (x * x + y * y + z * z > 1);
 
-            // Jitter individuale per ogni punto (effetto organico)
-            const jx = (Math.random() - 0.5) * jitterAmount;
-            const jy = (Math.random() - 0.5) * jitterAmount;
-            const jz = (Math.random() - 0.5) * jitterAmount;
+            const px = x * sphereRadius;
+            const py = y * sphereRadius;
+            const pz = z * sphereRadius;
 
-            positions[i * 3] = x * sphereRadius + jx;
-            positions[i * 3 + 1] = y * sphereRadius + jy;
-            positions[i * 3 + 2] = z * sphereRadius + jz;
+            positions[i * 3] = px;
+            positions[i * 3 + 1] = py;
+            positions[i * 3 + 2] = pz;
+
+            // Memorizza dati per animazione turbolenta
+            particleData.push({
+                basePos: { x: px, y: py, z: pz },
+                noiseSeed: {
+                    x: Math.random() * Math.PI * 2,
+                    y: Math.random() * Math.PI * 2,
+                    z: Math.random() * Math.PI * 2
+                },
+                speedFactor: 0.8 + Math.random() * 0.8 // 0.8-1.6
+            });
         }
 
         const pointsGeo = new THREE.BufferGeometry();
         pointsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        pointsGeo.getAttribute('position').setUsage(THREE.DynamicDrawUsage);
 
-        // Materiale ottimizzato per profondità
+        // Materiale emissivo luminoso (Bloom-ready)
         const pointsMat = new THREE.PointsMaterial({
             color: 0xffffff,
-            size: 0.02,
+            size: 0.04,
             transparent: true,
-            opacity: 0.8,
-            sizeAttenuation: true,  // Scala con distanza camera
-            depthWrite: false       // Evita artefatti sovrapposizione
+            opacity: 1.0,
+            sizeAttenuation: true,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+            toneMapped: false // Essenziale per Bloom intenso
         });
 
         const pointCloud = new THREE.Points(pointsGeo, pointsMat);
         group.add(pointCloud);
-        group.userData.pointsMaterial = pointsMat; // Riferimento per hover
 
-        // Assi ridotti (scala 0.5)
-        const axesGroup = new THREE.Group();
-        const axisLength = 0.25 * 0.5; // Ridotto del 50%
-        const axisMat = new THREE.LineBasicMaterial({
-            color: 0xffffff,
-            transparent: true,
-            opacity: 0.3
-        });
-
-        [[1, 0, 0], [0, 1, 0], [0, 0, 1]].forEach(dir => {
-            const geo = new THREE.BufferGeometry().setFromPoints([
-                new THREE.Vector3(-dir[0] * axisLength, -dir[1] * axisLength, -dir[2] * axisLength),
-                new THREE.Vector3(dir[0] * axisLength, dir[1] * axisLength, dir[2] * axisLength)
-            ]);
-            axesGroup.add(new THREE.Line(geo, axisMat));
-        });
-
-        group.add(axesGroup);
-        group.userData.axesGroup = axesGroup;
-        group.userData.axisMaterial = axisMat;
+        // Store references for animation
+        group.userData.pointsMaterial = pointsMat;
+        group.userData.pointsGeometry = pointsGeo;
+        group.userData.particleData = particleData;
+        group.userData.turbulenceAmplitude = 0.04; // Ridotto per scala compatta
+        group.userData.turbulenceSpeed = 1.5;
+        group.userData.baseOpacity = 1.0;
+        group.userData.baseSize = 0.04;
 
         return group;
     }
@@ -484,18 +484,20 @@ export function initShowcaseMap(resizeCallbacks) {
         beaconsGroup.add(light);
         technicalBeacons.push(light);
 
-        // --- ORBITAL SATELLITE ---
+        // --- ORBITAL SATELLITE (Nebulosa Turbolenta) ---
         const satellite = createOrbitalSatellite(project);
         satellite.name = 'satellite_' + project.id;
         satellite.userData.projectId = project.id;
         satellite.userData.monolith = monolith;
 
-        // Orbit configuration (raggio aumentato per evitare intersezioni)
-        satellite.userData.orbitRadius = 3.5 + Math.random() * 1.5; // 3.5-5.0
-        satellite.userData.orbitSpeed = 0.3 + Math.random() * 0.3;   // 0.3-0.6
+        // Orbit configuration (ellittica ravvicinata)
+        satellite.userData.orbitSemiMajorAxis = 1.4 + Math.random() * 0.4;  // 1.4-1.8
+        satellite.userData.orbitSemiMinorAxis = 1.0 + Math.random() * 0.3;  // 1.0-1.3
+        satellite.userData.orbitSpeed = 0.25 + Math.random() * 0.25;        // 0.25-0.5
         satellite.userData.orbitAngle = Math.random() * Math.PI * 2;
-        satellite.userData.baseY = project.position.y + config.offset.y;
-        satellite.userData.phaseOffset = Math.random() * Math.PI * 2;
+        satellite.userData.inclinationX = 0.4 + Math.random() * 0.4;        // 0.4-0.8 rad
+        satellite.userData.inclinationZ = 0.4 + Math.random() * 0.4;        // 0.4-0.8 rad
+        satellite.userData.baseY = project.position.y + 1.0;
         satellite.userData.isHovered = false;
 
         scene.add(satellite);
@@ -710,26 +712,21 @@ export function initShowcaseMap(resizeCallbacks) {
             }
         });
 
-        // Update satellite hover state (rotation + point cloud effects)
+        // Update satellite hover state (size burst + turbolenza gestita in animation loop)
         orbitalSatellites.forEach(satellite => {
             if (satellite.userData.projectId === projectId) {
                 satellite.userData.isHovered = isHovered;
 
-                const targetAxisOpacity = isHovered ? 0.8 : 0.3;
-                const targetPointsOpacity = isHovered ? 1.0 : 0.8;
-                const targetPointsSize = isHovered ? 0.035 : 0.02;
+                const targetSize = isHovered ? 0.07 : satellite.userData.baseSize;
 
                 if (typeof gsap !== 'undefined') {
-                    gsap.to(satellite.userData.axisMaterial, { opacity: targetAxisOpacity, duration: 0.4 });
                     gsap.to(satellite.userData.pointsMaterial, {
-                        opacity: targetPointsOpacity,
-                        size: targetPointsSize,
-                        duration: 0.4
+                        size: targetSize,
+                        duration: 0.3,
+                        ease: 'power2.out'
                     });
                 } else {
-                    satellite.userData.axisMaterial.opacity = targetAxisOpacity;
-                    satellite.userData.pointsMaterial.opacity = targetPointsOpacity;
-                    satellite.userData.pointsMaterial.size = targetPointsSize;
+                    satellite.userData.pointsMaterial.size = targetSize;
                 }
             }
         });
@@ -1114,27 +1111,49 @@ export function initShowcaseMap(resizeCallbacks) {
         // --- LIGHTNING FLICKER ---
         updateLightning();
 
-        // --- ORBITAL SATELLITES ANIMATION ---
+        // --- ORBITAL SATELLITES ANIMATION (Nebulosa Turbolenta) ---
         orbitalSatellites.forEach(satellite => {
             const monolith = satellite.userData.monolith;
-            const radius = satellite.userData.orbitRadius;
+            const semiMajor = satellite.userData.orbitSemiMajorAxis;
+            const semiMinor = satellite.userData.orbitSemiMinorAxis;
             const speed = satellite.userData.orbitSpeed;
             const angle = satellite.userData.orbitAngle;
-            const phase = satellite.userData.phaseOffset;
+            const inclX = satellite.userData.inclinationX;
+            const inclZ = satellite.userData.inclinationZ;
+            const baseY = satellite.userData.baseY;
 
-            // Orbital motion around monolith
-            satellite.position.x = monolith.position.x + Math.cos(time * speed + angle) * radius;
-            satellite.position.z = monolith.position.z + Math.sin(time * speed + angle) * radius;
+            // Movimento orbitale ellittico con inclinazione
+            const orbitPhase = time * speed + angle;
+            const flatX = Math.cos(orbitPhase) * semiMajor;
+            const flatZ = Math.sin(orbitPhase) * semiMinor;
 
-            // Slow vertical oscillation (frequency 0.8)
-            satellite.position.y = satellite.userData.baseY + Math.sin(time * 0.8 + phase) * 0.05;
+            // Applica inclinazione al piano orbitale
+            satellite.position.x = monolith.position.x + flatX * Math.cos(inclZ) - flatZ * Math.sin(inclZ) * Math.sin(inclX);
+            satellite.position.z = monolith.position.z + flatZ * Math.cos(inclX);
+            satellite.position.y = baseY + flatX * Math.sin(inclZ) + flatZ * Math.sin(inclX) * 0.6;
 
-            // Axes rotation speed (doubled when hovered)
-            const rotSpeed = satellite.userData.isHovered ? 0.01 : 0.005;
-            if (satellite.userData.axesGroup) {
-                satellite.userData.axesGroup.rotation.x += rotSpeed;
-                satellite.userData.axesGroup.rotation.y += rotSpeed * 1.5;
+            // Turbolenza 3D (deformazione per-particella)
+            const geo = satellite.userData.pointsGeometry;
+            const particles = satellite.userData.particleData;
+            const amp = satellite.userData.isHovered ? 0.15 : satellite.userData.turbulenceAmplitude;
+            const turbSpeed = satellite.userData.isHovered ? 3.0 : satellite.userData.turbulenceSpeed;
+            const posArr = geo.attributes.position.array;
+
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                const t = time * turbSpeed * p.speedFactor;
+
+                // Deformazione 3D con noise seeds individuali
+                posArr[i * 3] = p.basePos.x + Math.sin(t + p.noiseSeed.x) * amp;
+                posArr[i * 3 + 1] = p.basePos.y + Math.sin(t + p.noiseSeed.y) * amp;
+                posArr[i * 3 + 2] = p.basePos.z + Math.sin(t + p.noiseSeed.z) * amp;
             }
+            geo.attributes.position.needsUpdate = true;
+
+            // Opacity shimmer (oscillazione leggera)
+            const mat = satellite.userData.pointsMaterial;
+            const baseOpacity = satellite.userData.isHovered ? 1.0 : satellite.userData.baseOpacity;
+            mat.opacity = baseOpacity + Math.sin(time * 3.0 + angle) * 0.1;
         });
 
         composer.render();
