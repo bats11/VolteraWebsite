@@ -154,6 +154,7 @@ export function initAtmosphericHero(resizeCallbacks) {
     scene.add(pyramidGroup);
 
     // Model - Hero Mesh GLB (deer, elephant, woman)
+    let heroModel = null;
     const gltfLoader = new GLTFLoader();
     const degToRad = (deg) => deg * (Math.PI / 180);
 
@@ -164,42 +165,69 @@ export function initAtmosphericHero(resizeCallbacks) {
         metalness: 0.1
     });
 
-    gltfLoader.load(
-        './assets/models/hero-mesh.glb',
-        (gltf) => {
-            const model = gltf.scene;
+    function loadHeroGLB() {
+        if (heroModel) return;
 
-            model.traverse((child) => {
-                if (child.isMesh) {
-                    const meshName = child.name.toLowerCase();
-                    const config = MESH_CONFIG[meshName];
+        gltfLoader.load(
+            './assets/models/hero-mesh.glb',
+            (gltf) => {
+                // Double check width to prevent race conditions
+                if (window.innerWidth < 1024) return;
 
-                    if (config) {
-                        // Apply individual transformations
-                        child.position.set(...config.position);
-                        // Rotations configured in degrees, convert to radians
-                        child.rotation.set(
-                            degToRad(config.rotation[0]),
-                            degToRad(config.rotation[1]),
-                            degToRad(config.rotation[2])
-                        );
-                        child.scale.setScalar(config.scale);
+                heroModel = gltf.scene;
+
+                heroModel.traverse((child) => {
+                    if (child.isMesh) {
+                        const meshName = child.name.toLowerCase();
+                        const config = MESH_CONFIG[meshName];
+
+                        if (config) {
+                            // Apply individual transformations
+                            child.position.set(...config.position);
+                            // Rotations configured in degrees, convert to radians
+                            child.rotation.set(
+                                degToRad(config.rotation[0]),
+                                degToRad(config.rotation[1]),
+                                degToRad(config.rotation[2])
+                            );
+                            child.scale.setScalar(config.scale);
+                        }
+
+                        // Apply silhouette material and shadows to ALL meshes
+                        child.material = silhouetteMaterial;
+                        child.castShadow = true;
                     }
+                });
 
-                    // Apply silhouette material and shadows to ALL meshes
-                    child.material = silhouetteMaterial;
-                    child.castShadow = true;
-                }
-            });
+                scene.add(heroModel);
+                console.log('[Atmospheric] Hero mesh loaded (desktop)');
+            },
+            undefined,
+            (error) => {
+                console.error('[Atmospheric] Error loading hero mesh:', error);
+            }
+        );
+    }
 
-            scene.add(model);
-            console.log('[Atmospheric] Hero mesh loaded (deer, elephant, woman)');
-        },
-        undefined,
-        (error) => {
-            console.error('[Atmospheric] Error loading hero mesh:', error);
-        }
-    );
+    function removeHeroGLB() {
+        if (!heroModel) return;
+
+        scene.remove(heroModel);
+
+        heroModel.traverse((child) => {
+            if (child.isMesh) {
+                child.geometry.dispose();
+            }
+        });
+
+        heroModel = null;
+        console.log('[Atmospheric] Hero mesh unloaded (mobile/tablet)');
+    }
+
+    // Initial load check
+    if (window.innerWidth >= 1024) {
+        loadHeroGLB();
+    }
 
 
 
@@ -235,6 +263,13 @@ export function initAtmosphericHero(resizeCallbacks) {
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
         composer.setSize(window.innerWidth, window.innerHeight);
+
+        // Dynamic GLB handling
+        if (window.innerWidth >= 1024) {
+            loadHeroGLB();
+        } else {
+            removeHeroGLB();
+        }
     });
 
     // Remove Loader
