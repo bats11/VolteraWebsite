@@ -950,6 +950,17 @@ footer {
 }
 
 @media (max-width: 768px) {
+
+    /* Hide 3D canvas container completely on mobile */
+    #aox-canvas-container {
+        display: none !important;
+    }
+
+    /* Reduce vertical space for Message-First layout */
+    .aox-container {
+        min-height: auto;
+    }
+
     .aox-tiles-grid {
         grid-template-columns: 1fr;
         gap: var(--space-xs);

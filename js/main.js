@@ -3,6 +3,10 @@ import { initIcosahedronHero } from './scene-icosa.js';
 import { initAoxCore } from './scene-aox.js';
 import { initShowcaseMap } from './scene-showcase.js';
 
+// --- MOBILE BREAKPOINT ---
+const MOBILE_BREAKPOINT = 768;
+const isMobile = () => window.innerWidth < MOBILE_BREAKPOINT;
+
 // --- GLOBAL RESIZE MANAGER ---
 const resizeCallbacks = [];
 window.addEventListener('resize', () => {
@@ -14,6 +18,9 @@ window.onload = function () {
     if (window.lucide) {
         window.lucide.createIcons();
     }
+
+    // AOX controller reference (declared early for resize callback access)
+    let aoxController = null;
 
     // Map to store scene controllers keyed by container ID
     const sceneControllers = new Map();
@@ -30,6 +37,17 @@ window.onload = function () {
     initThemeObserver();
     initTitleFade();
     initAoxInteraction(resizeCallbacks);
+
+    // Handle desktop→mobile resize: stop AOX scene safely
+    resizeCallbacks.push(() => {
+        if (isMobile() && aoxController) {
+            aoxController.stop();
+            if (sceneControllers.has('aox-canvas-container')) {
+                sceneControllers.delete('aox-canvas-container');
+            }
+            aoxController = null; // Prevent multiple stop() calls
+        }
+    });
 
     // --- VISIBILITY MANAGEMENT (IntersectionObserver) ---
     const visibilityObserver = new IntersectionObserver((entries) => {
@@ -57,22 +75,26 @@ window.onload = function () {
     });
 
     // --- ASYNC AOX (Parallel & Non-Blocking) ---
-    initAoxCore(resizeCallbacks).then(aox => {
-        if (aox) {
-            const id = 'aox-canvas-container';
-            sceneControllers.set(id, aox);
+    // Skip AOX initialization on mobile (< 768px)
+    if (!isMobile()) {
+        initAoxCore(resizeCallbacks).then(aox => {
+            if (aox) {
+                aoxController = aox;
+                const id = 'aox-canvas-container';
+                sceneControllers.set(id, aox);
 
-            const el = document.getElementById(id);
-            if (el) {
-                visibilityObserver.observe(el);
-                // Manual check if already in view after async load
-                const rect = el.getBoundingClientRect();
-                if (rect.top < window.innerHeight + 200 && rect.bottom > 0) {
-                    aox.start();
+                const el = document.getElementById(id);
+                if (el) {
+                    visibilityObserver.observe(el);
+                    // Manual check if already in view after async load
+                    const rect = el.getBoundingClientRect();
+                    if (rect.top < window.innerHeight + 200 && rect.bottom > 0) {
+                        aox.start();
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 };
 
 // --- 2. MOBILE MENU ---
