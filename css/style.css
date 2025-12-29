@@ -553,7 +553,6 @@ footer {
         border 0.8s cubic-bezier(0.16, 1, 0.3, 1),
         background 0.8s cubic-bezier(0.16, 1, 0.3, 1),
         backdrop-filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-        box-shadow 0.8s cubic-bezier(0.16, 1, 0.3, 1),
         opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 
     overflow: hidden;
@@ -573,8 +572,7 @@ footer {
 
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 20px 80px -10px rgba(0, 0, 0, 0.8);
-    /* Deep shadow for elevation */
+    /* Deep shadow removed for clean design */
     overflow: visible;
 }
 
@@ -992,6 +990,7 @@ footer {
         backdrop-filter: none !important;
         will-change: auto !important;
         padding: 0 !important;
+        box-shadow: none !important;
     }
 
     .aox-tile-1,
