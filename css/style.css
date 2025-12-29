@@ -553,7 +553,8 @@ footer {
         border 0.8s cubic-bezier(0.16, 1, 0.3, 1),
         background 0.8s cubic-bezier(0.16, 1, 0.3, 1),
         backdrop-filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-        box-shadow 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 
     overflow: hidden;
     pointer-events: auto;
@@ -756,6 +757,12 @@ footer {
        Ogni interazione influenza l'intera griglia per mantenere equilibrio compositivo.
     */
 
+    /* DIMMING GLOBALE: Focus Isolato */
+    /* Quando una qualsiasi tile è attiva, le altre (non-hovered) si attenuano */
+    .aox-tiles-grid:has(.aox-tile:hover) .aox-tile:not(:hover) {
+        opacity: 0.3;
+    }
+
     /* SCENARIO 1: Brand (Tile 1 - Left) - Push Right Side */
     .aox-tiles-grid:has(.aox-tile-1:hover) .aox-tile-2 {
         transform: translateX(calc(var(--shift-wide) * 0.5));
@@ -763,11 +770,11 @@ footer {
 
     .aox-tiles-grid:has(.aox-tile-1:hover) .aox-tile-4 {
         transform: translateX(var(--shift-mid));
-        opacity: 0.5;
     }
 
     .aox-tiles-grid:has(.aox-tile-1:hover) .aox-tile-5 {
         transform: translateX(var(--shift-narrow));
+        opacity: 0;
     }
 
     .aox-tiles-grid:has(.aox-tile-1:hover) .aox-tile-3 {
@@ -781,7 +788,6 @@ footer {
 
     .aox-tiles-grid:has(.aox-tile-2:hover) .aox-tile-3 {
         transform: translateX(calc(var(--shift-mid) * -1));
-        opacity: 0.5;
     }
 
     .aox-tiles-grid:has(.aox-tile-2:hover) .aox-tile-5 {
@@ -805,7 +811,6 @@ footer {
     /* Leggero push back per enfatizzare profondità */
     .aox-tiles-grid:has(.aox-tile-3:hover) .aox-tile-1 {
         transform: translateX(calc(var(--shift-narrow) * -0.2));
-        opacity: 0.6;
     }
 
     /* SCENARIO 4: Sistemi (Tile 4 - Mid Right) - Magnetic Wedge Right */
@@ -821,7 +826,6 @@ footer {
     /* Leggero push back */
     .aox-tiles-grid:has(.aox-tile-4:hover) .aox-tile-2 {
         transform: translateX(calc(var(--shift-narrow) * 0.2));
-        opacity: 0.6;
     }
 
     /* SCENARIO 5: Immersive (Tile 5 - Center) - The "Wedge" Split */
@@ -836,12 +840,10 @@ footer {
 
     .aox-tiles-grid:has(.aox-tile-5:hover) .aox-tile-1 {
         transform: translateX(calc(var(--shift-narrow) * -1));
-        opacity: 0.8;
     }
 
     .aox-tiles-grid:has(.aox-tile-5:hover) .aox-tile-2 {
         transform: translateX(var(--shift-narrow));
-        opacity: 0.8;
     }
 }
 
