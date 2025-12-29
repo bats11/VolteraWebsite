@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 
 /**
@@ -131,7 +132,37 @@ export function initAtmosphericHero(resizeCallbacks) {
     pyramidGroup.rotation.y = POS_PYRAMID.rotY;
     scene.add(pyramidGroup);
 
-    // Model
+    // Model - Deer GLB
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.load(
+        './assets/models/deer.glb',
+        (gltf) => {
+            const model = gltf.scene;
+            model.scale.set(1, 1, 1);
+            model.position.set(0, 0, 6);
+
+            // Apply dark silhouette material to all meshes
+            const silhouetteMaterial = new THREE.MeshStandardMaterial({
+                color: 0x080808,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = silhouetteMaterial;
+                }
+            });
+
+            scene.add(model);
+            console.log('[Atmospheric] Deer model loaded');
+        },
+        undefined,
+        (error) => {
+            console.error('[Atmospheric] Error loading deer model:', error);
+        }
+    );
+
 
 
     // Lights & Objects
