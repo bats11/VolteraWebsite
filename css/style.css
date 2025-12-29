@@ -714,7 +714,19 @@ footer {
 }
 
 /* --- INERTIAL PUSH SYSTEM (Desktop Only) --- */
-@media (min-width: 1025px) {
+@media (min-width: 1024px) {
+
+    .aox-panel {
+        width: 100%;
+    }
+
+    .panel-desc {
+        font-size: 1rem;
+    }
+
+    .panel-specs {
+        font-size: 1.1rem;
+    }
 
     /* Hover Tile 1 (panel-right): Push Tile 3 left, 4 right */
     .aox-tiles-grid:has(.aox-tile-1:hover) .aox-tile-3 {
@@ -750,7 +762,7 @@ footer {
 }
 
 /* Responsive AOX - SPLIT-ZONE HUD (Tablet) */
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
 
     /* 1. Container: Relative anchor for panel positioning */
     .aox-container {
