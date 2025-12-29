@@ -14,9 +14,28 @@ export function initAtmosphericHero(resizeCallbacks) {
     // --- CONSTANTS ---
     const POS_PYRAMID = { y: 4.5, rotY: Math.PI / 2 };
     const SIZE_PYRAMID = { radius: 2.5, height: 5.5 };
-    const POS_CAMERA = { x: 0, y: 3.0, z: 28 };
+    const POS_CAMERA = { x: 0, y: 8.0, z: 28 };
     const POS_TARGET = { x: 0, y: 4.5, z: 0 };
     const MAX_ANGLE_DEGREES = 99;
+
+    // Mesh configuration for hero-mesh.glb
+    const MESH_CONFIG = {
+        deer: {
+            position: [2.7, 0, 5.7],
+            rotation: [0, 130, 0],
+            scale: 1.3
+        },
+        elephant: {
+            position: [-6, 0, -3],
+            rotation: [0, 60, 0],
+            scale: 1.3
+        },
+        woman: {
+            position: [2, 0, -4],
+            rotation: [0, -20, 0],
+            scale: 1.5
+        }
+    };
 
 
     // --- VARIABLES ---
@@ -134,42 +153,58 @@ export function initAtmosphericHero(resizeCallbacks) {
     pyramidGroup.rotation.y = POS_PYRAMID.rotY;
     scene.add(pyramidGroup);
 
-    // Model - Deer GLB
+    // Model - Hero Mesh GLB (deer, elephant, woman)
     const gltfLoader = new GLTFLoader();
+    const degToRad = (deg) => deg * (Math.PI / 180);
+
+    // Silhouette material (Vision-First design)
+    const silhouetteMaterial = new THREE.MeshStandardMaterial({
+        color: 0x080808,
+        roughness: 0.9,
+        metalness: 0.1
+    });
+
     gltfLoader.load(
-        './assets/models/deer.glb',
+        './assets/models/hero-mesh.glb',
         (gltf) => {
             const model = gltf.scene;
-            model.scale.set(1, 1, 1);
-            model.position.set(0, 0, 6);
-
-            // Apply dark silhouette material to all meshes
-            const silhouetteMaterial = new THREE.MeshStandardMaterial({
-                color: 0x080808,
-                roughness: 0.9,
-                metalness: 0.1
-            });
 
             model.traverse((child) => {
                 if (child.isMesh) {
+                    const meshName = child.name.toLowerCase();
+                    const config = MESH_CONFIG[meshName];
+
+                    if (config) {
+                        // Apply individual transformations
+                        child.position.set(...config.position);
+                        // Rotations configured in degrees, convert to radians
+                        child.rotation.set(
+                            degToRad(config.rotation[0]),
+                            degToRad(config.rotation[1]),
+                            degToRad(config.rotation[2])
+                        );
+                        child.scale.setScalar(config.scale);
+                    }
+
+                    // Apply silhouette material and shadows to ALL meshes
                     child.material = silhouetteMaterial;
                     child.castShadow = true;
                 }
             });
 
             scene.add(model);
-            console.log('[Atmospheric] Deer model loaded');
+            console.log('[Atmospheric] Hero mesh loaded (deer, elephant, woman)');
         },
         undefined,
         (error) => {
-            console.error('[Atmospheric] Error loading deer model:', error);
+            console.error('[Atmospheric] Error loading hero mesh:', error);
         }
     );
 
 
 
     // Lights & Objects
-    internalLight = new THREE.PointLight(0xffffff, 1500, 100);
+    internalLight = new THREE.PointLight(0xffffff, 1500, 120);
     internalLight.position.set(0, POS_PYRAMID.y, 0);
     internalLight.castShadow = true;
     internalLight.shadow.mapSize.width = 1024;
