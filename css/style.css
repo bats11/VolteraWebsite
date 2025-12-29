@@ -792,15 +792,11 @@ footer {
 
     .aox-tiles-grid:has(.aox-tile-1:hover) .aox-tile-4 {
         transform: translateX(var(--shift-mid));
-    }
-
-    .aox-tiles-grid:has(.aox-tile-1:hover) .aox-tile-5:not(:hover) {
-        transform: translateX(var(--shift-narrow));
-
+        opacity: 0.5;
     }
 
     .aox-tiles-grid:has(.aox-tile-1:hover) .aox-tile-3 {
-        transform: translateX(calc(var(--shift-narrow) * -3.5));
+        transform: translateX(calc(var(--shift-narrow) * -0.5));
     }
 
     /* SCENARIO 2: Spazi (Tile 2 - Right) - Push Left Side */
@@ -809,45 +805,44 @@ footer {
     }
 
     .aox-tiles-grid:has(.aox-tile-2:hover) .aox-tile-3 {
-        transform: translateX(calc(var(--shift-mid) * -1));
-    }
-
-    .aox-tiles-grid:has(.aox-tile-2:hover) .aox-tile-5 {
-        transform: translateX(calc(var(--shift-narrow) * -1));
+        transform: translateX(calc(var(--shift-mid) * -0.5));
+        opacity: 0.5;
     }
 
     .aox-tiles-grid:has(.aox-tile-2:hover) .aox-tile-4 {
-        transform: translateX(var(--shift-wide));
+        transform: translateX(calc(var(--shift-narrow) * 0.5));
     }
 
     /* SCENARIO 3: Web (Tile 3 - Mid Left) - Magnetic Wedge Left */
     /* Spinge le tile a destra verso destra per fare spazio al pannello */
     .aox-tiles-grid:has(.aox-tile-3:hover) .aox-tile-5 {
-        transform: translateX(calc(var(--shift-narrow) * -5))
+        transform: translateX(calc(var(--shift-mid) * -0.5));
     }
 
     .aox-tiles-grid:has(.aox-tile-3:hover) .aox-tile-4 {
-        transform: translateX(var(--shift-wide));
+        transform: translateX(var(--shift-mid));
     }
 
     /* Leggero push back per enfatizzare profondità */
-    .aox-tiles-grid:has(.aox-tile-3:hover) .aox-tile-1 {
+    /*.aox-tiles-grid:has(.aox-tile-3:hover) .aox-tile-1 {
         transform: translateX(calc(var(--shift-narrow) * -0.2));
-    }
+        opacity: 0.6;
+    }*/
 
     /* SCENARIO 4: Sistemi (Tile 4 - Mid Right) - Magnetic Wedge Right */
     /* Spinge le tile a sinistra verso sinistra */
     .aox-tiles-grid:has(.aox-tile-4:hover) .aox-tile-5 {
-        transform: translateX(calc(var(--shift-wide) * -2.5));
+        transform: translateX(calc(var(--shift-mid) * -0.5));
     }
 
     .aox-tiles-grid:has(.aox-tile-4:hover) .aox-tile-3 {
-        transform: translateX(calc(var(--shift-wide) * -1));
+        transform: translateX(calc(var(--shift-mid) * -0.5));
     }
 
     /* Leggero push back */
     .aox-tiles-grid:has(.aox-tile-4:hover) .aox-tile-2 {
         transform: translateX(calc(var(--shift-narrow) * 0.2));
+        opacity: 0.6;
     }
 
     /* SCENARIO 5: Immersive (Tile 5 - Center) - The "Wedge" Split */
@@ -862,10 +857,12 @@ footer {
 
     .aox-tiles-grid:has(.aox-tile-5:hover) .aox-tile-1 {
         transform: translateX(calc(var(--shift-narrow) * -1));
+        opacity: 0.8;
     }
 
     .aox-tiles-grid:has(.aox-tile-5:hover) .aox-tile-2 {
         transform: translateX(var(--shift-narrow));
+        opacity: 0.8;
     }
 }
 
