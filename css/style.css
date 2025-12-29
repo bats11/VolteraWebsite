@@ -752,6 +752,28 @@ footer {
         font-size: 1.1rem;
     }
 
+    /* --- TILE 5 VERTICAL PANEL OVERRIDE --- */
+    .aox-tile-5 .aox-panel {
+        top: auto !important;
+        right: auto !important;
+        bottom: 100% !important;
+        /* Lo sposta sopra la tile */
+        left: 0 !important;
+        width: 100% !important;
+        margin-bottom: var(--space-sm) !important;
+        /* Crea il distacco */
+        transform: translateY(20px);
+        /* Affioramento verticale */
+        opacity: 0;
+        filter: blur(10px);
+    }
+
+    .aox-tile-5:hover .aox-panel {
+        transform: translateY(0);
+        opacity: 1;
+        filter: blur(0);
+    }
+
     /* 
        ORCHESTRAZIONE MAGNETICA 
        Ogni interazione influenza l'intera griglia per mantenere equilibrio compositivo.
