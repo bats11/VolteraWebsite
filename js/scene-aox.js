@@ -95,17 +95,52 @@ export async function initAoxCore(resizeCallbacks) {
         attribute vec3 targetPosition;
 
         void main() {
-            // Morphing fluido: source (posizione corrente catturata) → target (nuova forma)
+            float t = uTime;
+            
+            // === LIVING FLAME: Turbolenza Materica ===
+            
+            // Strato 1-3: Oscillazioni primarie (bassa/media frequenza)
+            vec3 vTurbulence = vec3(
+                sin(t * 1.3 + sourcePosition.y * 2.1) * cos(t * 0.7 + sourcePosition.z * 1.9),
+                cos(t * 2.7 + sourcePosition.x * 1.7) * sin(t * 1.1 + sourcePosition.z * 2.3),
+                sin(t * 3.1 + sourcePosition.x * 2.5) * cos(t * 0.9 + sourcePosition.y * 1.3)
+            );
+            
+            // Strato 4: Micro-jitter plasma ad alta frequenza (POTENZIATO)
+            vec3 microJitter = vec3(
+                sin(t * 7.5 + sourcePosition.x * 10.0),
+                sin(t * 8.3 + sourcePosition.y * 9.0),
+                sin(t * 6.9 + sourcePosition.z * 11.0)
+            ) * 0.25;
+            
+            vTurbulence += microJitter;
+            
+            // Gradiente verticale: quasi fermo alla base, massimo in cima
+            float hFactor = smoothstep(-3.5, 3.5, sourcePosition.y);
+            
+            // Deriva termica RAFFORZATA: spinta verso l'alto
+            vTurbulence.y += hFactor * 0.2;
+            
+            // Ampiezza POTENZIATA + contenimento magnetico (plasma denso)
+            float amplitude = 0.45;
+            float radialDist = length(sourcePosition);
+            float containment = 1.0 - smoothstep(2.5, 3.5, radialDist) * 0.4;
+            
+            vTurbulence *= amplitude * hFactor * containment;
+            
+            // === MORPHING ===
+            
+            // Morphing fluido: source → target
             vec3 mixedPos = mix(sourcePosition, targetPosition, uTransition);
             
-            // Effetto "Senziente": Jitter casuale e respiro organico
-            float noise = sin(uTime * 2.0 + mixedPos.y * 5.0) * 0.02;
-            mixedPos += noise * (1.0 - uTransition * 0.5); 
+            // Applicazione turbolenza con fade-out durante transizione
+            mixedPos += vTurbulence * (1.0 - uTransition);
 
             vec4 mvPosition = modelViewMatrix * vec4(mixedPos, 1.0);
             
-            // Dimensione particella con attenuazione prospettica
-            gl_PointSize = (15.0 / -mvPosition.z) * (1.0 + noise * 10.0);
+            // Dimensione particella con attenuazione prospettica + leggera variazione
+            float sizeVariation = 1.0 + (vTurbulence.x + vTurbulence.y) * 2.0 * (1.0 - uTransition);
+            gl_PointSize = (15.0 / -mvPosition.z) * sizeVariation;
             gl_Position = projectionMatrix * mvPosition;
         }
     `;
@@ -173,32 +208,49 @@ export async function initAoxCore(resizeCallbacks) {
         const ambito = e.detail.ambito;
         console.log(`[AOX] Scena 3D: Ricevuto comando per ambito ${ambito}`);
 
-        // STEP 1: Ferma qualsiasi animazione in corso
+        // SICUREZZA: Ferma qualsiasi animazione in corso (evita conflitti su tablet)
         gsap.killTweensOf(shaderMaterial.uniforms.uTransition);
 
-        // STEP 2: Cattura la posizione CORRENTE delle particelle come nuovo source
-        captureCurrentState();
-
-        // STEP 3: Resetta il progresso a 0 (ora source = posizione corrente, quindi nessun salto)
-        shaderMaterial.uniforms.uTransition.value = 0.0;
-
-        // STEP 4: Imposta il nuovo target
+        const sourceAttr = geometry.getAttribute('sourcePosition');
         const targetAttr = geometry.getAttribute('targetPosition');
-        if (ambito && morphTargets[ambito]) {
-            // Target = forma dell'ambito
-            targetAttr.array.set(morphTargets[ambito]);
-        } else {
-            // Target = sfera originale (basePositions)
-            targetAttr.array.set(basePositions);
-        }
-        targetAttr.needsUpdate = true;
+        const currentT = shaderMaterial.uniforms.uTransition.value;
 
-        // STEP 5: Anima da 0 a 1 (source corrente → nuovo target)
-        gsap.to(shaderMaterial.uniforms.uTransition, {
-            value: 1.0,
-            duration: 1.5,
-            ease: "expo.out"
-        });
+        if (ambito && morphTargets[ambito]) {
+            // === ATTIVAZIONE PROGETTO ===
+            // Cattura posizione attuale in sourcePosition
+            captureCurrentState();
+
+            // Imposta targetPosition con morph target
+            targetAttr.array.set(morphTargets[ambito]);
+            targetAttr.needsUpdate = true;
+
+            // Reset e anima 0 → 1 (turbolenza si spegne)
+            shaderMaterial.uniforms.uTransition.value = 0.0;
+            gsap.to(shaderMaterial.uniforms.uTransition, {
+                value: 1.0,
+                duration: 1.5,
+                ease: "expo.out"
+            });
+        } else {
+            // === RITORNO ALLA SFERA (CRITICO) ===
+            // Calcola manualmente posizione attuale e salvala in targetPosition
+            for (let i = 0; i < COUNT * 3; i++) {
+                targetAttr.array[i] = sourceAttr.array[i] * (1 - currentT) + targetAttr.array[i] * currentT;
+            }
+            targetAttr.needsUpdate = true;
+
+            // Imposta sourcePosition con la sfera originale
+            sourceAttr.array.set(basePositions);
+            sourceAttr.needsUpdate = true;
+
+            // Forza uTransition a 1.0 e anima verso 0.0 (turbolenza si riattiva)
+            shaderMaterial.uniforms.uTransition.value = 1.0;
+            gsap.to(shaderMaterial.uniforms.uTransition, {
+                value: 0.0,
+                duration: 1.8,
+                ease: "power4.out"
+            });
+        }
     });
 
     // --- RESIZE ---
