@@ -760,7 +760,7 @@ footer {
     /* DIMMING GLOBALE: Focus Isolato */
     /* Quando una qualsiasi tile è attiva, le altre (non-hovered) si attenuano */
     .aox-tiles-grid:has(.aox-tile:hover) .aox-tile:not(:hover) {
-        opacity: 0.3;
+        opacity: 0.05;
     }
 
     /* SCENARIO 1: Brand (Tile 1 - Left) - Push Right Side */
@@ -772,9 +772,9 @@ footer {
         transform: translateX(var(--shift-mid));
     }
 
-    .aox-tiles-grid:has(.aox-tile-1:hover) .aox-tile-5 {
+    .aox-tiles-grid:has(.aox-tile-1:hover) .aox-tile-5:not(:hover) {
         transform: translateX(var(--shift-narrow));
-        opacity: 0;
+
     }
 
     .aox-tiles-grid:has(.aox-tile-1:hover) .aox-tile-3 {
@@ -801,7 +801,7 @@ footer {
     /* SCENARIO 3: Web (Tile 3 - Mid Left) - Magnetic Wedge Left */
     /* Spinge le tile a destra verso destra per fare spazio al pannello */
     .aox-tiles-grid:has(.aox-tile-3:hover) .aox-tile-5 {
-        transform: translateX(var(--shift-mid));
+        transform: translateX(calc(var(--shift-narrow) * -5))
     }
 
     .aox-tiles-grid:has(.aox-tile-3:hover) .aox-tile-4 {
@@ -816,7 +816,7 @@ footer {
     /* SCENARIO 4: Sistemi (Tile 4 - Mid Right) - Magnetic Wedge Right */
     /* Spinge le tile a sinistra verso sinistra */
     .aox-tiles-grid:has(.aox-tile-4:hover) .aox-tile-5 {
-        transform: translateX(calc(var(--shift-mid) * -1));
+        transform: translateX(calc(var(--shift-wide) * -2.5));
     }
 
     .aox-tiles-grid:has(.aox-tile-4:hover) .aox-tile-3 {
