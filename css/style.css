@@ -887,7 +887,7 @@ footer {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 10px;
         width: 100%;
-        order: 1;
+        order: 2;
     }
 
     /* 3. Hide descriptive elements for minimal HUD */
@@ -1006,21 +1006,22 @@ footer {
     /* 7. PANNELLO MASTER SOVRAPPOSTO: Fixed position below button bar */
     .aox-panel {
         position: absolute;
-        top: 100%;
+        top: auto !important;
         /* Starts immediately below button bar */
         left: 5% !important;
         width: 90% !important;
         /* Generous panel */
         height: auto;
         z-index: 120;
-        margin: 20px 0 0 0 !important;
+        bottom: 100% !important;
+        margin: 0 0 20px 0 !important;
         padding: var(--space-md);
         background: rgba(8, 8, 8, 0.5);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.1);
         opacity: 0;
-        transform: translateY(15px);
+        transform: translateY(-15px);
         transition: all 0.7s var(--ease-out-expo);
         pointer-events: none;
     }
@@ -1035,7 +1036,7 @@ footer {
     /* Disable hover reveal on tablet */
     .aox-tile:hover .aox-panel {
         opacity: 0;
-        transform: translateY(15px);
+        transform: translateY(-15px);
         pointer-events: none;
     }
 
@@ -1048,7 +1049,7 @@ footer {
     /* 9. VISION ZONE: Canvas centered without transform */
     #aox-canvas-container {
         position: relative;
-        order: 2;
+        order: 1;
         width: 100%;
         height: 600px;
         transform: none !important;
