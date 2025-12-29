@@ -998,7 +998,7 @@ footer {
         margin-top: 10px !important;
         transform: none !important;
         overflow: hidden;
-        min-height: 0;
+        min-height: auto;
         opacity: 0;
         background: rgba(8, 8, 8, 0.85);
         backdrop-filter: blur(20px);
