@@ -96,6 +96,7 @@ export async function initAoxCore(resizeCallbacks) {
 
         void main() {
             float t = uTime;
+            t *= 0.3; // Rallentamento etereo (Living Flame Slow Motion)
             
             // === LIVING FLAME: Turbolenza Materica ===
             
@@ -115,14 +116,17 @@ export async function initAoxCore(resizeCallbacks) {
             
             vTurbulence += microJitter;
             
-            // Gradiente verticale: quasi fermo alla base, massimo in cima
-            float hFactor = smoothstep(-3.5, 3.5, sourcePosition.y);
+            vTurbulence += microJitter;
             
-            // Deriva termica RAFFORZATA: spinta verso l'alto
+            // Gradiente hFactor UNIFORME: 1.0 su tutta la sfera (base = cima)
+            float hFactor = 1.0;
+            
+            // Deriva termica UNIFORME: spinta costante verso l'alto su tutto il volume
             vTurbulence.y += hFactor * 0.2;
             
-            // Ampiezza POTENZIATA + contenimento magnetico (plasma denso)
-            float amplitude = 0.45;
+            // Ampiezza BILANCIATA (0.40) per gestire densità su 50k particelle
+            // + contenimento magnetico invariato
+            float amplitude = 0.40;
             float radialDist = length(sourcePosition);
             float containment = 1.0 - smoothstep(2.5, 3.5, radialDist) * 0.4;
             
