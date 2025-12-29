@@ -40,6 +40,8 @@ export function initAtmosphericHero(resizeCallbacks) {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
     controls = new OrbitControls(camera, renderer.domElement);
@@ -151,6 +153,7 @@ export function initAtmosphericHero(resizeCallbacks) {
             model.traverse((child) => {
                 if (child.isMesh) {
                     child.material = silhouetteMaterial;
+                    child.castShadow = true;
                 }
             });
 
@@ -168,6 +171,11 @@ export function initAtmosphericHero(resizeCallbacks) {
     // Lights & Objects
     internalLight = new THREE.PointLight(0xffffff, 1500, 100);
     internalLight.position.set(0, POS_PYRAMID.y, 0);
+    internalLight.castShadow = true;
+    internalLight.shadow.mapSize.width = 1024;
+    internalLight.shadow.mapSize.height = 1024;
+    internalLight.shadow.camera.near = 0.5;
+    internalLight.shadow.camera.far = 50;
     scene.add(internalLight);
     scene.add(new THREE.AmbientLight(0xffffff, 0.02));
 
@@ -183,6 +191,7 @@ export function initAtmosphericHero(resizeCallbacks) {
 
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshLambertMaterial({ color: 0x111111 }));
     floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
     scene.add(floor);
 
     // Resize
