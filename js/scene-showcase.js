@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
 /**
@@ -132,7 +133,8 @@ export function initShowcaseMap(resizeCallbacks) {
     ];
 
     // --- SCENE STATE ---
-    let scene, camera, renderer, composer, pointLight, ambientLight;
+    let scene, camera, renderer, composer, outlinePass;
+    let pointLight, ambientLight;
     let monoliths = [];
     let beaconsGroup; // Independent light group (decoupled from monolith rotation)
     let technicalBeacons = []; // Store beacon lights for animation
@@ -229,6 +231,21 @@ export function initShowcaseMap(resizeCallbacks) {
     renderPass.clearColor = new THREE.Color(0x080808);
     renderPass.clearAlpha = 1;
     composer.addPass(renderPass);
+
+    // --- OUTLINE PASS (Active Penumbra) ---
+    // Must be added BEFORE Bloom to allow bloom to soften the edges
+    outlinePass = new OutlinePass(
+        new THREE.Vector2(container.clientWidth, container.clientHeight),
+        scene,
+        camera
+    );
+    outlinePass.edgeStrength = 0.0; // Animated via GSAP
+    outlinePass.edgeGlow = 2.0;     // High glow for "surfacing light"
+    outlinePass.edgeThickness = 0.5;
+    outlinePass.pulsePeriod = 0;    // Driven by GSAP, not internal pulse
+    outlinePass.visibleEdgeColor.set('#FFFFFF'); // Accent White
+    outlinePass.hiddenEdgeColor.set('#000000');  // Pure black (no ghosting)
+    composer.addPass(outlinePass);
 
     const bloomPass = new UnrealBloomPass(
         new THREE.Vector2(container.clientWidth, container.clientHeight),
@@ -829,6 +846,22 @@ export function initShowcaseMap(resizeCallbacks) {
         // 1. Monolith Scale Inertia
         const monolith = monoliths.find(m => m.userData.id === projectId);
         if (monolith) {
+            if (isHovered) {
+                // Set as selected object immediately when hovered
+                outlinePass.selectedObjects = [monolith];
+            }
+            // Note: We don't clear selectedObjects immediately on unhover usually,
+            // but for clean fading we can keep it until strength hits 0.
+            // However, OutlinePass requires object presence to render anything.
+            // If we want to fade out, we must keep the object selected.
+            // Simplified approach: keep selected until we switch or completely fade out?
+            // Better: Always set selectedObjects. If we switch, the previous one just stops being animated.
+            // But we have a single OutlinePass.
+            // Strategy: We only support ONE highlighted object at a time.
+            if (isHovered && outlinePass.selectedObjects[0] !== monolith) {
+                outlinePass.selectedObjects = [monolith];
+            }
+
             if (typeof gsap !== 'undefined') {
                 gsap.to(monolith.scale, {
                     x: isHovered ? 1.15 : 1.0,
@@ -837,6 +870,32 @@ export function initShowcaseMap(resizeCallbacks) {
                     duration: duration,
                     ease: easeCurve
                 });
+
+                // 4. Outline Animation (Lock-on)
+                // We animate the pass globally because we only have one active target at a time
+                if (isHovered) {
+                    gsap.to(outlinePass, {
+                        edgeStrength: 3.0,
+                        duration: 0.6,
+                        ease: easeCurve,
+                        overwrite: true
+                    });
+                } else {
+                    // Only fade out if this specific project was the one being highlighted
+                    // (handled naturally by single-state logic, but good to be explicit)
+                    if (outlinePass.selectedObjects[0] === monolith) {
+                        gsap.to(outlinePass, {
+                            edgeStrength: 0.0,
+                            duration: 0.4,
+                            ease: "power2.out", // Faster fade out
+                            overwrite: true,
+                            onComplete: () => {
+                                // Optional: clear selection after fade
+                                // outlinePass.selectedObjects = [];
+                            }
+                        });
+                    }
+                }
             }
         }
 
@@ -1124,6 +1183,9 @@ export function initShowcaseMap(resizeCallbacks) {
         composer.setSize(width, height);
         if (labelRenderer) {
             labelRenderer.setSize(width, height);
+        }
+        if (outlinePass) {
+            outlinePass.setSize(width, height);
         }
     });
 
