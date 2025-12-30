@@ -50,7 +50,7 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'Brand Experience / WebGL',
             position: new THREE.Vector3(-4, 0, 5),
             light: {
-                intensity: 60,
+                intensity: 120,
                 color: 0xffffff,
                 offset: { x: 0, y: 1.5, z: 3 },
                 distance: 10,
@@ -65,7 +65,7 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'VR Training / Simulation',
             position: new THREE.Vector3(5, 0, -5),
             light: {
-                intensity: 60,
+                intensity: 120,
                 color: 0xff0000,
                 offset: { x: 0, y: 2, z: 0 },
                 distance: 30,
@@ -80,7 +80,7 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'Architecture / Virtual Tour',
             position: new THREE.Vector3(-5, -1, -15),
             light: {
-                intensity: 30,
+                intensity: 60,
                 offset: { x: 1, y: 3, z: 3 },
                 distance: 10,
             },
@@ -94,7 +94,7 @@ export function initShowcaseMap(resizeCallbacks) {
             meta: 'Coming Soon',
             position: new THREE.Vector3(6, 0, -25),
             light: {
-                intensity: 120,
+                intensity: 240,
                 color: 0xffffff,
                 offset: { x: -1, y: 3, z: 3 },
                 distance: 10,
