@@ -538,8 +538,8 @@ export function initShowcaseMap(resizeCallbacks) {
 
         // Materiale emissivo luminoso (Bloom-ready)
         const pointsMat = new THREE.PointsMaterial({
-            color: 0xffffff,
-            size: 0.04,
+            color: 0xaaccff,
+            size: 0.02,
             transparent: true,
             opacity: 1.0,
             sizeAttenuation: true,
@@ -557,8 +557,10 @@ export function initShowcaseMap(resizeCallbacks) {
         group.userData.particleData = particleData;
         group.userData.turbulenceAmplitude = 0.04; // Ridotto per scala compatta
         group.userData.turbulenceSpeed = 1.5;
+        group.userData.currentAmplitude = 0.04;
+        group.userData.currentTurbulenceSpeed = 1.5;
         group.userData.baseOpacity = 1.0;
-        group.userData.baseSize = 0.04;
+        group.userData.baseSize = 0.02;
 
         return group;
     }
@@ -902,15 +904,25 @@ export function initShowcaseMap(resizeCallbacks) {
                 satellite.userData.isHovered = isHovered;
 
                 const targetSize = isHovered ? 0.07 : satellite.userData.baseSize;
+                const targetAmp = isHovered ? 0.15 : satellite.userData.turbulenceAmplitude;
+                const targetTurbSpeed = isHovered ? 3.0 : satellite.userData.turbulenceSpeed;
 
                 if (typeof gsap !== 'undefined') {
                     gsap.to(satellite.userData.pointsMaterial, {
                         size: targetSize,
-                        duration: 0.3,
+                        duration: 1.2,
+                        ease: 'power2.out'
+                    });
+                    gsap.to(satellite.userData, {
+                        currentAmplitude: targetAmp,
+                        currentTurbulenceSpeed: targetTurbSpeed,
+                        duration: 1.2,
                         ease: 'power2.out'
                     });
                 } else {
                     satellite.userData.pointsMaterial.size = targetSize;
+                    satellite.userData.currentAmplitude = targetAmp;
+                    satellite.userData.currentTurbulenceSpeed = targetTurbSpeed;
                 }
             }
         });
@@ -1374,8 +1386,8 @@ export function initShowcaseMap(resizeCallbacks) {
             // Turbolenza 3D (deformazione per-particella)
             const geo = satellite.userData.pointsGeometry;
             const particles = satellite.userData.particleData;
-            const amp = satellite.userData.isHovered ? 0.15 : satellite.userData.turbulenceAmplitude;
-            const turbSpeed = satellite.userData.isHovered ? 3.0 : satellite.userData.turbulenceSpeed;
+            const amp = satellite.userData.currentAmplitude;
+            const turbSpeed = satellite.userData.currentTurbulenceSpeed;
             const posArr = geo.attributes.position.array;
 
             for (let i = 0; i < particles.length; i++) {
