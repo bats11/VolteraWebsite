@@ -263,39 +263,60 @@ export function initAtmosphericHero(resizeCallbacks) {
     scene.add(floor);
 
     // --- PARTICLE SYSTEM ---
-    // Calculate pyramid target positions (vertices and edges)
-    const pyramidTargets = [];
-    const tipY = POS_PYRAMID.y - SIZE_PYRAMID.height / 2;
-    const baseY = POS_PYRAMID.y + SIZE_PYRAMID.height / 2;
-
-    // Tip of pyramid
-    pyramidTargets.push(new THREE.Vector3(0, tipY, 0));
-
-    // Base vertices
+    // Calculate pyramid edge points in world coordinates
+    const pyramidTip = new THREE.Vector3(0, POS_PYRAMID.y - halfH, 0);
+    const pyramidBasePoints = [];
     for (let i = 0; i < 3; i++) {
+        // Apply pyramidGroup rotation (POS_PYRAMID.rotY) to base points
         const angle = (i * 2 * Math.PI) / 3 + POS_PYRAMID.rotY;
-        pyramidTargets.push(new THREE.Vector3(
+        pyramidBasePoints.push(new THREE.Vector3(
             Math.cos(angle) * SIZE_PYRAMID.radius,
-            baseY,
+            POS_PYRAMID.y + halfH,
             Math.sin(angle) * SIZE_PYRAMID.radius
         ));
     }
 
-    // Points along edges (for more varied targets)
+    // Define all 6 edges of the pyramid (3 from tip to base + 3 base edges)
+    const pyramidEdges = [];
+    // Edges from tip to each base vertex
+    pyramidBasePoints.forEach(basePt => pyramidEdges.push({ start: pyramidTip.clone(), end: basePt.clone() }));
+    // Base triangle edges
     for (let i = 0; i < 3; i++) {
-        const angle = (i * 2 * Math.PI) / 3 + POS_PYRAMID.rotY;
-        for (let t = 0.25; t <= 0.75; t += 0.25) {
-            pyramidTargets.push(new THREE.Vector3(
-                Math.cos(angle) * SIZE_PYRAMID.radius * (1 - t),
-                tipY + (baseY - tipY) * (1 - t),
-                Math.sin(angle) * SIZE_PYRAMID.radius * (1 - t)
-            ));
+        pyramidEdges.push({ start: pyramidBasePoints[i].clone(), end: pyramidBasePoints[(i + 1) % 3].clone() });
+    }
+
+    // Function to get a random point on the pyramid cylinders
+    function getRandomPointOnEdge() {
+        const edge = pyramidEdges[Math.floor(Math.random() * pyramidEdges.length)];
+        const t = Math.random(); // Random position along the edge
+        return new THREE.Vector3().lerpVectors(edge.start, edge.end, t);
+    }
+
+    // Function to calculate distance from point to nearest edge (cylinder surface)
+    const CYLINDER_RADIUS = 0.03; // Same as strut thickness
+    function distanceToNearestEdge(point) {
+        let minDist = Infinity;
+        for (const edge of pyramidEdges) {
+            const edgeVec = new THREE.Vector3().subVectors(edge.end, edge.start);
+            const pointVec = new THREE.Vector3().subVectors(point, edge.start);
+            const edgeLen = edgeVec.length();
+            edgeVec.normalize();
+
+            // Project point onto edge line
+            let t = pointVec.dot(edgeVec);
+            t = Math.max(0, Math.min(edgeLen, t)); // Clamp to edge segment
+
+            const closestPoint = new THREE.Vector3().copy(edge.start).addScaledVector(edgeVec, t);
+            const dist = point.distanceTo(closestPoint);
+            minDist = Math.min(minDist, dist);
         }
+        return minDist;
     }
 
     // Create particle class
     class Particle {
         constructor() {
+            this.alive = true;
             this.reset();
         }
 
@@ -309,19 +330,15 @@ export function initAtmosphericHero(resizeCallbacks) {
                 Math.sin(angle) * ringRadius
             );
 
-            // Pick a random target on the pyramid
-            this.target = pyramidTargets[Math.floor(Math.random() * pyramidTargets.length)].clone();
-            // Add small random offset for natural variation
-            this.target.x += (Math.random() - 0.5) * 0.3;
-            this.target.y += (Math.random() - 0.5) * 0.3;
-            this.target.z += (Math.random() - 0.5) * 0.3;
+            // Pick a random point along a pyramid edge (cylinder)
+            this.target = getRandomPointOnEdge();
 
             // Slow movement speed (0.003 - 0.008 units per frame)
             this.speed = 0.003 + Math.random() * 0.005;
 
             // Particle life/alpha
             this.life = 1.0;
-            this.maxLife = 1.0;
+            this.alive = true;
 
             // Subtle floating oscillation
             this.oscillationOffset = Math.random() * Math.PI * 2;
@@ -330,13 +347,28 @@ export function initAtmosphericHero(resizeCallbacks) {
         }
 
         update(time) {
+            if (!this.alive) {
+                this.reset();
+                return;
+            }
+
+            // Check if touching any cylinder (edge)
+            const distToEdge = distanceToNearestEdge(this.position);
+            if (distToEdge <= CYLINDER_RADIUS + 0.02) {
+                // Die on contact with cylinder
+                this.alive = false;
+                this.life = 0;
+                return;
+            }
+
             // Move towards target
             const direction = new THREE.Vector3().subVectors(this.target, this.position);
             const distance = direction.length();
 
-            if (distance < 0.1) {
-                // Reached target, reset particle
-                this.reset();
+            if (distance < 0.05) {
+                // Reached target, die
+                this.alive = false;
+                this.life = 0;
                 return;
             }
 
@@ -470,6 +502,11 @@ export function initAtmosphericHero(resizeCallbacks) {
         floatingObj.position.z = Math.cos(time * speed) * radius;
         floatingObj.position.y = POS_PYRAMID.y + 1.5 + Math.sin(time * 1.5) * 1;
         floatingObj.rotation.x += 0.02; floatingObj.rotation.y += 0.03;
+
+        // Rotate pyramid around vertical axis
+        pyramidGroup.rotation.y += 0.002;
+        // Vertical floating
+        pyramidGroup.position.y = POS_PYRAMID.y + Math.sin(time * 0.5) * 0.3;
 
         // Update particle system
         updateParticles(time);
