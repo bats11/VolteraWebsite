@@ -1081,13 +1081,19 @@ footer {
         width: 90%;
         margin-top: 25px;
 
-        /* Visual Styling */
-        background: rgba(8, 8, 8, 0.5);
+        /* Visual Styling (come .aox-panel) */
+        background: rgba(8, 8, 8, 0.6);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
+        padding: var(--space-sm);
+        border: 0.5px solid rgba(200, 200, 210, 0.15);
 
-        /* Typography: Space Grotesk per registro tecnico */
+        /* Typography (come .aox-panel / .panel-desc) */
         font-family: var(--font-main);
+        font-size: 0.85rem;
+        line-height: 1.7;
+        letter-spacing: 0.02em;
+        color: rgba(255, 255, 255, 0.75);
 
         /* Animazione: emersione fluida */
         opacity: 0;
