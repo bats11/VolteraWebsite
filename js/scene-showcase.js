@@ -240,8 +240,8 @@ export function initShowcaseMap(resizeCallbacks) {
         camera
     );
     outlinePass.edgeStrength = 0.0; // Animated via GSAP
-    outlinePass.edgeGlow = 2.0;     // High glow for "surfacing light"
-    outlinePass.edgeThickness = 0.5;
+    outlinePass.edgeGlow = 1.0;     // Reduced glow
+    outlinePass.edgeThickness = 0.1;
     outlinePass.pulsePeriod = 0;    // Driven by GSAP, not internal pulse
     outlinePass.visibleEdgeColor.set('#FFFFFF'); // Accent White
     outlinePass.hiddenEdgeColor.set('#000000');  // Pure black (no ghosting)
@@ -875,7 +875,7 @@ export function initShowcaseMap(resizeCallbacks) {
                 // We animate the pass globally because we only have one active target at a time
                 if (isHovered) {
                     gsap.to(outlinePass, {
-                        edgeStrength: 3.0,
+                        edgeStrength: 2.5,
                         duration: 0.6,
                         ease: easeCurve,
                         overwrite: true
