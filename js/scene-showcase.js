@@ -843,36 +843,16 @@ export function initShowcaseMap(resizeCallbacks) {
         const easeCurve = typeof CustomEase !== 'undefined' ? "voltera" : "power4.out";
         const duration = isHovered ? 0.6 : 0.8; // Long Decay on exit
 
-        // 1. Monolith Scale Inertia
+        // 1. Monolith Outline (Lock-on)
         const monolith = monoliths.find(m => m.userData.id === projectId);
         if (monolith) {
-            if (isHovered) {
-                // Set as selected object immediately when hovered
-                outlinePass.selectedObjects = [monolith];
-            }
-            // Note: We don't clear selectedObjects immediately on unhover usually,
-            // but for clean fading we can keep it until strength hits 0.
-            // However, OutlinePass requires object presence to render anything.
-            // If we want to fade out, we must keep the object selected.
-            // Simplified approach: keep selected until we switch or completely fade out?
-            // Better: Always set selectedObjects. If we switch, the previous one just stops being animated.
-            // But we have a single OutlinePass.
-            // Strategy: We only support ONE highlighted object at a time.
+            // Set selection immediately (needed for OutlinePass to know what to render)
             if (isHovered && outlinePass.selectedObjects[0] !== monolith) {
                 outlinePass.selectedObjects = [monolith];
             }
 
             if (typeof gsap !== 'undefined') {
-                gsap.to(monolith.scale, {
-                    x: isHovered ? 1.15 : 1.0,
-                    y: isHovered ? 1.15 : 1.0,
-                    z: isHovered ? 1.15 : 1.0,
-                    duration: duration,
-                    ease: easeCurve
-                });
-
-                // 4. Outline Animation (Lock-on)
-                // We animate the pass globally because we only have one active target at a time
+                // Outline Strength Animation
                 if (isHovered) {
                     gsap.to(outlinePass, {
                         edgeStrength: 2.5,
@@ -882,17 +862,12 @@ export function initShowcaseMap(resizeCallbacks) {
                     });
                 } else {
                     // Only fade out if this specific project was the one being highlighted
-                    // (handled naturally by single-state logic, but good to be explicit)
                     if (outlinePass.selectedObjects[0] === monolith) {
                         gsap.to(outlinePass, {
                             edgeStrength: 0.0,
                             duration: 0.4,
                             ease: "power2.out", // Faster fade out
-                            overwrite: true,
-                            onComplete: () => {
-                                // Optional: clear selection after fade
-                                // outlinePass.selectedObjects = [];
-                            }
+                            overwrite: true
                         });
                     }
                 }
