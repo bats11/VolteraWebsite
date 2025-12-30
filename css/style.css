@@ -1337,9 +1337,55 @@ footer {
     transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Linea di ancoraggio verticale */
-.project-tag::before {
+/* --- TECHNICAL BRACKETS (HUD LOCK-ON) --- */
+.project-tag::before,
+.project-tag::after {
     content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: #FFFFFF;
+    border-style: solid;
+    border-width: 0;
+    opacity: 0;
+
+    /* Long Decay: 0.8s Exit / 0.6s Entry */
+    transition:
+        opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Bracket Top-Left */
+.project-tag::before {
+    top: -1px;
+    left: -1px;
+    border-top-width: 1px;
+    border-left-width: 1px;
+    transform: translate(-3px, -3px);
+}
+
+/* Bracket Bottom-Right */
+.project-tag::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom-width: 1px;
+    border-right-width: 1px;
+    transform: translate(3px, 3px);
+}
+
+/* ACTIVE STATE (LOCK-ON) */
+.project-tag.is-active::before,
+.project-tag.is-active::after {
+    opacity: 1;
+    transform: translate(0, 0);
+    /* Fast Entry */
+    transition:
+        opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Linea di ancoraggio verticale (Refactored to child element) */
+.project-tag__line {
     position: absolute;
     top: 100%;
     left: 50%;

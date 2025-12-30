@@ -35,7 +35,20 @@ export function initShowcaseMap(resizeCallbacks) {
         pulseAmplitude: 0.5,   // Quantità di variazione (+/- rispetto alla base)
         pulseSpeed: 2.0        // Velocità dell'oscillazione
     };
-    const VOLTERA_EASE = "power4.out"; // Closest to cubic-bezier(0.16, 1, 0.3, 1)
+    const VOLTERA_EASE = "power4.out"; // Fallback
+
+    // Register custom Voltera ease if GSAP is available
+    if (typeof gsap !== 'undefined' && gsap.registerEase) {
+        // Try to register CustomEase, otherwise fallback to cubic-bezier approximate
+        try {
+            if (CustomEase) {
+                CustomEase.create("voltera", "0.16, 1, 0.3, 1");
+            }
+        } catch (e) {
+            console.warn("CustomEase not found, using generic power4.out");
+        }
+    }
+    const EASE_ACTIVE = typeof CustomEase !== 'undefined' ? "voltera" : VOLTERA_EASE;
 
     // --- DEVICE DETECTION ---
     const isTouchDevice = window.matchMedia('(hover: none)').matches;
@@ -412,10 +425,13 @@ export function initShowcaseMap(resizeCallbacks) {
 
         container.innerHTML = `
             <span class="project-tag__title">${project.title}</span>
+            <div class="project-tag__line"></div>
             <div class="project-tag__meta">
                 ${project.ref} • ${project.status}
             </div>
         `;
+
+        container.dataset.projectId = project.id;
 
         const label = new CSS2DObject(container);
         label.userData.currentOpacity = 0;
@@ -807,6 +823,30 @@ export function initShowcaseMap(resizeCallbacks) {
 
     // --- BEACON HOVER STATE SYNC ---
     function updateBeaconHoverState(projectId, isHovered) {
+        const easeCurve = typeof CustomEase !== 'undefined' ? "voltera" : "power4.out";
+        const duration = isHovered ? 0.6 : 0.8; // Long Decay on exit
+
+        // 1. Monolith Scale Inertia
+        const monolith = monoliths.find(m => m.userData.id === projectId);
+        if (monolith) {
+            if (typeof gsap !== 'undefined') {
+                gsap.to(monolith.scale, {
+                    x: isHovered ? 1.05 : 1.0,
+                    y: isHovered ? 1.05 : 1.0,
+                    z: isHovered ? 1.05 : 1.0,
+                    duration: duration,
+                    ease: easeCurve
+                });
+            }
+        }
+
+        // 2. Label Technical Brackets (HUD)
+        projectLabels.forEach(label => {
+            if (label.element.dataset.projectId === projectId) {
+                label.element.classList.toggle('is-active', isHovered);
+            }
+        });
+
         // Update fixed lights intensity
         technicalBeacons.forEach(light => {
             if (light.userData.projectId === projectId) {
@@ -1042,9 +1082,19 @@ export function initShowcaseMap(resizeCallbacks) {
         });
 
         if (closestMonolith && closestMonolith !== currentHoveredMonolith) {
+            // Mobile "Lock-on" - Deactivate previous
+            if (currentHoveredMonolith) {
+                updateBeaconHoverState(currentHoveredMonolith.userData.id, false);
+            }
+
             currentHoveredMonolith = closestMonolith;
             showHUD(closestMonolith.userData);
+
+            // Activate new "Lock-on"
+            updateBeaconHoverState(closestMonolith.userData.id, true);
+
         } else if (!closestMonolith && currentHoveredMonolith) {
+            updateBeaconHoverState(currentHoveredMonolith.userData.id, false);
             currentHoveredMonolith = null;
             hideHUD();
         }
