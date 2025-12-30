@@ -23,17 +23,17 @@ export function initAtmosphericHero(resizeCallbacks) {
         deer: {
             position: [4.7, 0, 5.7],
             rotation: [0, 135, 0],
-            scale: 1
+            scale: 1.1
         },
         elephant: {
             position: [-6, 0, -3],
             rotation: [0, 60, 0],
-            scale: 1
+            scale: 1.1
         },
         woman: {
             position: [-2, 0, 4],
             rotation: [0, 150, 0],
-            scale: 1.1
+            scale: 1.2
         }
     };
 
