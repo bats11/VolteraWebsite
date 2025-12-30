@@ -474,13 +474,18 @@ export function initAtmosphericHero(resizeCallbacks) {
         renderer.setSize(window.innerWidth, window.innerHeight);
         composer.setSize(window.innerWidth, window.innerHeight);
 
-        // Dynamic GLB handling
+        // Dynamic GLB handling (desktop only: >= 1024px)
         if (window.innerWidth >= 1024) {
             loadHeroGLB();
+            particleSystem.visible = false; // Hide particles on desktop
         } else {
             removeHeroGLB();
+            particleSystem.visible = true; // Show particles on mobile/tablet
         }
     });
+
+    // Initial particle visibility (inverse of GLB: visible only < 1024px)
+    particleSystem.visible = window.innerWidth < 1024;
 
     // Remove Loader
     setTimeout(() => {
