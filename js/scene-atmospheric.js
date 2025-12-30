@@ -45,6 +45,11 @@ export function initAtmosphericHero(resizeCallbacks) {
     let isRunning = false;
     let rafId = null;
 
+    // Particle system variables
+    const PARTICLE_COUNT = 400;
+    const particles = [];
+    let particleGeometry, particleMaterial, particleSystem;
+
     const container = document.getElementById('canvas-container');
     if (!container) return;
 
@@ -257,6 +262,179 @@ export function initAtmosphericHero(resizeCallbacks) {
     floor.receiveShadow = true;
     scene.add(floor);
 
+    // --- PARTICLE SYSTEM ---
+    // Calculate pyramid target positions (vertices and edges)
+    const pyramidTargets = [];
+    const tipY = POS_PYRAMID.y - SIZE_PYRAMID.height / 2;
+    const baseY = POS_PYRAMID.y + SIZE_PYRAMID.height / 2;
+
+    // Tip of pyramid
+    pyramidTargets.push(new THREE.Vector3(0, tipY, 0));
+
+    // Base vertices
+    for (let i = 0; i < 3; i++) {
+        const angle = (i * 2 * Math.PI) / 3 + POS_PYRAMID.rotY;
+        pyramidTargets.push(new THREE.Vector3(
+            Math.cos(angle) * SIZE_PYRAMID.radius,
+            baseY,
+            Math.sin(angle) * SIZE_PYRAMID.radius
+        ));
+    }
+
+    // Points along edges (for more varied targets)
+    for (let i = 0; i < 3; i++) {
+        const angle = (i * 2 * Math.PI) / 3 + POS_PYRAMID.rotY;
+        for (let t = 0.25; t <= 0.75; t += 0.25) {
+            pyramidTargets.push(new THREE.Vector3(
+                Math.cos(angle) * SIZE_PYRAMID.radius * (1 - t),
+                tipY + (baseY - tipY) * (1 - t),
+                Math.sin(angle) * SIZE_PYRAMID.radius * (1 - t)
+            ));
+        }
+    }
+
+    // Create particle class
+    class Particle {
+        constructor() {
+            this.reset();
+        }
+
+        reset() {
+            // Spawn on the ring
+            const ringRadius = 3.5;
+            const angle = Math.random() * Math.PI * 2;
+            this.position = new THREE.Vector3(
+                Math.cos(angle) * ringRadius,
+                0.02,
+                Math.sin(angle) * ringRadius
+            );
+
+            // Pick a random target on the pyramid
+            this.target = pyramidTargets[Math.floor(Math.random() * pyramidTargets.length)].clone();
+            // Add small random offset for natural variation
+            this.target.x += (Math.random() - 0.5) * 0.3;
+            this.target.y += (Math.random() - 0.5) * 0.3;
+            this.target.z += (Math.random() - 0.5) * 0.3;
+
+            // Slow movement speed (0.003 - 0.008 units per frame)
+            this.speed = 0.003 + Math.random() * 0.005;
+
+            // Particle life/alpha
+            this.life = 1.0;
+            this.maxLife = 1.0;
+
+            // Subtle floating oscillation
+            this.oscillationOffset = Math.random() * Math.PI * 2;
+            this.oscillationSpeed = 0.5 + Math.random() * 0.5;
+            this.oscillationAmplitude = 0.02 + Math.random() * 0.03;
+        }
+
+        update(time) {
+            // Move towards target
+            const direction = new THREE.Vector3().subVectors(this.target, this.position);
+            const distance = direction.length();
+
+            if (distance < 0.1) {
+                // Reached target, reset particle
+                this.reset();
+                return;
+            }
+
+            direction.normalize();
+
+            // Add subtle oscillation perpendicular to movement
+            const perpX = Math.sin(time * this.oscillationSpeed + this.oscillationOffset) * this.oscillationAmplitude;
+            const perpZ = Math.cos(time * this.oscillationSpeed + this.oscillationOffset) * this.oscillationAmplitude;
+
+            this.position.x += direction.x * this.speed + perpX * 0.1;
+            this.position.y += direction.y * this.speed;
+            this.position.z += direction.z * this.speed + perpZ * 0.1;
+
+            // Fade based on distance to target (brighter when closer)
+            this.life = Math.min(1.0, distance / 5.0);
+        }
+    }
+
+    // Initialize particles
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const p = new Particle();
+        // Stagger initial positions so not all start at ring
+        if (i > 10) {
+            const t = Math.random();
+            const startAngle = Math.random() * Math.PI * 2;
+            const ringRadius = 3.5;
+            const startPos = new THREE.Vector3(
+                Math.cos(startAngle) * ringRadius,
+                0.02,
+                Math.sin(startAngle) * ringRadius
+            );
+            p.position.lerpVectors(startPos, p.target, t);
+        }
+        particles.push(p);
+    }
+
+    // Create particle geometry and material
+    particleGeometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(PARTICLE_COUNT * 3);
+    const alphas = new Float32Array(PARTICLE_COUNT);
+
+    particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    particleGeometry.setAttribute('alpha', new THREE.BufferAttribute(alphas, 1));
+
+    // Particle shader material for glowing effect
+    particleMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            color: { value: new THREE.Color(0xffffff) },
+            pointSize: { value: 0.6 * window.devicePixelRatio }
+        },
+        vertexShader: `
+            attribute float alpha;
+            varying float vAlpha;
+            uniform float pointSize;
+            void main() {
+                vAlpha = alpha;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_PointSize = pointSize * (200.0 / -mvPosition.z);
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `,
+        fragmentShader: `
+            uniform vec3 color;
+            varying float vAlpha;
+            void main() {
+                float dist = length(gl_PointCoord - vec2(0.5));
+                if (dist > 0.5) discard;
+                float intensity = 1.0 - smoothstep(0.0, 0.5, dist);
+                gl_FragColor = vec4(color, intensity * vAlpha * 0.8);
+            }
+        `,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+
+    particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+    scene.add(particleSystem);
+
+    // Function to update particles
+    function updateParticles(time) {
+        const positions = particleGeometry.attributes.position.array;
+        const alphas = particleGeometry.attributes.alpha.array;
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            particles[i].update(time);
+
+            positions[i * 3] = particles[i].position.x;
+            positions[i * 3 + 1] = particles[i].position.y;
+            positions[i * 3 + 2] = particles[i].position.z;
+
+            alphas[i] = particles[i].life;
+        }
+
+        particleGeometry.attributes.position.needsUpdate = true;
+        particleGeometry.attributes.alpha.needsUpdate = true;
+    }
+
     // Resize
     resizeCallbacks.push(() => {
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -292,6 +470,9 @@ export function initAtmosphericHero(resizeCallbacks) {
         floatingObj.position.z = Math.cos(time * speed) * radius;
         floatingObj.position.y = POS_PYRAMID.y + 1.5 + Math.sin(time * 1.5) * 1;
         floatingObj.rotation.x += 0.02; floatingObj.rotation.y += 0.03;
+
+        // Update particle system
+        updateParticles(time);
 
         composer.render();
     }
