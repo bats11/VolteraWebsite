@@ -187,7 +187,7 @@ export function initShowcaseMap(resizeCallbacks) {
     // --- SCENE SETUP ---
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x080808);
-    scene.fog = new THREE.FogExp2(0x080808, 0.03);
+    scene.fog = new THREE.FogExp2(0x080808, 0.025);
 
     camera = new THREE.PerspectiveCamera(
         50,
