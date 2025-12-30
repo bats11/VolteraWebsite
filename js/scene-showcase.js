@@ -831,9 +831,9 @@ export function initShowcaseMap(resizeCallbacks) {
         if (monolith) {
             if (typeof gsap !== 'undefined') {
                 gsap.to(monolith.scale, {
-                    x: isHovered ? 1.05 : 1.0,
-                    y: isHovered ? 1.05 : 1.0,
-                    z: isHovered ? 1.05 : 1.0,
+                    x: isHovered ? 1.15 : 1.0,
+                    y: isHovered ? 1.15 : 1.0,
+                    z: isHovered ? 1.15 : 1.0,
                     duration: duration,
                     ease: easeCurve
                 });
