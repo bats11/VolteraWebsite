@@ -240,16 +240,16 @@ export function initShowcaseMap(resizeCallbacks) {
         camera
     );
     outlinePass.edgeStrength = 0.0; // Animated via GSAP
-    outlinePass.edgeGlow = 1.0;     // Reduced glow
-    outlinePass.edgeThickness = 0.1;
-    outlinePass.pulsePeriod = 0;    // Driven by GSAP, not internal pulse
-    outlinePass.visibleEdgeColor.set('#FFFFFF'); // Accent White
-    outlinePass.hiddenEdgeColor.set('#000000');  // Pure black (no ghosting)
+    outlinePass.edgeGlow = 0.6;
+    outlinePass.edgeThickness = 0.01;
+    outlinePass.pulsePeriod = 0;
+    outlinePass.visibleEdgeColor.set('#FFFFFF'); // Restored White
+    outlinePass.hiddenEdgeColor.set('#000000');
     composer.addPass(outlinePass);
 
     const bloomPass = new UnrealBloomPass(
         new THREE.Vector2(container.clientWidth, container.clientHeight),
-        0.8,   // strength
+        0.6,   // Adjusted strength for visibility
         0.3,   // radius
         0.85   // threshold
     );
