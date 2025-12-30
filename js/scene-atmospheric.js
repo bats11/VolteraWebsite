@@ -21,19 +21,19 @@ export function initAtmosphericHero(resizeCallbacks) {
     // Mesh configuration for hero-mesh.glb
     const MESH_CONFIG = {
         deer: {
-            position: [2.7, 0, 5.7],
-            rotation: [0, 130, 0],
-            scale: 1.3
+            position: [4.7, 0, 5.7],
+            rotation: [0, 135, 0],
+            scale: 1
         },
         elephant: {
             position: [-6, 0, -3],
             rotation: [0, 60, 0],
-            scale: 1.3
+            scale: 1
         },
         woman: {
-            position: [2, 0, -4],
-            rotation: [0, -20, 0],
-            scale: 1.5
+            position: [-2, 0, 4],
+            rotation: [0, 150, 0],
+            scale: 1.1
         }
     };
 
