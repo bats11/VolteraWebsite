@@ -498,8 +498,11 @@ footer {
 }
 
 .aox-title {
-    font-weight: 300;
-    letter-spacing: 0.15em;
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    font-size: clamp(2rem, 5vw, 4.2rem);
 }
 
 .aox-badge {
