@@ -32,6 +32,7 @@ window.onload = function () {
 
     initThemeObserver();
     initAoxInteraction(resizeCallbacks);
+    initRevealTextAnimation();
 
     // Handle desktop→mobile resize: stop AOX scene safely
     resizeCallbacks.push(() => {
@@ -137,6 +138,30 @@ function initThemeObserver() {
 }
 
 
+
+// --- 4. REVEAL TEXT ANIMATION (Pastosa Scrub) ---
+function initRevealTextAnimation() {
+    gsap.registerPlugin(ScrollTrigger);
+
+    const revealText = document.querySelector('.first-content .reveal-text');
+    if (!revealText) return;
+
+    // Mobile-adaptive scrub: tattile → meno lag
+    const scrubValue = isMobile() ? 1.5 : 2.5;
+
+    gsap.to(revealText, {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        ease: "power2.out",
+        scrollTrigger: {
+            trigger: ".first-content",
+            start: "top 85%",
+            end: "top 30%",
+            scrub: scrubValue
+        }
+    });
+}
 
 // --- 5. AOX INTERACTION SYSTEM ---
 function initAoxInteraction(resizeCallbacks) {
