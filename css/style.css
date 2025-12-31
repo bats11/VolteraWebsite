@@ -11,6 +11,7 @@
     --space-md: 64px;
     --space-lg: 120px;
     --space-xl: 200px;
+    --space-xxl: 350px;
 
     --font-display: 'Syne', sans-serif;
     --font-tech: 'Manrope', sans-serif;
@@ -365,6 +366,10 @@ nav {
 section.main-content {
     padding: var(--space-xl) 0;
     position: relative;
+}
+
+section.main-content.first-content {
+    padding-top: var(--space-xxl);
 }
 
 /* First Content - Long Decay Gradient */
