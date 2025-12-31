@@ -384,6 +384,11 @@ section.main-content {
     pointer-events: none;
 }
 
+.first-content .container {
+    position: relative;
+    z-index: 10;
+}
+
 .grid-asym {
     display: grid;
     grid-template-columns: 1fr;
