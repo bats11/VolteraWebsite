@@ -1,5 +1,4 @@
 import { initAtmosphericHero } from './scene-atmospheric.js';
-import { initIcosahedronHero } from './scene-icosa.js';
 import { initAoxCore } from './scene-aox.js';
 import { initShowcaseMap } from './scene-showcase.js';
 
@@ -28,14 +27,10 @@ window.onload = function () {
     const atmospheric = initAtmosphericHero(resizeCallbacks);
     if (atmospheric) sceneControllers.set('canvas-container', atmospheric);
 
-    const icosa = initIcosahedronHero(resizeCallbacks);
-    if (icosa) sceneControllers.set('hero-canvas-icosa', icosa);
-
     const showcase = initShowcaseMap(resizeCallbacks);
     if (showcase) sceneControllers.set('showcase-canvas', showcase);
 
     initThemeObserver();
-    initTitleFade();
     initAoxInteraction(resizeCallbacks);
 
     // Handle desktop→mobile resize: stop AOX scene safely
@@ -141,32 +136,7 @@ function initThemeObserver() {
     if (showcaseSection) darkObserver.observe(showcaseSection);
 }
 
-// --- 4. TITLE SCROLL FADE ---
-function initTitleFade() {
-    const title = document.getElementById('fade-title');
-    if (!title) return;
 
-    function onScroll() {
-        const rect = title.getBoundingClientRect();
-        const winH = window.innerHeight;
-        const start = winH * 0.85;
-        const end = winH * 0.35;
-        let progress = (start - rect.top) / (start - end);
-        if (progress < 0) progress = 0;
-        if (progress > 1) progress = 1;
-
-        title.style.opacity = progress;
-        title.style.transform = `translateY(${40 * (1 - progress)}px)`;
-
-        if (progress >= 1) {
-            title.style.opacity = 1;
-            title.style.transform = 'translateY(0)';
-            window.removeEventListener('scroll', onScroll);
-        }
-    }
-    window.addEventListener('scroll', onScroll);
-    onScroll();
-}
 
 // --- 5. AOX INTERACTION SYSTEM ---
 function initAoxInteraction(resizeCallbacks) {
