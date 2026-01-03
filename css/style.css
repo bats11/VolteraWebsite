@@ -455,10 +455,7 @@ section.main-content.vision {
     transform: scale(1.05);
 }
 
-.service-item {
-    border-top: 1px solid var(--grid-line);
-    padding: var(--space-sm) 0;
-}
+
 
 .client-grid {
     display: grid;
