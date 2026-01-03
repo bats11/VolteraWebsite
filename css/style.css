@@ -433,7 +433,7 @@ section.main-content.vision {
 
     .grid-asym-reverse {
         display: grid;
-        grid-template-columns: 7fr 5fr;
+        grid-template-columns: 6fr 6fr;
     }
 }
 

@@ -31,8 +31,8 @@ export function initAtmosphericHero(resizeCallbacks) {
             scale: 1.1
         },
         woman: {
-            position: [-2, 0, 4],
-            rotation: [0, 150, 0],
+            position: [0, 0, 4],
+            rotation: [0, 165, 0],
             scale: 1.2
         }
     };
