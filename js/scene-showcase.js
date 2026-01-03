@@ -151,6 +151,19 @@ export function initShowcaseMap(resizeCallbacks) {
     let labelRenderer;
     let projectLabels = []; // { object: CSS2DObject, element: HTMLElement }
 
+    // --- CAMERA DRAG STATE ---
+    let isDragging = false;
+    const dragStart = { x: 0, y: 0 };
+    const cameraRotation = {
+        targetX: 0,
+        targetY: 0,
+        currentX: 0,
+        currentY: 0
+    };
+    const DRAG_LIMIT = 0.25; // Radians (~14 degrees) - aumentato
+    const DRAG_SENSITIVITY = 0.001; // dimezzato per renderlo più lento
+    let initialCameraQuaternion = new THREE.Quaternion();
+
     // --- PROPS STATE ---
     let propsGroup;
     let propMaterials = [];
@@ -197,6 +210,7 @@ export function initShowcaseMap(resizeCallbacks) {
     );
     camera.position.set(0, 2, TRAVEL_CONFIG.startZ);
     camera.lookAt(0, 0, 0);
+    initialCameraQuaternion.copy(camera.quaternion); // Capture base rotation
 
     renderer = new THREE.WebGLRenderer({
         antialias: true,
@@ -815,6 +829,21 @@ export function initShowcaseMap(resizeCallbacks) {
     function onMouseMove(event) {
         if (isZooming) return; // Block HUD/Light updates during zoom/return
 
+        if (isDragging) {
+            const dx = event.clientX - dragStart.x;
+            const dy = event.clientY - dragStart.y;
+
+            cameraRotation.targetY -= dx * DRAG_SENSITIVITY;
+            cameraRotation.targetX -= dy * DRAG_SENSITIVITY;
+
+            // Clamp rotation
+            cameraRotation.targetY = Math.max(-DRAG_LIMIT, Math.min(DRAG_LIMIT, cameraRotation.targetY));
+            cameraRotation.targetX = Math.max(-DRAG_LIMIT, Math.min(DRAG_LIMIT, cameraRotation.targetX));
+
+            dragStart.x = event.clientX;
+            dragStart.y = event.clientY;
+        }
+
         const rect = container.getBoundingClientRect();
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -976,9 +1005,19 @@ export function initShowcaseMap(resizeCallbacks) {
         tapStartTime = Date.now();
         tapStartPos.x = event.clientX;
         tapStartPos.y = event.clientY;
+
+        if (!isTouchDevice && !isZooming) {
+            isDragging = true;
+            dragStart.x = event.clientX;
+            dragStart.y = event.clientY;
+            container.style.cursor = 'grabbing';
+        }
     }
 
     function onPointerUp(event) {
+        isDragging = false;
+        container.style.cursor = 'grab';
+
         const tapDuration = Date.now() - tapStartTime;
         const tapDistance = Math.hypot(
             event.clientX - tapStartPos.x,
@@ -1415,6 +1454,18 @@ export function initShowcaseMap(resizeCallbacks) {
         // --- RENDER CSS2D LAYER ---
         if (labelRenderer) {
             labelRenderer.render(scene, camera);
+        }
+
+        // --- APPLY MOUSE DRAG ROTATION ---
+        // Smooth interpolation
+        cameraRotation.currentX += (cameraRotation.targetX - cameraRotation.currentX) * 0.1;
+        cameraRotation.currentY += (cameraRotation.targetY - cameraRotation.currentY) * 0.1;
+
+        // Apply rotation on top of base quaternion
+        if (!isZooming) {
+            camera.quaternion.copy(initialCameraQuaternion);
+            camera.rotateY(cameraRotation.currentY);
+            camera.rotateX(cameraRotation.currentX);
         }
 
         composer.render();

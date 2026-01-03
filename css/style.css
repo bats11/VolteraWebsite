@@ -528,6 +528,7 @@ footer {
     text-transform: uppercase;
     opacity: 0.5;
     letter-spacing: 0.1em;
+    margin-bottom: var(--space-sm);
 }
 
 #aox-canvas-container {
