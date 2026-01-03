@@ -235,14 +235,29 @@ body.scroll-lock {
 }
 
 /* --- 3. TIPOGRAFIA HOMEPAGE STANDARD --- */
-h1,
-h2,
-h3,
-h4 {
+/* Extracting Heading Styles for Visual Classes */
+.display-huge,
+.display-large,
+.display-medium {
     font-family: var(--font-display);
     font-weight: 700;
     line-height: 0.95;
     letter-spacing: -0.02em;
+}
+
+/* Global Heading Reset (SEO Invisible Layer) */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    display: block;
 }
 
 .display-huge {
@@ -505,7 +520,9 @@ footer {
     text-align: right;
 }
 
-.aox-badge {
+.aox-badge,
+.method-badge,
+.collab-badge {
     font-family: 'Courier New', monospace;
     font-size: 0.7rem;
     text-transform: uppercase;
@@ -1222,6 +1239,7 @@ footer {
     opacity: 0.4;
     border-left: 1px solid rgba(255, 255, 255, 0.2);
     padding-left: 12px;
+    margin-top: 40px;
 }
 
 .showcase-cta {
