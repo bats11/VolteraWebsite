@@ -1495,3 +1495,59 @@ footer {
     background: rgba(255, 255, 255, 0.2);
     margin: 4px auto;
 }
+
+/* --- 8. PARTNER SECTION --- */
+.partner-classic {
+    background: transparent;
+}
+
+.partner-header {
+    margin-bottom: var(--space-lg);
+}
+
+.partner-badge {
+    font-family: var(--font-main);
+    /* Space Grotesk */
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    opacity: 0.5;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--space-sm);
+}
+
+.partner-intro {
+    font-family: var(--font-tech);
+    /* Manrope */
+    font-size: 1.2rem;
+    line-height: 1.6;
+    max-width: 800px;
+    opacity: 0.8;
+}
+
+.partner-grid-standard {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-md);
+}
+
+@media (min-width: 768px) {
+    .partner-grid-standard {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.partner-logo {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--grid-line);
+    opacity: 0.25;
+    filter: grayscale(100%);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.partner-logo:hover {
+    opacity: 1;
+    filter: grayscale(0%);
+}
