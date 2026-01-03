@@ -368,17 +368,18 @@ section.main-content {
     position: relative;
 }
 
-section.main-content.first-content {
+section.main-content.vision {
     padding-top: var(--space-xxl);
+    padding-bottom: var(--space-xxl);
 }
 
-/* First Content - Long Decay Gradient */
-.first-content {
+/* Vision - Long Decay Gradient */
+.vision {
     position: relative;
     background-color: #080808;
 }
 
-.first-content::before {
+.vision::before {
     content: '';
     display: block;
     position: absolute;
@@ -391,7 +392,7 @@ section.main-content.first-content {
     pointer-events: none;
 }
 
-.first-content .container {
+.vision .container {
     position: relative;
     z-index: 10;
 }
@@ -399,8 +400,8 @@ section.main-content.first-content {
 /* Reveal Text Animation - Penombra Attiva */
 .reveal-text {
     opacity: 0;
-    transform: translateY(60px);
-    filter: blur(10px);
+    transform: translateY(100px);
+    filter: blur(20px);
     will-change: transform, opacity, filter;
 }
 

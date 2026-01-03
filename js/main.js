@@ -143,7 +143,7 @@ function initThemeObserver() {
 function initRevealTextAnimation() {
     gsap.registerPlugin(ScrollTrigger);
 
-    const revealText = document.querySelector('.first-content .reveal-text');
+    const revealText = document.querySelector('.vision .reveal-text');
     if (!revealText) return;
 
     // Mobile-adaptive scrub: tattile → meno lag
@@ -155,9 +155,9 @@ function initRevealTextAnimation() {
         filter: "blur(0px)",
         ease: "power2.out",
         scrollTrigger: {
-            trigger: ".first-content",
+            trigger: ".vision",
             start: "top 85%",
-            end: "top 30%",
+            end: "center 20%",
             scrub: scrubValue
         }
     });
