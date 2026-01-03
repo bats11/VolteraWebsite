@@ -119,7 +119,7 @@ function initThemeObserver() {
                 document.body.classList.remove('light-theme');
             }
         });
-    }, { threshold: 0.2 });
+    }, { threshold: 0.6, rootMargin: '0px' });
 
     const metodoTrigger = document.querySelector('.method-trigger');
     if (metodoTrigger) lightObserver.observe(metodoTrigger);

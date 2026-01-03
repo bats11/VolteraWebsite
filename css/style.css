@@ -84,7 +84,7 @@ body {
     font-family: var(--font-tech);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
-    transition: background-color 1.2s var(--ease-out-expo), color 1s ease;
+    transition: background-color 1.8s var(--ease-out-expo), color 1.8s var(--ease-out-expo) !important;
 }
 
 body.scroll-lock {
@@ -391,7 +391,8 @@ section.main-content.vision {
 /* Vision - Long Decay Gradient */
 .vision {
     position: relative;
-    background-color: #080808;
+    background-color: var(--bg-color);
+    transition: background-color 1.8s var(--ease-out-expo);
 }
 
 .vision::before {
@@ -405,6 +406,11 @@ section.main-content.vision {
     background: linear-gradient(to bottom, #000000 0%, #040404 40%, #080808 100%);
     z-index: 5;
     pointer-events: none;
+}
+
+body.light-theme .vision::before {
+    opacity: 0;
+    transition: opacity 1.8s var(--ease-out-expo);
 }
 
 .vision .container {
