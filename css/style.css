@@ -428,7 +428,7 @@ section.main-content.vision {
 
 @media (min-width: 1024px) {
     .grid-asym {
-        grid-template-columns: 4fr 8fr;
+        grid-template-columns: 2fr 10fr;
     }
 
     .grid-asym-reverse {
