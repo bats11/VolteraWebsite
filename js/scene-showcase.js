@@ -373,7 +373,7 @@ export function initShowcaseMap(resizeCallbacks) {
 
     // --- SHARED MATERIAL ---
     const sharedMaterial = new THREE.MeshStandardMaterial({
-        color: 0x111111,
+        color: 0x444444,
         roughness: 0.8,
         metalness: 0.2,
         emissive: 0x222222,
