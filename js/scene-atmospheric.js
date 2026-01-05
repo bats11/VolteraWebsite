@@ -170,10 +170,28 @@ export function initAtmosphericHero(resizeCallbacks) {
         const angle = (i * 2 * Math.PI) / 3;
         basePoints.push(new THREE.Vector3(Math.cos(angle) * SIZE_PYRAMID.radius, halfH, Math.sin(angle) * SIZE_PYRAMID.radius));
     }
-    basePoints.forEach(basePt => pyramidGroup.add(createStrut(tipPoint, basePt, 0.03)));
-    for (let i = 0; i < basePoints.length; i++) {
-        pyramidGroup.add(createStrut(basePoints[i], basePoints[(i + 1) % basePoints.length], 0.03));
+
+    // Shared material and geometry for the joints (spheres)
+    const STRUT_THICKNESS = 0.03;
+    const jointGeo = new THREE.SphereGeometry(STRUT_THICKNESS, 12, 12);
+    const jointMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+    function createJoint(pos) {
+        const joint = new THREE.Mesh(jointGeo, jointMat);
+        joint.position.copy(pos);
+        return joint;
     }
+
+    // Add Struts
+    basePoints.forEach(basePt => pyramidGroup.add(createStrut(tipPoint, basePt, STRUT_THICKNESS)));
+    for (let i = 0; i < basePoints.length; i++) {
+        pyramidGroup.add(createStrut(basePoints[i], basePoints[(i + 1) % basePoints.length], STRUT_THICKNESS));
+    }
+
+    // Add Joints at vertices to mask the "gap" between cylinders
+    pyramidGroup.add(createJoint(tipPoint));
+    basePoints.forEach(pt => pyramidGroup.add(createJoint(pt)));
+
     pyramidGroup.position.y = POS_PYRAMID.y;
     pyramidGroup.rotation.y = POS_PYRAMID.rotY;
     scene.add(pyramidGroup);
@@ -300,7 +318,7 @@ export function initAtmosphericHero(resizeCallbacks) {
     }
 
     // Function to calculate distance from point to nearest edge (cylinder surface)
-    const CYLINDER_RADIUS = 0.03; // Same as strut thickness
+    const CYLINDER_RADIUS = 0.04; // Nuova dimensione sincronizzata con lo spessore delle aste
     function distanceToNearestEdge(point) {
         let minDist = Infinity;
         for (const edge of pyramidEdges) {
