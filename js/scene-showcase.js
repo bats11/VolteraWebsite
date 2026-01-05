@@ -814,11 +814,12 @@ export function initShowcaseMap(resizeCallbacks) {
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(monoliths, true);
 
-        // --- SMART INTERRUPTION (Wave Pulse) ---
+        // --- SMART INTERRUPTION (System Blink) ---
         if (intersects.length > 0 && pulseTimeline && pulseTimeline.isActive()) {
             pulseTimeline.kill();
             pulseTimeline = null;
             outlinePass.selectedObjects = [];
+            outlinePass.edgeStrength = 0;
         }
 
         if (intersects.length > 0) {
@@ -974,45 +975,23 @@ export function initShowcaseMap(resizeCallbacks) {
         }
     }
 
-    // --- WAVE PULSE SYSTEM ---
-    function triggerWavePulse() {
+    // --- SYNCHRONIZED SYSTEM BLINK ---
+    function triggerSystemBlink() {
         if (typeof gsap === 'undefined') return;
+
+        // Select ALL monoliths immediately (synchronized)
+        outlinePass.selectedObjects = monoliths;
 
         pulseTimeline = gsap.timeline({
             onComplete: () => {
                 outlinePass.selectedObjects = [];
                 pulseTimeline = null;
             }
-        });
-
-        const easeWave = typeof CustomEase !== 'undefined' ? "voltera" : "power2.out"; // Fallback safe
-
-        monoliths.forEach((monolith, index) => {
-            // Sequence for this monolith
-            const tl = gsap.timeline();
-
-            tl.to(outlinePass, {
-                edgeStrength: 3.5,
-                duration: 0.4,
-                ease: easeWave,
-                onStart: () => {
-                    // Switch focus to this monolith
-                    outlinePass.selectedObjects = [monolith];
-                }
-            })
-                .to(outlinePass, {
-                    edgeStrength: 0.0,
-                    duration: 1.2,
-                    ease: easeWave // or power2.inOut for decay? User said "ease Voltera"
-                });
-
-            // Add to main timeline with overlap
-            // First one starts at 0. Subsequent ones start "-=1.1" relative to previous end
-            // Note: If we add timelines to a master timeline, the position parameter works differently.
-            // Let's keep it simple.
-
-            pulseTimeline.add(tl, index === 0 ? 0 : "-=1.1");
-        });
+        })
+            .to(outlinePass, { edgeStrength: 4.0, duration: 0.1 })
+            .to(outlinePass, { edgeStrength: 1.0, duration: 0.2 })
+            .to(outlinePass, { edgeStrength: 4.0, duration: 0.1 })
+            .to(outlinePass, { edgeStrength: 0.0, duration: 2.0, ease: EASE_ACTIVE });
     }
 
     // --- SCROLL-DRIVEN CAMERA ---
@@ -1025,7 +1004,7 @@ export function initShowcaseMap(resizeCallbacks) {
 
         // Trigger Wave Pulse
         if (scrollProgress > 0.01 && !pulseTriggered) {
-            triggerWavePulse();
+            triggerSystemBlink();
             pulseTriggered = true;
         }
 
