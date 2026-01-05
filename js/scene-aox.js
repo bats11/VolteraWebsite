@@ -159,9 +159,9 @@ export async function initAoxCore(resizeCallbacks) {
             
             // Gradiente radiale per l'effetto glow olografico
             float strength = 1.0 - (dist * 2.0);
-            strength = pow(strength, 3.0);
+            strength = pow(strength, 2.5);
             
-            gl_FragColor = vec4(uColor, strength * 1.2);
+            gl_FragColor = vec4(uColor, strength * 1.5);
         }
     `;
 
