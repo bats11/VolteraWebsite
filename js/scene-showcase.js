@@ -1026,20 +1026,6 @@ export function initShowcaseMap(resizeCallbacks) {
 
             camera.position.z = targetZ;
 
-            // --- GROUND OPACITY FADE (0.8 -> 1.0) ---
-            // Fluid decay to reveal backdrop or save fill-rate
-            if (scrollProgress > 0.8) {
-                const fadeProgress = (scrollProgress - 0.8) / 0.2; // 0.0 -> 1.0
-                // SmoothStep-like curve for fluid transition (Ease In/Out)
-                // 1.0 -> 0.0
-                const opacity = 1.0 - (fadeProgress * fadeProgress * (3 - 2 * fadeProgress));
-
-                ground.material.opacity = Math.max(0, opacity);
-                ground.visible = opacity > 0.001;
-            } else {
-                ground.material.opacity = 1;
-                ground.visible = true;
-            }
 
 
 
