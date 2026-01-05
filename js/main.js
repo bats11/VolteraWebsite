@@ -101,18 +101,29 @@ if (burger) {
 // --- 3. THEME OBSERVER (Bidirectional Dark-Lock) ---
 function initThemeObserver() {
     // Light theme trigger (Metodo section)
+    // Light theme trigger (Metodo, Partner, Collaborazione)
+    // Usiamo un Set per tracciare quante sezioni "chiare" sono visibili
+    const activeLightZones = new Set();
+
     const lightObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                document.body.classList.add('light-theme');
+                activeLightZones.add(entry.target.id);
             } else {
-                document.body.classList.remove('light-theme');
+                activeLightZones.delete(entry.target.id);
             }
         });
-    }, { threshold: 0.3, rootMargin: '0px' });
 
-    const metodoTrigger = document.querySelector('.method-trigger');
-    if (metodoTrigger) lightObserver.observe(metodoTrigger);
+        // Se almeno una zona chiara è visibile, attiva il tema light
+        if (activeLightZones.size > 0) {
+            document.body.classList.add('light-theme');
+        } else {
+            document.body.classList.remove('light-theme');
+        }
+    }, { threshold: 0.1, rootMargin: '-10% 0px -10% 0px' }); // Margini ottimizzati per sovrapposizione fluida
+
+    const methodTriggers = document.querySelectorAll('.method-trigger');
+    methodTriggers.forEach(trigger => lightObserver.observe(trigger));
 
     // Dark theme lock (Showcase section - "buffer di oscurità assoluta")
     const darkObserver = new IntersectionObserver((entries) => {
