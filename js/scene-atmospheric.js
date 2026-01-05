@@ -66,6 +66,8 @@ export function initAtmosphericHero(resizeCallbacks) {
     renderer.toneMappingExposure = 1.0;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // Enable better color accuracy and dithering support
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(renderer.domElement);
 
     controls = new OrbitControls(camera, renderer.domElement);
@@ -241,7 +243,10 @@ export function initAtmosphericHero(resizeCallbacks) {
     floatingObj = new THREE.Mesh(floatGeo, new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.2, metalness: 0.8 }));
     scene.add(floatingObj);
 
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshLambertMaterial({ color: 0x111111 }));
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshLambertMaterial({
+        color: 0x111111,
+        dithering: true
+    }));
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
