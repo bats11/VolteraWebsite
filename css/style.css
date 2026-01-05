@@ -1181,7 +1181,7 @@ footer {
     left: 0;
     width: 100%;
     height: 250px;
-    background: linear-gradient(to top, #080808, transparent);
+    background: linear-gradient(to top, #121212, transparent);
     z-index: 2;
     pointer-events: none;
 }
