@@ -1175,7 +1175,6 @@ footer {
     z-index: 1;
 }
 
-<<<<<<< Updated upstream
 .showcase-bottom-fade {
     position: absolute;
     bottom: 0;
@@ -1186,9 +1185,6 @@ footer {
     z-index: 2;
     pointer-events: none;
 }
-=======
-
->>>>>>> Stashed changes
 
 /* UI Overlay - Wireframe/Technical Style */
 .showcase-ui {
@@ -1468,6 +1464,24 @@ footer {
     /* Centra il contenuto verticalmente */
     padding: 0;
     /* Rimuove il padding fisso per non eccedere i 100vh */
+    position: relative;
+}
+
+#respiro-quote::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50vh;
+    background: linear-gradient(to bottom, #000000 0%, transparent 100%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+#respiro-quote .container {
+    position: relative;
+    z-index: 2;
 }
 
 /* --- 10. PARTNER SECTION --- */
