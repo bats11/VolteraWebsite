@@ -17,8 +17,8 @@
     --font-tech: 'Manrope', sans-serif;
     --font-main: 'Space Grotesk', sans-serif;
 
-    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-
+    --ease-out-expo: cubic-bezier(0.25, 1, 0.5, 1);
+    /* Ease Out Quart */
     --showcase-height: 400vh;
 }
 
@@ -84,7 +84,7 @@ body {
     font-family: var(--font-tech);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
-    transition: background-color 1.8s var(--ease-out-expo), color 1.8s var(--ease-out-expo) !important;
+    transition: background-color 2.8s var(--ease-out-expo), color 2.8s var(--ease-out-expo) !important;
 }
 
 body.scroll-lock {

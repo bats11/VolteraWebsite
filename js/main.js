@@ -109,7 +109,7 @@ function initThemeObserver() {
                 document.body.classList.remove('light-theme');
             }
         });
-    }, { threshold: 0.6, rootMargin: '0px' });
+    }, { threshold: 0.3, rootMargin: '0px' });
 
     const metodoTrigger = document.querySelector('.method-trigger');
     if (metodoTrigger) lightObserver.observe(metodoTrigger);
