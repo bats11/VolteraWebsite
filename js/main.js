@@ -173,7 +173,6 @@ function initAoxInteraction(resizeCallbacks) {
         tile.addEventListener('mouseenter', () => {
             if (isTablet) return; // Bypass on tablet
             const ambito = tile.dataset.ambito;
-            console.log(`[AOX] Ambito attivo: ${ambito}`);
             window.dispatchEvent(new CustomEvent('aoxStateChange', {
                 detail: { ambito }
             }));
@@ -181,7 +180,6 @@ function initAoxInteraction(resizeCallbacks) {
 
         tile.addEventListener('mouseleave', () => {
             if (isTablet) return; // Bypass on tablet
-            console.log('[AOX] Ambito disattivato');
             window.dispatchEvent(new CustomEvent('aoxStateChange', {
                 detail: { ambito: null }
             }));
@@ -198,7 +196,6 @@ function initAoxInteraction(resizeCallbacks) {
 
             if (wasActive) {
                 // Close panel and reset cloud
-                console.log('[AOX] Panel chiuso, reset nuvola');
                 window.dispatchEvent(new CustomEvent('aoxStateChange', {
                     detail: { ambito: null }
                 }));
@@ -206,7 +203,6 @@ function initAoxInteraction(resizeCallbacks) {
                 // Activate clicked tile
                 tile.classList.add('is-active');
                 const ambito = tile.dataset.ambito;
-                console.log(`[AOX Tablet] Ambito attivo: ${ambito}`);
                 // 50ms delay: allows CSS .is-active to render before 3D morphing
                 setTimeout(() => {
                     window.dispatchEvent(new CustomEvent('aoxStateChange', {
