@@ -138,7 +138,7 @@ export function initShowcaseMap(resizeCallbacks) {
     let monoliths = [];
     let beaconsGroup; // Independent light group (decoupled from monolith rotation)
     let technicalBeacons = []; // Store beacon lights for animation
-    let orbitalSatellites = []; // Store orbital satellites for animation
+
     let raycaster, mouse;
     let isZooming = false;
     let cameraSnapshot = new THREE.Vector3(); // Snapshot for exact return
@@ -507,77 +507,7 @@ export function initShowcaseMap(resizeCallbacks) {
         return light;
     }
 
-    // --- ORBITAL SATELLITE FACTORY (Turbulent Nebula) ---
-    function createOrbitalSatellite(projectConfig) {
-        const group = new THREE.Group();
 
-        // Nucleo denso luminoso: 256 punti in sfera compatta
-        const pointCount = 128;
-        const positions = new Float32Array(pointCount * 3);
-        const particleData = []; // Per-particle animation data
-        const sphereRadius = 0.1; // Nucleo compatto
-
-        for (let i = 0; i < pointCount; i++) {
-            // Distribuzione uniforme in sfera via rejection sampling
-            let x, y, z;
-            do {
-                x = (Math.random() - 0.5) * 2;
-                y = (Math.random() - 0.5) * 2;
-                z = (Math.random() - 0.5) * 2;
-            } while (x * x + y * y + z * z > 1);
-
-            const px = x * sphereRadius;
-            const py = y * sphereRadius;
-            const pz = z * sphereRadius;
-
-            positions[i * 3] = px;
-            positions[i * 3 + 1] = py;
-            positions[i * 3 + 2] = pz;
-
-            // Memorizza dati per animazione turbolenta
-            particleData.push({
-                basePos: { x: px, y: py, z: pz },
-                noiseSeed: {
-                    x: Math.random() * Math.PI * 2,
-                    y: Math.random() * Math.PI * 2,
-                    z: Math.random() * Math.PI * 2
-                },
-                speedFactor: 0.8 + Math.random() * 0.8 // 0.8-1.6
-            });
-        }
-
-        const pointsGeo = new THREE.BufferGeometry();
-        pointsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        pointsGeo.getAttribute('position').setUsage(THREE.DynamicDrawUsage);
-
-        // Materiale emissivo luminoso (Bloom-ready)
-        const pointsMat = new THREE.PointsMaterial({
-            color: 0xaaccff,
-            size: 0.02,
-            transparent: true,
-            opacity: 1.0,
-            sizeAttenuation: true,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
-            toneMapped: false // Essenziale per Bloom intenso
-        });
-
-        const pointCloud = new THREE.Points(pointsGeo, pointsMat);
-        group.add(pointCloud);
-
-        // Store references for animation
-        group.userData.pointsMaterial = pointsMat;
-        group.userData.pointsGeometry = pointsGeo;
-        group.userData.particleData = particleData;
-        group.userData.turbulenceAmplitude = 0.04; // Ridotto per scala compatta
-        group.userData.turbulenceSpeed = 1.5;
-        group.userData.currentAmplitude = 0.04;
-        group.userData.currentTurbulenceSpeed = 1.5;
-        group.userData.baseOpacity = 1.0;
-        group.userData.baseSize = 0.02;
-
-        return group;
-    }
 
     // --- BEACONS GROUP (World Space, independent from monolith rotation) ---
     beaconsGroup = new THREE.Group();
@@ -637,24 +567,7 @@ export function initShowcaseMap(resizeCallbacks) {
         beaconsGroup.add(light);
         technicalBeacons.push(light);
 
-        // --- ORBITAL SATELLITE (Nebulosa Turbolenta) ---
-        const satellite = createOrbitalSatellite(project);
-        satellite.name = 'satellite_' + project.id;
-        satellite.userData.projectId = project.id;
-        satellite.userData.monolith = monolith;
 
-        // Orbit configuration (ellittica ravvicinata)
-        satellite.userData.orbitSemiMajorAxis = 1.4 + Math.random() * 0.4;  // 1.4-1.8
-        satellite.userData.orbitSemiMinorAxis = 1.0 + Math.random() * 0.3;  // 1.0-1.3
-        satellite.userData.orbitSpeed = 0.25 + Math.random() * 0.25;        // 0.25-0.5
-        satellite.userData.orbitAngle = Math.random() * Math.PI * 2;
-        satellite.userData.inclinationX = 0.4 + Math.random() * 0.4;        // 0.4-0.8 rad
-        satellite.userData.inclinationZ = 0.4 + Math.random() * 0.4;        // 0.4-0.8 rad
-        satellite.userData.baseY = project.position.y + 1.0;
-        satellite.userData.isHovered = false;
-
-        scene.add(satellite);
-        orbitalSatellites.push(satellite);
 
         scene.add(monolith);
         monoliths.push(monolith);
@@ -927,34 +840,7 @@ export function initShowcaseMap(resizeCallbacks) {
             }
         });
 
-        // Update satellite hover state (size burst + turbolenza gestita in animation loop)
-        orbitalSatellites.forEach(satellite => {
-            if (satellite.userData.projectId === projectId) {
-                satellite.userData.isHovered = isHovered;
 
-                const targetSize = isHovered ? 0.07 : satellite.userData.baseSize;
-                const targetAmp = isHovered ? 0.15 : satellite.userData.turbulenceAmplitude;
-                const targetTurbSpeed = isHovered ? 3.0 : satellite.userData.turbulenceSpeed;
-
-                if (typeof gsap !== 'undefined') {
-                    gsap.to(satellite.userData.pointsMaterial, {
-                        size: targetSize,
-                        duration: 1.2,
-                        ease: 'power2.out'
-                    });
-                    gsap.to(satellite.userData, {
-                        currentAmplitude: targetAmp,
-                        currentTurbulenceSpeed: targetTurbSpeed,
-                        duration: 1.2,
-                        ease: 'power2.out'
-                    });
-                } else {
-                    satellite.userData.pointsMaterial.size = targetSize;
-                    satellite.userData.currentAmplitude = targetAmp;
-                    satellite.userData.currentTurbulenceSpeed = targetTurbSpeed;
-                }
-            }
-        });
     }
 
     function updateHoverState() {
@@ -1401,50 +1287,7 @@ export function initShowcaseMap(resizeCallbacks) {
         // --- LIGHTNING FLICKER ---
         updateLightning();
 
-        // --- ORBITAL SATELLITES ANIMATION (Nebulosa Turbolenta) ---
-        orbitalSatellites.forEach(satellite => {
-            const monolith = satellite.userData.monolith;
-            const semiMajor = satellite.userData.orbitSemiMajorAxis;
-            const semiMinor = satellite.userData.orbitSemiMinorAxis;
-            const speed = satellite.userData.orbitSpeed;
-            const angle = satellite.userData.orbitAngle;
-            const inclX = satellite.userData.inclinationX;
-            const inclZ = satellite.userData.inclinationZ;
-            const baseY = satellite.userData.baseY;
 
-            // Movimento orbitale ellittico con inclinazione
-            const orbitPhase = time * speed + angle;
-            const flatX = Math.cos(orbitPhase) * semiMajor;
-            const flatZ = Math.sin(orbitPhase) * semiMinor;
-
-            // Applica inclinazione al piano orbitale
-            satellite.position.x = monolith.position.x + flatX * Math.cos(inclZ) - flatZ * Math.sin(inclZ) * Math.sin(inclX);
-            satellite.position.z = monolith.position.z + flatZ * Math.cos(inclX);
-            satellite.position.y = baseY + flatX * Math.sin(inclZ) + flatZ * Math.sin(inclX) * 0.6;
-
-            // Turbolenza 3D (deformazione per-particella)
-            const geo = satellite.userData.pointsGeometry;
-            const particles = satellite.userData.particleData;
-            const amp = satellite.userData.currentAmplitude;
-            const turbSpeed = satellite.userData.currentTurbulenceSpeed;
-            const posArr = geo.attributes.position.array;
-
-            for (let i = 0; i < particles.length; i++) {
-                const p = particles[i];
-                const t = time * turbSpeed * p.speedFactor;
-
-                // Deformazione 3D con noise seeds individuali
-                posArr[i * 3] = p.basePos.x + Math.sin(t + p.noiseSeed.x) * amp;
-                posArr[i * 3 + 1] = p.basePos.y + Math.sin(t + p.noiseSeed.y) * amp;
-                posArr[i * 3 + 2] = p.basePos.z + Math.sin(t + p.noiseSeed.z) * amp;
-            }
-            geo.attributes.position.needsUpdate = true;
-
-            // Opacity shimmer (oscillazione leggera)
-            const mat = satellite.userData.pointsMaterial;
-            const baseOpacity = satellite.userData.isHovered ? 1.0 : satellite.userData.baseOpacity;
-            mat.opacity = baseOpacity + Math.sin(time * 3.0 + angle) * 0.1;
-        });
 
         // --- UPDATE LABEL VISIBILITY ---
         projectLabels.forEach(labelData => {

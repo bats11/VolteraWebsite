@@ -35,15 +35,7 @@ window.onload = function () {
     initRevealTextAnimation();
 
     // Handle desktop→mobile resize: stop AOX scene safely
-    resizeCallbacks.push(() => {
-        if (isMobile() && aoxController) {
-            aoxController.stop();
-            if (sceneControllers.has('aox-canvas-container')) {
-                sceneControllers.delete('aox-canvas-container');
-            }
-            aoxController = null; // Prevent multiple stop() calls
-        }
-    });
+
 
     // --- VISIBILITY MANAGEMENT (IntersectionObserver) ---
     const visibilityObserver = new IntersectionObserver((entries) => {
@@ -71,26 +63,24 @@ window.onload = function () {
     });
 
     // --- ASYNC AOX (Parallel & Non-Blocking) ---
-    // Skip AOX initialization on mobile (< 768px)
-    if (!isMobile()) {
-        initAoxCore(resizeCallbacks).then(aox => {
-            if (aox) {
-                aoxController = aox;
-                const id = 'aox-canvas-container';
-                sceneControllers.set(id, aox);
+    // Initialize AOX Core unconditionally
+    initAoxCore(resizeCallbacks).then(aox => {
+        if (aox) {
+            aoxController = aox;
+            const id = 'aox-canvas-container';
+            sceneControllers.set(id, aox);
 
-                const el = document.getElementById(id);
-                if (el) {
-                    visibilityObserver.observe(el);
-                    // Manual check if already in view after async load
-                    const rect = el.getBoundingClientRect();
-                    if (rect.top < window.innerHeight + 200 && rect.bottom > 0) {
-                        aox.start();
-                    }
+            const el = document.getElementById(id);
+            if (el) {
+                visibilityObserver.observe(el);
+                // Manual check if already in view after async load
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight + 200 && rect.bottom > 0) {
+                    aox.start();
                 }
             }
-        });
-    }
+        }
+    });
 };
 
 // --- 2. MOBILE MENU ---
@@ -146,8 +136,8 @@ function initRevealTextAnimation() {
     const revealText = document.querySelector('.vision .reveal-text');
     if (!revealText) return;
 
-    // Mobile-adaptive scrub: tattile → meno lag
-    const scrubValue = isMobile() ? 1.5 : 2.5;
+    // Mobile-adaptive scrub: fixed to 2.5
+    const scrubValue = 2.5;
 
     gsap.to(revealText, {
         opacity: 1,

@@ -14,7 +14,7 @@ export function initAtmosphericHero(resizeCallbacks) {
     // --- CONSTANTS ---
     const POS_PYRAMID = { y: 4.5, rotY: Math.PI / 2 };
     const SIZE_PYRAMID = { radius: 2.5, height: 5.5 };
-    const POS_CAMERA = { x: 0, y: 8.0, z: 28 };
+    const POS_CAMERA = { x: 0, y: 6.0, z: 30 };
     const POS_TARGET = { x: 0, y: 4.5, z: 0 };
     const MAX_ANGLE_DEGREES = 99;
 
@@ -176,8 +176,7 @@ export function initAtmosphericHero(resizeCallbacks) {
         gltfLoader.load(
             './assets/models/hero-mesh.glb',
             (gltf) => {
-                // Double check width to prevent race conditions
-                if (window.innerWidth < 1024) return;
+
 
                 heroModel = gltf.scene;
 
@@ -214,30 +213,15 @@ export function initAtmosphericHero(resizeCallbacks) {
         );
     }
 
-    function removeHeroGLB() {
-        if (!heroModel) return;
 
-        scene.remove(heroModel);
-
-        heroModel.traverse((child) => {
-            if (child.isMesh) {
-                child.geometry.dispose();
-            }
-        });
-
-        heroModel = null;
-        console.log('[Atmospheric] Hero mesh unloaded (mobile/tablet)');
-    }
 
     // Initial load check
-    if (window.innerWidth >= 1024) {
-        loadHeroGLB();
-    }
+    loadHeroGLB();
 
 
 
     // Lights & Objects
-    internalLight = new THREE.PointLight(0xffffff, 1500, 120);
+    internalLight = new THREE.PointLight(0xffffff, 1500, 25);
     internalLight.position.set(0, POS_PYRAMID.y, 0);
     internalLight.castShadow = true;
     internalLight.shadow.mapSize.width = 1024;
@@ -474,18 +458,12 @@ export function initAtmosphericHero(resizeCallbacks) {
         renderer.setSize(window.innerWidth, window.innerHeight);
         composer.setSize(window.innerWidth, window.innerHeight);
 
-        // Dynamic GLB handling (desktop only: >= 1024px)
-        if (window.innerWidth >= 1024) {
-            loadHeroGLB();
-            particleSystem.visible = false; // Hide particles on desktop
-        } else {
-            removeHeroGLB();
-            particleSystem.visible = true; // Show particles on mobile/tablet
-        }
+        particleSystem.visible = false;
     });
 
     // Initial particle visibility (inverse of GLB: visible only < 1024px)
-    particleSystem.visible = window.innerWidth < 1024;
+    // Initial particle visibility (permanent false)
+    particleSystem.visible = false;
 
     // Remove Loader
     setTimeout(() => {
