@@ -145,6 +145,8 @@ export function initShowcaseMap(resizeCallbacks) {
     let scrollProgress = 0;
     let isRunning = false;
     let rafId = null;
+    let pulseTriggered = false;
+    let pulseTimeline = null;
 
     // --- CSS2D LABEL SYSTEM ---
     let labelRenderer;
@@ -274,7 +276,7 @@ export function initShowcaseMap(resizeCallbacks) {
     ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    directionalLight = new THREE.DirectionalLight(0xffffff, 7.5);
+    directionalLight = new THREE.DirectionalLight(0xffffff, 2);
     directionalLight.position.set(10, 20, 10);
     directionalLight.target.position.set(0, 0, 0);
     directionalLight.castShadow = true;
@@ -812,6 +814,13 @@ export function initShowcaseMap(resizeCallbacks) {
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(monoliths, true);
 
+        // --- SMART INTERRUPTION (Wave Pulse) ---
+        if (intersects.length > 0 && pulseTimeline && pulseTimeline.isActive()) {
+            pulseTimeline.kill();
+            pulseTimeline = null;
+            outlinePass.selectedObjects = [];
+        }
+
         if (intersects.length > 0) {
             let obj = intersects[0].object;
             // Traverse up to find the group/mesh with userData
@@ -965,6 +974,47 @@ export function initShowcaseMap(resizeCallbacks) {
         }
     }
 
+    // --- WAVE PULSE SYSTEM ---
+    function triggerWavePulse() {
+        if (typeof gsap === 'undefined') return;
+
+        pulseTimeline = gsap.timeline({
+            onComplete: () => {
+                outlinePass.selectedObjects = [];
+                pulseTimeline = null;
+            }
+        });
+
+        const easeWave = typeof CustomEase !== 'undefined' ? "voltera" : "power2.out"; // Fallback safe
+
+        monoliths.forEach((monolith, index) => {
+            // Sequence for this monolith
+            const tl = gsap.timeline();
+
+            tl.to(outlinePass, {
+                edgeStrength: 3.5,
+                duration: 0.4,
+                ease: easeWave,
+                onStart: () => {
+                    // Switch focus to this monolith
+                    outlinePass.selectedObjects = [monolith];
+                }
+            })
+                .to(outlinePass, {
+                    edgeStrength: 0.0,
+                    duration: 1.2,
+                    ease: easeWave // or power2.inOut for decay? User said "ease Voltera"
+                });
+
+            // Add to main timeline with overlap
+            // First one starts at 0. Subsequent ones start "-=1.1" relative to previous end
+            // Note: If we add timelines to a master timeline, the position parameter works differently.
+            // Let's keep it simple.
+
+            pulseTimeline.add(tl, index === 0 ? 0 : "-=1.1");
+        });
+    }
+
     // --- SCROLL-DRIVEN CAMERA ---
     function updateCameraFromScroll() {
         const rect = section.getBoundingClientRect();
@@ -972,6 +1022,12 @@ export function initShowcaseMap(resizeCallbacks) {
         const scrolled = -rect.top;
 
         scrollProgress = Math.max(0, Math.min(1, scrolled / sectionHeight));
+
+        // Trigger Wave Pulse
+        if (scrollProgress > 0.01 && !pulseTriggered) {
+            triggerWavePulse();
+            pulseTriggered = true;
+        }
 
         if (!isZooming) {
             const { startZ, endZ, travelFinishThreshold } = TRAVEL_CONFIG;
