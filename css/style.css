@@ -1496,7 +1496,19 @@ footer {
     margin: 4px auto;
 }
 
-/* --- 8. PARTNER SECTION --- */
+/* --- 9.5 RESPIRO SECTION (Visual Pause) --- */
+#respiro-quote {
+    min-height: 100vh;
+    /* Altezza pari al 100% del viewport */
+    display: flex;
+    /* Attiva il modello flex per il posizionamento */
+    align-items: center;
+    /* Centra il contenuto verticalmente */
+    padding: 0;
+    /* Rimuove il padding fisso per non eccedere i 100vh */
+}
+
+/* --- 10. PARTNER SECTION --- */
 .partner-classic {
     background: transparent;
 }
