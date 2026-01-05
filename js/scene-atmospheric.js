@@ -85,7 +85,25 @@ export function initAtmosphericHero(resizeCallbacks) {
     bloomPass.strength = 1.0;
     bloomPass.radius = 0.5;
 
-    composer = new EffectComposer(renderer);
+    // MSAA Render Target (Hardware Antialiasing)
+    // IMPORTANT: Use renderer.getPixelRatio() to render at full device resolution (e.g. Retina)
+    const pixelRatio = renderer.getPixelRatio();
+    const renderTarget = new THREE.WebGLRenderTarget(
+        window.innerWidth * pixelRatio,
+        window.innerHeight * pixelRatio,
+        {
+            type: THREE.HalfFloatType,
+            format: THREE.RGBAFormat,
+            samples: 8, // High quality MSAA
+            depthBuffer: true,
+            stencilBuffer: false
+        }
+    );
+
+    composer = new EffectComposer(renderer, renderTarget);
+    // Ensure composer knows it's working with scaled buffers if needed, 
+    // but manually setting size is explicit.
+    composer.setSize(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
 
@@ -461,7 +479,9 @@ export function initAtmosphericHero(resizeCallbacks) {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        composer.setSize(window.innerWidth, window.innerHeight);
+        // Resize composer to match device resolution
+        const pixelRatio = renderer.getPixelRatio();
+        composer.setSize(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
 
         particleSystem.visible = false;
     });
