@@ -134,10 +134,9 @@ export function initShowcaseMap(resizeCallbacks) {
 
     // --- SCENE STATE ---
     let scene, camera, renderer, composer, outlinePass;
-    let pointLight, ambientLight;
+    let directionalLight, ambientLight;
     let monoliths = [];
-    let beaconsGroup; // Independent light group (decoupled from monolith rotation)
-    let technicalBeacons = []; // Store beacon lights for animation
+
 
     let raycaster, mouse;
     let isZooming = false;
@@ -222,6 +221,8 @@ export function initShowcaseMap(resizeCallbacks) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
     // --- CSS2D LABEL RENDERER ---
@@ -270,23 +271,26 @@ export function initShowcaseMap(resizeCallbacks) {
     composer.addPass(bloomPass);
 
     // --- LIGHTING ---
-    ambientLight = new THREE.AmbientLight(0xffffff, 5);
+    ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    pointLight = new THREE.PointLight(0xffffff, 0.2, 0, 2);
-    pointLight.position.set(0, 50, TRAVEL_CONFIG.startZ); // Zenithal position
-    scene.add(pointLight);
+    directionalLight = new THREE.DirectionalLight(0xffffff, 4.5);
+    directionalLight.position.set(10, 20, 10);
+    directionalLight.target.position.set(0, 0, 0);
+    directionalLight.castShadow = true;
 
-    // Torchlight breathing for touch devices
-    if (isTouchDevice && typeof gsap !== 'undefined') {
-        gsap.to(pointLight, {
-            intensity: 0.6,
-            duration: 2,
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut"
-        });
-    }
+    // Shadow Configuration
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
+    directionalLight.shadow.camera.near = 0.5;
+    directionalLight.shadow.camera.far = 500;
+    directionalLight.shadow.camera.left = -50;
+    directionalLight.shadow.camera.right = 50;
+    directionalLight.shadow.camera.top = 50;
+    directionalLight.shadow.camera.bottom = -50;
+
+    scene.add(directionalLight);
+    scene.add(directionalLight.target);
 
     // --- NOCTURNAL PLANE ---
     const ground = new THREE.Mesh(
@@ -300,7 +304,10 @@ export function initShowcaseMap(resizeCallbacks) {
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -1.5;
+    ground.receiveShadow = true;
     scene.add(ground);
+
+
 
     // --- BACKDROP SPHERE (Vertical Gradient Shader for Bloom compatibility) ---
     const backdropGeometry = new THREE.SphereGeometry(500, 32, 32);
@@ -496,23 +503,12 @@ export function initShowcaseMap(resizeCallbacks) {
     }
 
     // --- TECHNICAL BEACON FACTORY (Light only) ---
-    function createTechnicalBeacon(projectConfig) {
-        const light = new THREE.PointLight(
-            projectConfig.light?.color || 0xffffff,
-            projectConfig.light?.intensity || 2.0,
-            projectConfig.light?.distance || 10,
-            projectConfig.light?.decay || 2.0
-        );
-        light.userData.baseIntensity = light.intensity;
-        return light;
-    }
+
 
 
 
     // --- BEACONS GROUP (World Space, independent from monolith rotation) ---
-    beaconsGroup = new THREE.Group();
-    beaconsGroup.name = 'beaconsGroup';
-    scene.add(beaconsGroup);
+
 
     // --- CREATE MONOLITHS ---
     projects.forEach(project => {
@@ -541,33 +537,17 @@ export function initShowcaseMap(resizeCallbacks) {
         monolith.position.copy(project.position);
         monolith.userData = project;
 
-        // --- FIXED LIGHT (World Space - decoupled from monolith rotation) ---
-        const defaultLight = {
-            color: 0xffffff,
-            intensity: 2.0,
-            distance: 10,
-            decay: 2.0,
-            offset: { x: 0, y: 2, z: 0 }
-        };
-
-        const config = {
-            ...defaultLight,
-            ...project.light,
-            offset: { ...defaultLight.offset, ...(project.light?.offset || {}) }
-        };
-
-        const light = createTechnicalBeacon(project);
-        light.position.set(
-            project.position.x + config.offset.x,
-            project.position.y + config.offset.y,
-            project.position.z + config.offset.z
-        );
-        light.name = 'light_' + project.id;
-        light.userData.projectId = project.id;
-        beaconsGroup.add(light);
-        technicalBeacons.push(light);
 
 
+
+
+        // Enable shadows recursively for Groups (Puma, Amazon, Villa) and Meshes
+        monolith.traverse((child) => {
+            if (child.isMesh) {
+                child.castShadow = true;
+                child.receiveShadow = true;
+            }
+        });
 
         scene.add(monolith);
         monoliths.push(monolith);
@@ -589,10 +569,7 @@ export function initShowcaseMap(resizeCallbacks) {
     const edges = [[V0, V1], [V0, V2], [V0, V3], [V1, V2], [V2, V3], [V3, V1]];
     edges.forEach(([a, b]) => propsGroup.add(createStrut(a, b, 0.08)));
 
-    // Inner PointLight for depth
-    const innerLight = new THREE.PointLight(0xffffff, 100, 50);
-    innerLight.position.set(0, 0, 0);
-    propsGroup.add(innerLight);
+
 
     // --- VIDEO CORE (Custom BufferGeometry from neon vertices) ---
     // Calculate centroid for 98% inward scaling
@@ -825,20 +802,7 @@ export function initShowcaseMap(resizeCallbacks) {
             }
         });
 
-        // Update fixed lights intensity
-        technicalBeacons.forEach(light => {
-            if (light.userData.projectId === projectId) {
-                const targetIntensity = isHovered
-                    ? light.userData.baseIntensity * 2.5
-                    : light.userData.baseIntensity;
 
-                if (typeof gsap !== 'undefined') {
-                    gsap.to(light, { intensity: targetIntensity, duration: 0.4 });
-                } else {
-                    light.intensity = targetIntensity;
-                }
-            }
-        });
 
 
     }
@@ -1026,11 +990,7 @@ export function initShowcaseMap(resizeCallbacks) {
 
             camera.position.z = targetZ;
 
-            // Torchlight follows camera on touch devices
-            if (isTouchDevice) {
-                pointLight.position.z = targetZ;
-                pointLight.position.x = 0;
-            }
+
 
             // Mobile: Check for monolith proximity for HUD
             if (isTouchDevice) {
