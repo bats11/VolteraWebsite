@@ -276,7 +276,7 @@ export function initShowcaseMap(resizeCallbacks) {
     ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+    directionalLight = new THREE.DirectionalLight(0xffffff, 2.36);
     directionalLight.position.set(10, 20, 10);
     directionalLight.target.position.set(0, 0, 0);
     directionalLight.castShadow = true;
