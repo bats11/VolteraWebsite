@@ -771,30 +771,56 @@ footer {
 
     /* 1. DISTRUZIONE DEI "CONTAINING BLOCKS" */
     .aox-tiles-grid {
-        position: static !important;
+        position: static;
     }
 
     .aox-tile {
-        position: static !important;
-        transform: none !important;
-        will-change: auto !important;
-        overflow: visible !important;
+        position: static;
+        transform: none;
+        will-change: auto;
+        overflow: visible;
         /* Rimuoviamo qualsiasi animazione che possa creare stacking context involontari */
-        transition: opacity 0.8s var(--ease-voltera) !important;
+        transition: opacity 0.8s var(--ease-voltera);
     }
 
     /* Rimuoviamo il scale(1.02) all'hover per evitare il blocco */
     .aox-tile:hover {
-        transform: none !important;
-        z-index: auto !important;
+        transform: none;
+        z-index: auto;
     }
 
-    /* 2. CONTAINER COME RIFERIMENTO UNICO */
+    /* 2. SPOSTAMENTO REAZIONE CINETICA (Child Animation) */
+
+    /* Bufferizzare l'animazione sui figli per non rompere il layout */
+    .tile-title {
+        transform-origin: left center;
+        transition: transform 0.8s var(--ease-voltera), color 0.8s var(--ease-voltera);
+    }
+
+    .tile-desc,
+    .tile-coords {
+        transform-origin: left center;
+        transition: transform 0.8s var(--ease-voltera), opacity 0.8s var(--ease-voltera);
+    }
+
+    /* Interaction State */
+    .aox-tile:hover .tile-title {
+        transform: scale(1.03) translateX(10px);
+        color: var(--accent-color);
+    }
+
+    .aox-tile:hover .tile-desc,
+    .aox-tile:hover .tile-coords {
+        opacity: 1;
+        transform: translateX(5px);
+    }
+
+    /* 3. CONTAINER COME RIFERIMENTO UNICO */
     .aox-container {
         position: relative;
     }
 
-    /* 3. CONFIGURAZIONE HUD PANELS */
+    /* 4. CONFIGURAZIONE HUD PANELS (LONG DECAY) */
     .aox-panel {
         position: absolute;
         top: 50%;
@@ -806,14 +832,14 @@ footer {
         opacity: 0;
         filter: blur(20px);
 
-        /* Transizione Combinata */
+        /* Transizione Combinata: LONG DECAY (1.2s exit) */
         transition:
-            transform 0.8s var(--ease-voltera),
-            opacity 0.8s var(--ease-voltera),
-            filter 0.8s var(--ease-voltera);
+            transform 1.2s var(--ease-voltera),
+            opacity 1.2s var(--ease-voltera),
+            filter 1.2s var(--ease-voltera);
     }
 
-    /* 4. LOGICA DI DOCKING SPECCHIATA (MIRRORING) */
+    /* 5. LOGICA DI DOCKING SPECCHIATA (MIRRORING) */
 
     /* DOCK DESTRO: Tile 1 (Brand) e Tile 3 (Web) */
     .aox-tile:nth-child(1) .aox-panel,
@@ -834,12 +860,18 @@ footer {
         transform: translateY(-50%) translateX(-30px);
     }
 
-    /* 5. EMERSIONE E FOCUS */
+    /* 6. EMERSIONE E FOCUS (Fast Entry, Slow Exit) */
     .aox-tile:hover .aox-panel {
         opacity: 1;
         filter: blur(0px);
         pointer-events: auto;
         transform: translateY(-50%) translateX(0);
+
+        /* Fast Entry (0.8s) override */
+        transition:
+            transform 0.8s var(--ease-voltera),
+            opacity 0.8s var(--ease-voltera),
+            filter 0.8s var(--ease-voltera);
     }
 
     /* Dimming globale per focus HUD */
