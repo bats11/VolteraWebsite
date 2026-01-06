@@ -14,7 +14,7 @@ export function initAtmosphericHero(resizeCallbacks) {
     // --- CONSTANTS ---
     const POS_PYRAMID = { y: 4.5, rotY: Math.PI / 2 };
     const SIZE_PYRAMID = { radius: 2.5, height: 5.5 };
-    const POS_CAMERA = { x: 0, y: 6.0, z: 30 };
+    const POS_CAMERA = { x: 0, y: 8.0, z: 30 };
     const POS_TARGET = { x: 0, y: 4.5, z: 0 };
     const MAX_ANGLE_DEGREES = 99;
 
@@ -31,8 +31,8 @@ export function initAtmosphericHero(resizeCallbacks) {
             scale: 1.1
         },
         woman: {
-            position: [0, 0, 4],
-            rotation: [0, 165, 0],
+            position: [2.9, 0, 2.8],
+            rotation: [0, 212, 0],
             scale: 1.2
         }
     };

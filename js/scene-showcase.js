@@ -7,8 +7,6 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 
 /**
  * Showcase "The Infinite Map" - Three.js Scene Module
- * Explorable dark environment with monolith projects, scroll-driven camera,
- * and adaptive lighting (mouse-tracking desktop / torchlight mobile)
  * @param {Array} resizeCallbacks - Global resize callbacks array
  */
 export function initShowcaseMap(resizeCallbacks) {
@@ -32,9 +30,9 @@ export function initShowcaseMap(resizeCallbacks) {
         travelFinishThreshold: 0.8
     };
     const NEON_CONFIG = {
-        baseIntensity: 0.5,    // Punto di partenza (luminosità media)
-        pulseAmplitude: 0.5,   // Quantità di variazione (+/- rispetto alla base)
-        pulseSpeed: 2.0        // Velocità dell'oscillazione
+        baseIntensity: 2,    // Punto di partenza (luminosità media)
+        pulseAmplitude: 1,   // Quantità di variazione (+/- rispetto alla base)
+        pulseSpeed: 1.5        // Velocità dell'oscillazione
     };
     const VOLTERA_EASE = "power4.out"; // Fallback
 
