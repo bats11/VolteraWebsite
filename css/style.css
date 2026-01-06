@@ -21,7 +21,7 @@
     /* Ease Out Quart */
     --ease-voltera: cubic-bezier(0.16, 1, 0.3, 1);
     /* Voltera Inertia */
-    --showcase-height: 400vh;
+    --showcase-height: 600vh;
 }
 
 body.light-theme {
