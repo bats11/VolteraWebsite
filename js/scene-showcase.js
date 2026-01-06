@@ -605,10 +605,8 @@ export function initShowcaseMap(resizeCallbacks) {
                 const projectData = data.projects.find(p => p.id === project.id);
                 if (projectData) {
                     project.intensity = projectData.intensity;
-                    project.fragmentationScale = projectData.fragmentationScale;
                 } else {
                     project.intensity = 2.0;
-                    project.fragmentationScale = 1.0;
                 }
             });
 
@@ -641,8 +639,7 @@ export function initShowcaseMap(resizeCallbacks) {
 
                 // Apply Matter Stream System
                 applyMatterStream(monolith, {
-                    intensity: project.intensity,
-                    fragmentationScale: project.fragmentationScale
+                    intensity: project.intensity
                 });
 
                 scene.add(monolith);
