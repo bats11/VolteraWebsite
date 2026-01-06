@@ -769,76 +769,82 @@ footer {
 /* --- MATRICE DI REAZIONE DESKTOP (>1024px) --- */
 @media (min-width: 1024px) {
 
+    /* 1. DISTRUZIONE DEI "CONTAINING BLOCKS" */
+    .aox-tiles-grid {
+        position: static !important;
+    }
+
+    .aox-tile {
+        position: static !important;
+        transform: none !important;
+        will-change: auto !important;
+        overflow: visible !important;
+        /* Rimuoviamo qualsiasi animazione che possa creare stacking context involontari */
+        transition: opacity 0.8s var(--ease-voltera) !important;
+    }
+
+    /* Rimuoviamo il scale(1.02) all'hover per evitare il blocco */
+    .aox-tile:hover {
+        transform: none !important;
+        z-index: auto !important;
+    }
+
+    /* 2. CONTAINER COME RIFERIMENTO UNICO */
+    .aox-container {
+        position: relative;
+    }
+
+    /* 3. CONFIGURAZIONE HUD PANELS */
     .aox-panel {
-        width: 100%;
-    }
+        position: absolute;
+        top: 50%;
+        width: 400px;
+        z-index: 500;
+        pointer-events: none;
 
-    .panel-desc {
-        font-size: 1rem;
-    }
-
-    .panel-specs {
-        font-size: 1.1rem;
-    }
-
-    /* --- TILE 5 VERTICAL PANEL OVERRIDE --- */
-    .aox-tile-5 .aox-panel {
-        top: auto !important;
-        right: auto !important;
-        bottom: 100% !important;
-        /* Lo sposta sopra la tile */
-        left: 0 !important;
-        width: 100% !important;
-        margin-bottom: var(--space-sm) !important;
-        /* Crea il distacco */
-        transform: translateY(20px);
-        /* Affioramento verticale */
+        /* Fisica e Penombra Attiva */
         opacity: 0;
-        filter: blur(10px);
+        filter: blur(20px);
+
+        /* Transizione Combinata */
+        transition:
+            transform 0.8s var(--ease-voltera),
+            opacity 0.8s var(--ease-voltera),
+            filter 0.8s var(--ease-voltera);
     }
 
-    .aox-tile-5:hover .aox-panel {
-        transform: translateY(0);
+    /* 4. LOGICA DI DOCKING SPECCHIATA (MIRRORING) */
+
+    /* DOCK DESTRO: Tile 1 (Brand) e Tile 3 (Web) */
+    .aox-tile:nth-child(1) .aox-panel,
+    .aox-tile:nth-child(3) .aox-panel {
+        right: 5% !important;
+        left: auto !important;
+        margin-left: 0 !important;
+        transform: translateY(-50%) translateX(30px);
+    }
+
+    /* DOCK SINISTRO: Tile 2 (Spazi), Tile 4 (Sistemi), Tile 5 (Cultura) */
+    .aox-tile:nth-child(2) .aox-panel,
+    .aox-tile:nth-child(4) .aox-panel,
+    .aox-tile:nth-child(5) .aox-panel {
+        left: 5% !important;
+        right: auto !important;
+        margin-right: 0 !important;
+        transform: translateY(-50%) translateX(-30px);
+    }
+
+    /* 5. EMERSIONE E FOCUS */
+    .aox-tile:hover .aox-panel {
         opacity: 1;
-        filter: blur(0);
+        filter: blur(0px);
+        pointer-events: auto;
+        transform: translateY(-50%) translateX(0);
     }
 
-    /* 
-       ORCHESTRAZIONE MAGNETICA 
-       Ogni interazione influenza l'intera griglia per mantenere equilibrio compositivo.
-    */
-
-    /* DIMMING GLOBALE: Focus Isolato */
-    /* Quando una qualsiasi tile è attiva, le altre (non-hovered) si attenuano */
+    /* Dimming globale per focus HUD */
     .aox-tiles-grid:has(.aox-tile:hover) .aox-tile:not(:hover) {
         opacity: 0;
-    }
-
-    /* SCENARIO 1: Brand (Tile 1 - Left) */
-    .aox-tiles-grid:has(.aox-tile-1:hover) .aox-tile-4 {
-        opacity: 0.5;
-    }
-
-    /* SCENARIO 2: Spazi (Tile 2 - Right) */
-    .aox-tiles-grid:has(.aox-tile-2:hover) .aox-tile-3 {
-        opacity: 0.5;
-    }
-
-    /* SCENARIO 3: Web (Tile 3 - Mid Left) */
-    /* (Nessuna regola di opacità specifica aggiuntiva, solo push back commentato che era già commentato) */
-
-    /* SCENARIO 4: Sistemi (Tile 4 - Mid Right) */
-    .aox-tiles-grid:has(.aox-tile-4:hover) .aox-tile-2 {
-        opacity: 0.6;
-    }
-
-    /* SCENARIO 5: Immersive (Tile 5 - Center) */
-    .aox-tiles-grid:has(.aox-tile-5:hover) .aox-tile-1 {
-        opacity: 0.8;
-    }
-
-    .aox-tiles-grid:has(.aox-tile-5:hover) .aox-tile-2 {
-        opacity: 0.8;
     }
 }
 
