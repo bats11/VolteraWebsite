@@ -811,7 +811,7 @@ footer {
     /* DIMMING GLOBALE: Focus Isolato */
     /* Quando una qualsiasi tile è attiva, le altre (non-hovered) si attenuano */
     .aox-tiles-grid:has(.aox-tile:hover) .aox-tile:not(:hover) {
-        opacity: 0.05;
+        opacity: 0;
     }
 
     /* SCENARIO 1: Brand (Tile 1 - Left) */
