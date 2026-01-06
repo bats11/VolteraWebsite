@@ -546,7 +546,7 @@ export function initShowcaseMap(resizeCallbacks) {
         const childCount = children.length;
         if (childCount === 0) return;
 
-        const intensity = config.intensity || 2.0;
+        const intensity = config.intensity ?? 2.0;
 
         // Grid Calculation
         const columns = Math.ceil(Math.sqrt(childCount));
@@ -879,7 +879,7 @@ export function initShowcaseMap(resizeCallbacks) {
                     if (child.isMesh && child.material) materials.push(child.material);
                 });
 
-                const targetIntensity = isHovered ? (monolith.userData.intensity || 2.0) : 0;
+                const targetIntensity = isHovered ? (monolith.userData.intensity ?? 2.0) : 0;
                 const duration = isHovered ? 0.6 : 1.5;
                 const ease = isHovered ? EASE_IGNITION : EASE_DECAY;
 
