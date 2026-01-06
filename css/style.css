@@ -1505,6 +1505,12 @@ footer {
     padding: 0;
     /* Rimuove il padding fisso per non eccedere i 100vh */
     position: relative;
+
+    /* Background Image Implementation */
+    background-image: url('../assets/Images/Statue2.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 
