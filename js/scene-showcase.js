@@ -50,6 +50,34 @@ export function initShowcaseMap(resizeCallbacks) {
         }
     }
     const EASE_ACTIVE = typeof CustomEase !== 'undefined' ? "voltera" : VOLTERA_EASE;
+    const PULSE_DECAY = 0.8; // Long Decay duration
+
+    // --- PULSE BEHAVIORS (Modular Heartbeat System) ---
+    const pulseBehaviors = {
+        defaultBeat: (monolith, materials, gsap) => {
+            const tl = gsap.timeline({ repeat: -1 });
+            // Systole (Espansione rapida + Emissive Burst)
+            tl.to(monolith.scale, { x: 1.05, y: 1.05, z: 1.05, duration: 0.1, ease: 'power2.out' }, 0)
+                .to(materials, { emissiveIntensity: 1.8, duration: 0.1, ease: 'power2.out' }, 0); // Base 0.1 * 2
+
+            // Diastole (Contrazione lenta + Emissive Normal)
+            tl.to(monolith.scale, { x: 0.98, y: 0.98, z: 0.98, duration: 0.4, ease: 'power2.inOut' }, 0.1)
+                .to(materials, { emissiveIntensity: 0.1, duration: 0.4, ease: 'power2.inOut' }, 0.1);
+
+            // Return (Assestamento inerziale)
+            tl.to(monolith.scale, { x: 1.0, y: 1.0, z: 1.0, duration: 0.3, ease: 'voltera' }, 0.5);
+
+            return tl;
+        },
+        ghostBeat: (monolith, materials, gsap) => {
+            // Future implementation
+            return gsap.timeline();
+        },
+        glitchBeat: (monolith, materials, gsap) => {
+            // Future implementation
+            return gsap.timeline();
+        }
+    };
 
     // --- DEVICE DETECTION ---
     const isTouchDevice = window.matchMedia('(hover: none)').matches;
@@ -377,7 +405,7 @@ export function initShowcaseMap(resizeCallbacks) {
         roughness: 0.8,
         metalness: 0.2,
         emissive: 0x222222,
-        emissiveIntensity: 0.1,
+        emissiveIntensity: 0,
         dithering: true
     });
 
@@ -433,7 +461,7 @@ export function initShowcaseMap(resizeCallbacks) {
         const gapMaterial = new THREE.MeshStandardMaterial({
             color: 0x080808,
             emissive: 0x334455,
-            emissiveIntensity: 0.3
+            emissiveIntensity: 40
         });
         const gap = new THREE.Mesh(
             new THREE.BoxGeometry(1.1, 0.3, 0.3),
@@ -545,12 +573,22 @@ export function initShowcaseMap(resizeCallbacks) {
 
 
         // Enable shadows recursively for Groups (Puma, Amazon, Villa) and Meshes
+        // AND Clone materials for independent emissive pulsing
+        const activeMaterials = [];
         monolith.traverse((child) => {
             if (child.isMesh) {
                 child.castShadow = true;
                 child.receiveShadow = true;
+
+                // Clone material to allow independent emissiveIntensity animation
+                if (child.material) {
+                    child.material = child.material.clone();
+                    activeMaterials.push(child.material);
+                }
             }
         });
+
+        monolith.userData.activeMaterials = activeMaterials;
 
         scene.add(monolith);
         monoliths.push(monolith);
@@ -763,11 +801,12 @@ export function initShowcaseMap(resizeCallbacks) {
     }
 
     // --- BEACON HOVER STATE SYNC ---
+
     function updateBeaconHoverState(projectId, isHovered) {
         const easeCurve = typeof CustomEase !== 'undefined' ? "voltera" : "power4.out";
         const duration = isHovered ? 0.6 : 0.8; // Long Decay on exit
 
-        // 1. Monolith Outline (Lock-on)
+        // 1. Monolith Outline (Lock-on) & Heartbeat
         const monolith = monoliths.find(m => m.userData.id === projectId);
         if (monolith) {
             // Set selection immediately (needed for OutlinePass to know what to render)
@@ -776,15 +815,54 @@ export function initShowcaseMap(resizeCallbacks) {
             }
 
             if (typeof gsap !== 'undefined') {
-                // Outline Strength Animation
+                const materials = monolith.userData.activeMaterials || [];
+                const pulseType = monolith.userData.pulseType || 'defaultBeat';
+
+                // --- HEARTBEAT SYSTEM ---
                 if (isHovered) {
+                    // Activate Pulse if not already active
+                    if (!monolith.userData.pulseTimeline) {
+                        if (pulseBehaviors[pulseType]) {
+                            monolith.userData.pulseTimeline = pulseBehaviors[pulseType](monolith, materials, gsap);
+                        }
+                    }
+
+                    // Outline Strength Animation (Enter)
                     gsap.to(outlinePass, {
                         edgeStrength: 2.5,
                         duration: 0.6,
                         ease: easeCurve,
                         overwrite: true
                     });
+
                 } else {
+                    // --- HOVER EXIT ---
+
+                    // 1. Heartbeat Soft Kill (Pause -> Decay)
+                    if (monolith.userData.pulseTimeline) {
+                        monolith.userData.pulseTimeline.pause(); // Freeze at current heartbeat state
+                        monolith.userData.pulseTimeline = null;  // Detach reference
+                    }
+
+                    // Long Decay to base state (starts from wherever the heartbeat paused)
+                    gsap.to(monolith.scale, {
+                        x: 1, y: 1, z: 1,
+                        duration: PULSE_DECAY,
+                        ease: 'power2.out',
+                        overwrite: true
+                    });
+
+                    // Decay materials emissive intensity
+                    if (materials.length > 0) {
+                        gsap.to(materials, {
+                            emissiveIntensity: 0.1, // Return to sharedMaterial base intensity
+                            duration: PULSE_DECAY,
+                            ease: 'power2.out',
+                            overwrite: true
+                        });
+                    }
+
+                    // 2. Outline Fade Out
                     // Only fade out if this specific project was the one being highlighted
                     if (outlinePass.selectedObjects[0] === monolith) {
                         gsap.to(outlinePass, {
@@ -804,10 +882,6 @@ export function initShowcaseMap(resizeCallbacks) {
                 label.element.classList.toggle('is-active', isHovered);
             }
         });
-
-
-
-
     }
 
     function updateHoverState() {
