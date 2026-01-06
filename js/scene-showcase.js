@@ -890,7 +890,7 @@ export function initShowcaseMap(resizeCallbacks) {
                     overwrite: true
                 });
 
-                // Outline Strength Animation
+                // Outline Strength Animation & VLT_BREATH Physics
                 if (isHovered) {
                     gsap.to(outlinePass, {
                         edgeStrength: 2.5,
@@ -898,6 +898,22 @@ export function initShowcaseMap(resizeCallbacks) {
                         ease: EASE_IGNITION,
                         overwrite: true
                     });
+
+                    // --- VLT_BREATH: Hover Enter ---
+                    // Safety check to prevent overlaps
+                    if (monolith.userData.breathTimeline) monolith.userData.breathTimeline.kill();
+
+                    // Create infinite breathing timeline
+                    monolith.userData.breathTimeline = gsap.timeline({ repeat: -1, yoyo: true });
+                    monolith.userData.breathTimeline.to(monolith.scale, {
+                        x: 1.05,
+                        y: 1.05,
+                        z: 1.05,
+                        duration: 2.0,
+                        ease: "sine.inOut",
+                        overwrite: 'auto'
+                    });
+
                 } else {
                     if (outlinePass.selectedObjects[0] === monolith) {
                         gsap.to(outlinePass, {
@@ -907,6 +923,23 @@ export function initShowcaseMap(resizeCallbacks) {
                             overwrite: true
                         });
                     }
+
+                    // --- VLT_BREATH: Hover Exit ---
+                    // Kill breathing timeline immediately
+                    if (monolith.userData.breathTimeline) {
+                        monolith.userData.breathTimeline.kill();
+                        monolith.userData.breathTimeline = null;
+                    }
+
+                    // Restore natural scale smoothly
+                    gsap.to(monolith.scale, {
+                        x: 1.0,
+                        y: 1.0,
+                        z: 1.0,
+                        duration: 1.5,
+                        ease: "power2.out",
+                        overwrite: 'auto'
+                    });
                 }
             }
         }
