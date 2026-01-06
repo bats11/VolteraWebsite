@@ -596,13 +596,13 @@ footer {
     z-index: 100 !important;
     transform: scale(1.02);
 
-    /* Environmental blending: Black point match */
-    background: #080808;
-    border-top: 0.5px solid rgba(255, 255, 255, 0.3);
-    border-left: 0.5px solid rgba(255, 255, 255, 0.3);
+    /* Clean design: backgrounds and borders removed */
+    background: transparent;
+    border-top: 0.5px solid transparent;
+    border-left: 0.5px solid transparent;
 
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     /* Deep shadow removed for clean design */
     overflow: visible;
 }
@@ -674,9 +674,9 @@ footer {
     top: 0;
     width: 280px;
     padding: var(--space-sm);
-    border: 0.5px solid rgba(200, 200, 210, 0.15);
-    background: rgba(8, 8, 8, 0.6);
-    /* Semi-transparent base */
+    border: none;
+    background: transparent;
+    /* Semi-transparent base removed */
 
     /* AFFIORAMENTO: Stato iniziale (nascosto nella penombra) */
     opacity: 0;
