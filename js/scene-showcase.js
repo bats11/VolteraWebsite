@@ -215,10 +215,10 @@ export function initShowcaseMap(resizeCallbacks) {
     // NOTE: anisotropy sarà impostata dopo la creazione del renderer
 
     const coreMaterial = new THREE.MeshStandardMaterial({
-        color: 0x000000,           // Base nera profonda
-        emissive: 0xcccccc,        // Colore emissione
-        emissiveMap: videoTexture, // Video come emissione
-        emissiveIntensity: 1.0,    // Boost per 'bucare' il bloom
+        color: 0x080808,           // Base nera profonda
+        emissive: 0xffffff,        // White to modulate
+        emissiveMap: videoTexture, // Video texture
+        emissiveIntensity: 0.0,    // Idle state: OFF (Dark Matter)
         side: THREE.DoubleSide,
         fog: true,
         toneMapped: false          // Evita compressione ACES
@@ -533,6 +533,61 @@ export function initShowcaseMap(resizeCallbacks) {
 
     // --- TECHNICAL BEACON FACTORY (Light only) ---
 
+    function applyMatterStream(monolith, config) {
+        if (!monolith) return;
+        monolith.userData.disposables = monolith.userData.disposables || [];
+
+        const children = [];
+        monolith.traverse(child => {
+            if (child.isMesh) children.push(child);
+        });
+
+        const childCount = children.length;
+        if (childCount === 0) return;
+
+        const intensity = config.intensity || 2.0;
+
+        // Grid Calculation
+        const columns = Math.ceil(Math.sqrt(childCount));
+        const rows = Math.ceil(childCount / columns);
+
+        children.forEach((child, index) => {
+            // UV Math
+            const uOffset = (index % columns) / columns;
+            const vOffset = Math.floor(index / columns) / rows;
+
+            // Clone Texture for unique offset
+            const childTexture = videoTexture.clone();
+            childTexture.repeat.set(1 / columns, 1 / rows);
+            childTexture.offset.set(uOffset, vOffset);
+            childTexture.generateMipmaps = false;
+            childTexture.minFilter = THREE.LinearFilter;
+            childTexture.magFilter = THREE.LinearFilter;
+            // videoTexture doesn't need update, but cloned ones might if parameters change. 
+            // Since they share the image (video), they should just work.
+
+            monolith.userData.disposables.push(childTexture);
+
+            // Create Material (Dark Matter)
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x444444,
+                roughness: 0.9,
+                metalness: 0.1,
+                emissive: 0xffffff,
+                emissiveMap: childTexture,
+                emissiveIntensity: 0, // Idle: Dark Matter
+                toneMapped: false,
+                side: THREE.FrontSide
+            });
+
+            monolith.userData.disposables.push(material);
+
+            child.material = material;
+            child.castShadow = true;
+            child.receiveShadow = true;
+        });
+    }
+
 
 
 
@@ -540,63 +595,66 @@ export function initShowcaseMap(resizeCallbacks) {
 
 
     // --- CREATE MONOLITHS ---
-    projects.forEach(project => {
-        let monolith;
-
-        switch (project.geometry) {
-            case 'fragmented':
-                monolith = createFragmentedGeometry();
-                break;
-            case 'plates':
-                monolith = createPlatesGeometry();
-                break;
-            case 'tower':
-                monolith = createTowerGeometry();
-                break;
-            case 'octahedron':
-                monolith = createOctahedronGeometry();
-                break;
-            case 'tetrahedron':
-                monolith = createTetrahedronGeometry();
-                break;
-            default:
-                monolith = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), sharedMaterial);
-        }
-
-        monolith.position.copy(project.position);
-        monolith.userData = project;
-
-
-
-
-
-        // Enable shadows recursively for Groups (Puma, Amazon, Villa) and Meshes
-        // AND Clone materials for independent emissive pulsing
-        const activeMaterials = [];
-        monolith.traverse((child) => {
-            if (child.isMesh) {
-                child.castShadow = true;
-                child.receiveShadow = true;
-
-                // Clone material to allow independent emissiveIntensity animation
-                if (child.material) {
-                    child.material = child.material.clone();
-                    activeMaterials.push(child.material);
+    // --- LOAD DATA & CREATE MONOLITHS ---
+    fetch('data/showcase-assets.json')
+        .then(response => response.json())
+        .then(data => {
+            // Merge loaded data with hardcoded projects
+            projects.forEach(project => {
+                const projectData = data.projects.find(p => p.id === project.id);
+                if (projectData) {
+                    project.intensity = projectData.intensity;
+                    project.fragmentationScale = projectData.fragmentationScale;
+                } else {
+                    project.intensity = 2.0;
+                    project.fragmentationScale = 1.0;
                 }
-            }
-        });
+            });
 
-        monolith.userData.activeMaterials = activeMaterials;
+            // Create Monoliths
+            projects.forEach(project => {
+                let monolith;
 
-        scene.add(monolith);
-        monoliths.push(monolith);
+                switch (project.geometry) {
+                    case 'fragmented':
+                        monolith = createFragmentedGeometry();
+                        break;
+                    case 'plates':
+                        monolith = createPlatesGeometry();
+                        break;
+                    case 'tower':
+                        monolith = createTowerGeometry();
+                        break;
+                    case 'octahedron':
+                        monolith = createOctahedronGeometry();
+                        break;
+                    case 'tetrahedron':
+                        monolith = createTetrahedronGeometry();
+                        break;
+                    default:
+                        monolith = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), sharedMaterial);
+                }
 
-        // --- CREATE PROJECT LABEL ---
-        const labelData = createProjectLabel(project);
-        labelData.object.position.set(0, 2.5, 0); // Offset above monolith
-        monolith.add(labelData.object); // Parented to monolith for position tracking
-        projectLabels.push(labelData);
-    });
+                monolith.position.copy(project.position);
+                monolith.userData = { ...project }; // Clone data
+
+                // Apply Matter Stream System
+                applyMatterStream(monolith, {
+                    intensity: project.intensity,
+                    fragmentationScale: project.fragmentationScale
+                });
+
+                scene.add(monolith);
+                monoliths.push(monolith);
+
+                // --- CREATE PROJECT LABEL ---
+                const labelData = createProjectLabel(project);
+                labelData.object.position.set(0, 2.5, 0); // Offset above monolith
+                monolith.add(labelData.object); // Parented to monolith
+                projectLabels.push(labelData);
+            });
+        })
+        .catch(err => console.error('[Showcase] Failed to load assets:', err));
 
     // --- NEON TETRAHEDRON PROPS ---
     propsGroup = new THREE.Group();
@@ -801,72 +859,51 @@ export function initShowcaseMap(resizeCallbacks) {
     // --- BEACON HOVER STATE SYNC ---
 
     function updateBeaconHoverState(projectId, isHovered) {
-        const easeCurve = typeof CustomEase !== 'undefined' ? "voltera" : "power4.out";
-        const duration = isHovered ? 0.6 : 0.8; // Long Decay on exit
+        // Voltera Eases
+        const EASE_IGNITION = "cubic-bezier(0.16, 1, 0.3, 1)"; // Voltera Inertia
+        const EASE_DECAY = "power2.out"; // Exponential cooling
 
-        // 1. Monolith Outline (Lock-on) & Heartbeat
         const monolith = monoliths.find(m => m.userData.id === projectId);
         if (monolith) {
-            // Set selection immediately (needed for OutlinePass to know what to render)
+            // Set selection immediately
             if (isHovered && outlinePass.selectedObjects[0] !== monolith) {
                 outlinePass.selectedObjects = [monolith];
             }
 
             if (typeof gsap !== 'undefined') {
-                const materials = monolith.userData.activeMaterials || [];
-                const pulseType = monolith.userData.pulseType || 'defaultBeat';
+                // Collect materials from direct children or fallback to stored activeMaterials (though we use disposables mostly now)
+                // Better to traverse to find our Matter Stream materials
+                const materials = [];
+                monolith.traverse(child => {
+                    if (child.isMesh && child.material) materials.push(child.material);
+                });
 
-                // --- HEARTBEAT SYSTEM ---
+                const targetIntensity = isHovered ? (monolith.userData.intensity || 2.0) : 0;
+                const duration = isHovered ? 0.6 : 1.5;
+                const ease = isHovered ? EASE_IGNITION : EASE_DECAY;
+
+                // Animate Emissive Intensity (Ignition / Cooling)
+                gsap.to(materials, {
+                    emissiveIntensity: targetIntensity,
+                    duration: duration,
+                    ease: ease,
+                    overwrite: true
+                });
+
+                // Outline Strength Animation
                 if (isHovered) {
-                    // Activate Pulse if not already active
-                    if (!monolith.userData.pulseTimeline) {
-                        if (pulseBehaviors[pulseType]) {
-                            monolith.userData.pulseTimeline = pulseBehaviors[pulseType](monolith, materials, gsap);
-                        }
-                    }
-
-                    // Outline Strength Animation (Enter)
                     gsap.to(outlinePass, {
                         edgeStrength: 2.5,
                         duration: 0.6,
-                        ease: easeCurve,
+                        ease: EASE_IGNITION,
                         overwrite: true
                     });
-
                 } else {
-                    // --- HOVER EXIT ---
-
-                    // 1. Heartbeat Soft Kill (Pause -> Decay)
-                    if (monolith.userData.pulseTimeline) {
-                        monolith.userData.pulseTimeline.pause(); // Freeze at current heartbeat state
-                        monolith.userData.pulseTimeline = null;  // Detach reference
-                    }
-
-                    // Long Decay to base state (starts from wherever the heartbeat paused)
-                    gsap.to(monolith.scale, {
-                        x: 1, y: 1, z: 1,
-                        duration: PULSE_DECAY,
-                        ease: 'power2.out',
-                        overwrite: true
-                    });
-
-                    // Decay materials emissive intensity
-                    if (materials.length > 0) {
-                        gsap.to(materials, {
-                            emissiveIntensity: 0.1, // Return to sharedMaterial base intensity
-                            duration: PULSE_DECAY,
-                            ease: 'power2.out',
-                            overwrite: true
-                        });
-                    }
-
-                    // 2. Outline Fade Out
-                    // Only fade out if this specific project was the one being highlighted
                     if (outlinePass.selectedObjects[0] === monolith) {
                         gsap.to(outlinePass, {
                             edgeStrength: 0.0,
                             duration: 0.4,
-                            ease: "power2.out", // Faster fade out
+                            ease: "power2.out",
                             overwrite: true
                         });
                     }
@@ -1399,7 +1436,18 @@ export function initShowcaseMap(resizeCallbacks) {
             isRunning = false;
             if (rafId) cancelAnimationFrame(rafId);
             rafId = null;
-            console.log('[Showcase] Scene stopped');
+
+            // Dispose resources
+            monoliths.forEach(monolith => {
+                if (monolith.userData.disposables) {
+                    monolith.userData.disposables.forEach(resource => {
+                        if (resource.dispose) resource.dispose();
+                    });
+                    monolith.userData.disposables = [];
+                }
+                // Dispose mesh geometry/materials if needed, but geometries are shared/factory based
+            });
+            console.log('[Showcase] Scene stopped and resources disposed');
         }
     };
     // --- SCROLL LOCK HELPERS ---

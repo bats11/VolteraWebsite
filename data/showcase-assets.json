@@ -1,0 +1,36 @@
+{
+    "version": "2026.dev",
+    "basePath": "./assets/video/",
+    "projects": [
+        {
+            "id": "puma",
+            "videoUrl": "showcase-monolith.mp4",
+            "intensity": 2.0,
+            "fragmentationScale": 1.0
+        },
+        {
+            "id": "amazon",
+            "videoUrl": "showcase-monolith.mp4",
+            "intensity": 1.5,
+            "fragmentationScale": 1.2
+        },
+        {
+            "id": "villa",
+            "videoUrl": "showcase-monolith.mp4",
+            "intensity": 1.2,
+            "fragmentationScale": 0.8
+        },
+        {
+            "id": "placeholder1",
+            "videoUrl": "showcase-monolith.mp4",
+            "intensity": 1.0,
+            "fragmentationScale": 1.0
+        },
+        {
+            "id": "placeholder2",
+            "videoUrl": "showcase-monolith.mp4",
+            "intensity": 1.0,
+            "fragmentationScale": 1.0
+        }
+    ]
+}
