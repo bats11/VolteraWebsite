@@ -1003,7 +1003,7 @@ export function initShowcaseMap(resizeCallbacks) {
         scrollProgress = Math.max(0, Math.min(1, scrolled / sectionHeight));
 
         // Trigger Wave Pulse
-        if (scrollProgress > 0.01 && !pulseTriggered) {
+        if (scrollProgress > 0.0001 && !pulseTriggered) {
             triggerSystemBlink();
             pulseTriggered = true;
         }
