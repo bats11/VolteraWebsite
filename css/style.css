@@ -1346,9 +1346,9 @@ footer {
 /* Project Tag Container */
 .project-tag {
     font-family: 'Space Grotesk', var(--font-main), sans-serif;
-    font-size: 0.6rem;
+    font-size: 0.75rem;
     font-weight: 400;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.12em;
     color: #FFFFFF;
     text-transform: uppercase;
     pointer-events: none;
@@ -1361,11 +1361,11 @@ footer {
     position: relative;
 
     /* HUD Feel */
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-    padding: 6px 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 10px 18px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
 
     /* Inerzia Voltera */
     transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1376,8 +1376,8 @@ footer {
 .project-tag::after {
     content: '';
     position: absolute;
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     border-color: #FFFFFF;
     border-style: solid;
     border-width: 0;
@@ -1393,8 +1393,8 @@ footer {
 .project-tag::before {
     top: -1px;
     left: -1px;
-    border-top-width: 1px;
-    border-left-width: 1px;
+    border-top-width: 2px;
+    border-left-width: 2px;
     transform: translate(-3px, -3px);
 }
 
@@ -1402,8 +1402,8 @@ footer {
 .project-tag::after {
     bottom: -1px;
     right: -1px;
-    border-bottom-width: 1px;
-    border-right-width: 1px;
+    border-bottom-width: 2px;
+    border-right-width: 2px;
     transform: translate(3px, 3px);
 }
 
@@ -1425,7 +1425,7 @@ footer {
     left: 50%;
     transform: translateX(-50%);
     width: 1px;
-    height: 40px;
+    height: 50px;
     background: linear-gradient(to bottom,
             rgba(255, 255, 255, 0.35),
             rgba(255, 255, 255, 0.05));
@@ -1436,12 +1436,12 @@ footer {
 .project-tag__title {
     font-weight: 600;
     letter-spacing: 0.1em;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 /* Metadata row */
 .project-tag__meta {
-    font-size: 0.5rem;
+    font-size: 0.65rem;
     opacity: 0.5;
     letter-spacing: 0.12em;
 }
