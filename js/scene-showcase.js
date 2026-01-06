@@ -328,7 +328,8 @@ export function initShowcaseMap(resizeCallbacks) {
             roughness: 0.9,
             metalness: 0.1,
             dithering: true,
-            transparent: true
+            transparent: true,
+            opacity: 1.0
         })
     );
     ground.rotation.x = -Math.PI / 2;
@@ -1148,6 +1149,21 @@ export function initShowcaseMap(resizeCallbacks) {
         if (scrollProgress > 0.0001 && !pulseTriggered) {
             triggerSystemBlink();
             pulseTriggered = true;
+        }
+
+        // --- GROUND FADE LOGIC ---
+        const fadeStart = TRAVEL_CONFIG.travelFinishThreshold; // 0.8
+        const fadeEnd = 0.95;
+        let groundAlpha = 1.0;
+
+        if (scrollProgress >= fadeStart) {
+            // Rimappa il progresso nel range 0-1 per la finestra di dissolvenza
+            const fadeProgress = (scrollProgress - fadeStart) / (fadeEnd - fadeStart);
+            groundAlpha = Math.max(0, 1 - fadeProgress);
+        }
+
+        if (ground && ground.material) {
+            ground.material.opacity = groundAlpha;
         }
 
         if (!isZooming) {
