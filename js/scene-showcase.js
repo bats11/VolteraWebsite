@@ -81,82 +81,9 @@ export function initShowcaseMap(resizeCallbacks) {
     const isTouchDevice = window.matchMedia('(hover: none)').matches;
 
     // --- PROJECT DATA ---
-    const projects = [
-        {
-            id: 'puma',
-            title: 'Puma Metaverse',
-            ref: 'REF: PM-MVRSE',
-            status: 'STATUS: IMMERSIVE',
-            meta: 'Brand Experience / WebGL',
-            position: new THREE.Vector3(-4, 0, 5),
-            light: {
-                intensity: 120,
-                color: 0xffffff,
-                offset: { x: 0, y: 1.5, z: 3 },
-                distance: 10,
-            },
-            geometry: 'fragmented'
-        },
-        {
-            id: 'amazon',
-            title: 'Amazon Drivers Training',
-            ref: 'REF: AMZ-TRNG',
-            status: 'SECTOR: LOGISTICS',
-            meta: 'VR Training / Simulation',
-            position: new THREE.Vector3(5, 0, -5),
-            light: {
-                intensity: 120,
-                color: 0xff0000,
-                offset: { x: 0, y: 2, z: 0 },
-                distance: 30,
-            },
-            geometry: 'plates'
-        },
-        {
-            id: 'villa',
-            title: 'Villa Tinaia',
-            ref: 'REF: VT-ARCH',
-            status: 'TYPE: VR_VIS',
-            meta: 'Architecture / Virtual Tour',
-            position: new THREE.Vector3(-5, -1, -15),
-            light: {
-                intensity: 60,
-                offset: { x: 1, y: 3, z: 3 },
-                distance: 10,
-            },
-            geometry: 'tower'
-        },
-        {
-            id: 'placeholder1',
-            title: 'Project Alpha',
-            ref: 'REF: PLH-001',
-            status: 'STATUS: PENDING',
-            meta: 'Coming Soon',
-            position: new THREE.Vector3(6, 0, -25),
-            light: {
-                intensity: 240,
-                color: 0xffffff,
-                offset: { x: -1, y: 3, z: 3 },
-                distance: 10,
-            },
-            geometry: 'octahedron'
-        },
-        {
-            id: 'placeholder2',
-            title: 'Project Beta',
-            ref: 'REF: PLH-002',
-            status: 'STATUS: PENDING',
-            meta: 'Coming Soon',
-            position: new THREE.Vector3(-5, 0, -35),
-            light: {
-                intensity: 100,
-                color: 0xffffff,
-                offset: { x: 1, y: 2, z: 2 },
-                distance: 10,
-            },
-            geometry: 'tetrahedron'
-        }
-    ];
+    // --- PROJECT DATA ---
+    // Projects will be loaded dynamicall from data/projects.json
+
 
     // --- SCENE STATE ---
     let scene, camera, renderer, composer, outlinePass;
@@ -218,7 +145,7 @@ export function initShowcaseMap(resizeCallbacks) {
         color: 0x080808,           // Base nera profonda
         emissive: 0xffffff,        // White to modulate
         emissiveMap: videoTexture, // Video texture
-        emissiveIntensity: 0.15,    // Idle state: 0.15 (Voltera Physics)
+        emissiveIntensity: 5,    // Idle state: 0.15 (Voltera Physics)
         side: THREE.DoubleSide,
         fog: true,
         toneMapped: false          // Evita compressione ACES
@@ -532,9 +459,40 @@ export function initShowcaseMap(resizeCallbacks) {
         return cylinder;
     }
 
+    // --- VIDEO TEXTURE CACHE ---
+    const textureCache = new Map();
+
+    function getVideoTexture(url, rendererRef) {
+        if (textureCache.has(url)) {
+            return textureCache.get(url);
+        }
+
+        const video = document.createElement('video');
+        video.src = url;
+        video.muted = true;
+        video.loop = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        video.crossOrigin = 'anonymous';
+        video.play().catch(err => console.warn(`[Showcase] Video autoplay blocked for ${url}:`, err));
+
+        const texture = new THREE.VideoTexture(video);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.format = THREE.RGBAFormat;
+        texture.colorSpace = THREE.SRGBColorSpace;
+
+        if (rendererRef) {
+            texture.anisotropy = rendererRef.capabilities.getMaxAnisotropy();
+        }
+
+        textureCache.set(url, texture);
+        return texture;
+    }
+
     // --- TECHNICAL BEACON FACTORY (Light only) ---
 
-    function applyMatterStream(monolith, config) {
+    function applyMatterStream(monolith, sourceTexture, config) {
         if (!monolith) return;
         monolith.userData.disposables = monolith.userData.disposables || [];
 
@@ -558,14 +516,13 @@ export function initShowcaseMap(resizeCallbacks) {
             const vOffset = Math.floor(index / columns) / rows;
 
             // Clone Texture for unique offset
-            const childTexture = videoTexture.clone();
+            // We clone the object to have different offsets, but it shares the source (video)
+            const childTexture = sourceTexture.clone();
             childTexture.repeat.set(1 / columns, 1 / rows);
             childTexture.offset.set(uOffset, vOffset);
             childTexture.generateMipmaps = false;
             childTexture.minFilter = THREE.LinearFilter;
             childTexture.magFilter = THREE.LinearFilter;
-            // videoTexture doesn't need update, but cloned ones might if parameters change. 
-            // Since they share the image (video), they should just work.
 
             monolith.userData.disposables.push(childTexture);
 
@@ -576,7 +533,7 @@ export function initShowcaseMap(resizeCallbacks) {
                 metalness: 0.1,
                 emissive: 0xffffff,
                 emissiveMap: childTexture,
-                emissiveIntensity: 0.5, // Idle: 0.15
+                emissiveIntensity: 0,
                 toneMapped: false,
                 side: THREE.FrontSide
             });
@@ -597,23 +554,18 @@ export function initShowcaseMap(resizeCallbacks) {
 
     // --- CREATE MONOLITHS ---
     // --- LOAD DATA & CREATE MONOLITHS ---
-    fetch('data/showcase-assets.json')
-        .then(response => response.json())
-        .then(data => {
-            // Merge loaded data with hardcoded projects
-            projects.forEach(project => {
-                const projectData = data.projects.find(p => p.id === project.id);
-                if (projectData) {
-                    project.intensity = projectData.intensity;
-                } else {
-                    project.intensity = 2.0;
-                }
-            });
+    // --- LOAD DATA & CREATE MONOLITHS ---
+    async function loadProjectsData() {
+        try {
+            const response = await fetch('data/projects.json');
+            const data = await response.json();
+            const basePath = './assets/video/';
 
-            // Create Monoliths
-            projects.forEach(project => {
+            data.projects.forEach(project => {
                 let monolith;
+                const position = new THREE.Vector3(project.position.x, project.position.y, project.position.z);
 
+                // Instantiate Geometry based on type
                 switch (project.geometry) {
                     case 'fragmented':
                         monolith = createFragmentedGeometry();
@@ -634,11 +586,17 @@ export function initShowcaseMap(resizeCallbacks) {
                         monolith = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), sharedMaterial);
                 }
 
-                monolith.position.copy(project.position);
-                monolith.userData = { ...project }; // Clone data
+                monolith.position.copy(position);
+
+                // DATA BINDING: Store all project data including INTENSITY for interaction
+                monolith.userData = { ...project };
+
+                // Get distinct video texture
+                const videoUrl = basePath + (project.videoUrl || 'showcase-monolith.mp4');
+                const projectTexture = getVideoTexture(videoUrl, renderer);
 
                 // Apply Matter Stream System
-                applyMatterStream(monolith, {
+                applyMatterStream(monolith, projectTexture, {
                     intensity: project.intensity
                 });
 
@@ -651,8 +609,15 @@ export function initShowcaseMap(resizeCallbacks) {
                 monolith.add(labelData.object); // Parented to monolith
                 projectLabels.push(labelData);
             });
-        })
-        .catch(err => console.error('[Showcase] Failed to load assets:', err));
+            console.log(`[Showcase] Loaded ${data.projects.length} projects from JSON.`);
+
+        } catch (err) {
+            console.error('[Showcase] Failed to load projects data:', err);
+        }
+    }
+
+    // Trigger Data Loading
+    loadProjectsData();
 
     // --- NEON TETRAHEDRON PROPS ---
     propsGroup = new THREE.Group();
@@ -766,24 +731,35 @@ export function initShowcaseMap(resizeCallbacks) {
     const LIGHTNING_SEGMENTS = 8; // Points per discharge (creates more jaggedness)
 
     const lightningMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-            uColor: { value: new THREE.Color(3.0, 3.5, 5.0) } // High intensity electric blue/white
-        },
+        uniforms: THREE.UniformsUtils.merge([
+            THREE.UniformsLib['fog'],
+            {
+                uColor: { value: new THREE.Color(3.0, 3.5, 5.0) } // High intensity electric blue/white
+            }
+        ]),
         vertexShader: `
+            #include <fog_pars_vertex>
             void main() {
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_Position = projectionMatrix * mvPosition;
+                #include <fog_vertex>
             }
         `,
         fragmentShader: `
+            #include <fog_pars_fragment>
             uniform vec3 uColor;
             void main() {
+                // Base electric color
                 gl_FragColor = vec4(uColor, 1.0);
+                
+                #include <fog_fragment>
             }
         `,
         transparent: true,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
-        toneMapped: false
+        toneMapped: false,
+        fog: true
     });
 
     // Pre-allocate geometry buffer for all lightning bolts
@@ -887,7 +863,7 @@ export function initShowcaseMap(resizeCallbacks) {
                     if (child.isMesh && child.material) materials.push(child.material);
                 });
 
-                const targetIntensity = isHovered ? (monolith.userData.intensity ?? 2.0) : 0.15;
+                const targetIntensity = isHovered ? (monolith.userData.intensity ?? 2.0) : 0;
                 const duration = isHovered ? 0.6 : 1.5;
                 const ease = isHovered ? EASE_IGNITION : EASE_DECAY;
 

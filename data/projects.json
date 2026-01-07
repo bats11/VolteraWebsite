@@ -1,0 +1,79 @@
+{
+    "projects": [
+        {
+            "id": "puma",
+            "title": "Puma Metaverse",
+            "ref": "REF: PM-MVRSE",
+            "status": "STATUS: IMMERSIVE",
+            "meta": "Brand Experience / Pixel Streaming - Unreal Engine",
+            "position": {
+                "x": -4,
+                "y": 0,
+                "z": 5
+            },
+            "geometry": "fragmented",
+            "intensity": 1,
+            "videoUrl": "showcase-monolith.mp4"
+        },
+        {
+            "id": "amazon",
+            "title": "Amazon Drivers Training",
+            "ref": "REF: AMZ-TRNG",
+            "status": "SECTOR: LOGISTICS",
+            "meta": "Holographic Training / WebGL",
+            "position": {
+                "x": 5,
+                "y": 0,
+                "z": -5
+            },
+            "geometry": "plates",
+            "intensity": 1,
+            "videoUrl": "showcase-monolith.mp4"
+        },
+        {
+            "id": "villa",
+            "title": "Villa Tinaia",
+            "ref": "REF: VT-ARCH",
+            "status": "TYPE: VR_VIS",
+            "meta": "VR / Architecture / Pre Visualization",
+            "position": {
+                "x": -5,
+                "y": -1,
+                "z": -15
+            },
+            "geometry": "tower",
+            "intensity": 1,
+            "videoUrl": "showcase-monolith.mp4"
+        },
+        {
+            "id": "placeholder1",
+            "title": "Project Alpha",
+            "ref": "REF: PLH-001",
+            "status": "STATUS: PENDING",
+            "meta": "Coming Soon",
+            "position": {
+                "x": 6,
+                "y": 0,
+                "z": -25
+            },
+            "geometry": "octahedron",
+            "intensity": 1,
+            "videoUrl": "showcase-monolith.mp4"
+        },
+        {
+            "id": "placeholder2",
+            "title": "Project Beta",
+            "ref": "REF: PLH-002",
+            "status": "STATUS: PENDING",
+            "meta": "Coming Soon",
+            "position": {
+                "x": -5,
+                "y": 0,
+                "z": -35
+            },
+            "geometry": "tetrahedron",
+            "intensity": 1,
+            "videoUrl": "showcase-monolith.mp4"
+        }
+    ]
+}
