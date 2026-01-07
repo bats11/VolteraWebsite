@@ -762,22 +762,33 @@ export function initShowcaseMap(resizeCallbacks) {
     };
 
     // --- LIGHTNING DISCHARGE SYSTEM ---
-    const LIGHTNING_COUNT = 3; // Max concurrent discharges
-    const LIGHTNING_SEGMENTS = 5; // Points per discharge (creates 4 line segments)
+    const LIGHTNING_COUNT = 6; // Max concurrent discharges
+    const LIGHTNING_SEGMENTS = 8; // Points per discharge (creates more jaggedness)
 
-    const lightningMaterial = new THREE.LineBasicMaterial({
-        color: 0xffffff,
+    const lightningMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            uColor: { value: new THREE.Color(3.0, 3.5, 5.0) } // High intensity electric blue/white
+        },
+        vertexShader: `
+            void main() {
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform vec3 uColor;
+            void main() {
+                gl_FragColor = vec4(uColor, 1.0);
+            }
+        `,
         transparent: true,
-        opacity: 1.0,
-        linewidth: 2, // Note: may not work on all GPUs, but helps where supported
         blending: THREE.AdditiveBlending,
         depthWrite: false,
-        toneMapped: false // Bypass tonemapping for brighter appearance
+        toneMapped: false
     });
 
     // Pre-allocate geometry buffer for all lightning bolts
-    // Each bolt: LIGHTNING_SEGMENTS points × 3 components (x,y,z)
-    const lightningPositions = new Float32Array(LIGHTNING_COUNT * LIGHTNING_SEGMENTS * 3);
+    // Each bolt: LIGHTNING_SEGMENTS lines × 2 points each × 3 components (x,y,z)
+    const lightningPositions = new Float32Array(LIGHTNING_COUNT * LIGHTNING_SEGMENTS * 2 * 3);
     const lightningGeometry = new THREE.BufferGeometry();
     lightningGeometry.setAttribute('position', new THREE.BufferAttribute(lightningPositions, 3));
     lightningGeometry.getAttribute('position').setUsage(THREE.DynamicDrawUsage);
@@ -789,7 +800,7 @@ export function initShowcaseMap(resizeCallbacks) {
     // Lightning state
     const lightningState = {
         active: false,
-        flickerChance: 0.10, // 10% chance per frame (was 5%)
+        flickerChance: 0.18, // Increased flicker frequency (was 0.10)
         // Reference to edges for random source point
         edges: edges,
         // Cached current core vertex positions (updated by updateCoreOscillation)
@@ -1320,7 +1331,8 @@ export function initShowcaseMap(resizeCallbacks) {
     // --- LIGHTNING PATH GENERATOR (no allocations) ---
     function generateLightningPath(boltIndex) {
         const posArr = lightningGeometry.attributes.position.array;
-        const baseIdx = boltIndex * LIGHTNING_SEGMENTS * 3;
+        // baseIdx: boltIndex * segments * 2 points * 3 floats
+        const baseIdx = boltIndex * LIGHTNING_SEGMENTS * 6;
 
         // Pick random edge and random point along it
         const edgeIdx = Math.floor(Math.random() * lightningState.edges.length);
@@ -1336,27 +1348,44 @@ export function initShowcaseMap(resizeCallbacks) {
         const endY = targetVert.y;
         const endZ = targetVert.z;
 
-        // Generate broken path with random offsets
+        let prevX = startX;
+        let prevY = startY;
+        let prevZ = startZ;
+
+        // Generate connected path
         for (let i = 0; i < LIGHTNING_SEGMENTS; i++) {
-            const segT = i / (LIGHTNING_SEGMENTS - 1);
+            const segT = (i + 1) / LIGHTNING_SEGMENTS;
 
-            // Base interpolation
-            let px = startX + (endX - startX) * segT;
-            let py = startY + (endY - startY) * segT;
-            let pz = startZ + (endZ - startZ) * segT;
+            // Calculate next point base positioning
+            let nextX = startX + (endX - startX) * segT;
+            let nextY = startY + (endY - startY) * segT;
+            let nextZ = startZ + (endZ - startZ) * segT;
 
-            // Add jagged offset (except first and last points)
-            if (i > 0 && i < LIGHTNING_SEGMENTS - 1) {
-                const jitter = 0.3;
-                px += (Math.random() - 0.5) * jitter;
-                py += (Math.random() - 0.5) * jitter;
-                pz += (Math.random() - 0.5) * jitter;
+            // Add jagged offset (except for the final target vertex)
+            if (i < LIGHTNING_SEGMENTS - 1) {
+                const jitter = 0.4; // Slightly increased for more electricity feel
+                nextX += (Math.random() - 0.5) * jitter;
+                nextY += (Math.random() - 0.5) * jitter;
+                nextZ += (Math.random() - 0.5) * jitter;
+            } else {
+                // Ensure last segment snaps exactly to core
+                nextX = endX; nextY = endY; nextZ = endZ;
             }
 
-            const idx = baseIdx + i * 3;
-            posArr[idx] = px;
-            posArr[idx + 1] = py;
-            posArr[idx + 2] = pz;
+            const idx = baseIdx + i * 6;
+            // Point 1 (Start of segment)
+            posArr[idx] = prevX;
+            posArr[idx + 1] = prevY;
+            posArr[idx + 2] = prevZ;
+            // Point 2 (End of segment)
+            posArr[idx + 3] = nextX;
+            posArr[idx + 4] = nextY;
+            posArr[idx + 5] = nextZ;
+
+            // Move the pointer for the next segment to touch exactly this one
+            prevX = nextX;
+            prevY = nextY;
+            prevZ = nextZ;
         }
     }
 
