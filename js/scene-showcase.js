@@ -576,7 +576,7 @@ export function initShowcaseMap(resizeCallbacks) {
                 metalness: 0.1,
                 emissive: 0xffffff,
                 emissiveMap: childTexture,
-                emissiveIntensity: 0.15, // Idle: 0.15
+                emissiveIntensity: 0.5, // Idle: 0.15
                 toneMapped: false,
                 side: THREE.FrontSide
             });
