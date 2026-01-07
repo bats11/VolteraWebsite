@@ -37,7 +37,7 @@ export function initShowcaseMap(resizeCallbacks) {
         travelFinishThreshold: 0.8
     };
     const NEON_CONFIG = {
-        baseIntensity: 2,    // Punto di partenza (luminosità media)
+        baseIntensity: 0.7,    // Punto di partenza (luminosità media)
         pulseAmplitude: 1,   // Quantità di variazione (+/- rispetto alla base)
         pulseSpeed: 1.5        // Velocità dell'oscillazione
     };
@@ -1429,11 +1429,9 @@ export function initShowcaseMap(resizeCallbacks) {
             m.rotation.y += 0.001 * (i % 2 === 0 ? 1 : -1);
         });
 
-        // Props rotation (Y-axis only) + breathing
+        // Props rotation (Y-axis only)
         propsGroup.rotation.y += 0.001;
-        const pulse = NEON_CONFIG.baseIntensity +
-            NEON_CONFIG.pulseAmplitude * Math.sin(time * NEON_CONFIG.pulseSpeed);
-        propMaterials.forEach(m => m.emissiveIntensity = pulse);
+
 
         // --- CORE OSCILLATION ---
         updateCoreOscillation(time);
