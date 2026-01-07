@@ -1068,16 +1068,259 @@ export function initShowcaseMap(resizeCallbacks) {
         }
     }
 
+    // --- DOSSIER CSS INJECTION (once) ---
+    let dossierStylesInjected = false;
+    function injectDossierStyles() {
+        if (dossierStylesInjected) return;
+        const style = document.createElement('style');
+        style.id = 'dossier-styles';
+        style.textContent = `
+            /* Container Reset */
+            #project-detail.dossier-active {
+                max-width: none !important;
+                text-align: left !important;
+                justify-content: flex-start;
+                align-items: stretch;
+            }
+            /* Dossier Grid Layout */
+            .dossier-grid {
+                display: grid;
+                grid-template-columns: 35% 65%;
+                height: 100%;
+                width: 100%;
+                gap: 40px;
+                padding: 80px 5%;
+            }
+            .dossier-left {
+                position: sticky;
+                top: 80px;
+                align-self: start;
+            }
+            .dossier-title {
+                font-family: var(--font-display);
+                font-size: clamp(2rem, 5vw, 4rem);
+                font-weight: 700;
+                line-height: 1.05;
+                margin-bottom: 16px;
+                color: var(--text-primary);
+            }
+            .dossier-category {
+                font-family: var(--font-main);
+                font-size: 0.7rem;
+                letter-spacing: 0.15em;
+                text-transform: uppercase;
+                opacity: 0.5;
+                margin-bottom: 32px;
+            }
+            .dossier-description {
+                font-family: var(--font-tech);
+                font-size: 1rem;
+                line-height: 1.7;
+                opacity: 0.8;
+                margin-bottom: 24px;
+            }
+            .dossier-specs {
+                list-style: none;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 0;
+                margin: 0;
+            }
+            .dossier-specs li {
+                font-family: var(--font-main);
+                font-size: 0.7rem;
+                letter-spacing: 0.1em;
+                text-transform: uppercase;
+                padding: 8px 16px;
+                border: 1px solid rgba(255,255,255,0.2);
+                opacity: 0.7;
+            }
+            /* Right Column - Hidden Scrollbar (Vision-First) */
+            .dossier-right {
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .dossier-right::-webkit-scrollbar {
+                display: none;
+            }
+            /* Media Elements */
+            .dossier-video, .dossier-image-full {
+                width: 100%;
+                max-height: 60vh;
+                object-fit: cover;
+                border-radius: 4px;
+            }
+            .dossier-image-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+            .dossier-image-grid img {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+                border-radius: 4px;
+            }
+            /* Responsive (Mobile/Tablet) */
+            @media (max-width: 1023px) {
+                .dossier-grid {
+                    grid-template-columns: 1fr;
+                    overflow-y: auto;
+                    gap: 32px;
+                    padding: 100px 5% 60px;
+                }
+                .dossier-left {
+                    position: static;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        dossierStylesInjected = true;
+    }
+
     function showProjectDetail(data) {
-        if (!projectDetail || !projectTitle || !projectMeta) return;
-        projectTitle.textContent = data.title;
-        projectMeta.textContent = data.meta;
+        if (!projectDetail) return;
+
+        // Inject dossier styles if not already done
+        injectDossierStyles();
+
+        // Get htmlContent (fallback to basic data if not present)
+        const content = data.htmlContent || {
+            title: data.title,
+            category: data.status || '',
+            col_left: {
+                description: data.meta || '',
+                specs: []
+            },
+            col_right: []
+        };
+
+        // Clear existing content (keep close button)
+        const closeBtn = projectDetail.querySelector('.project-close');
+        projectDetail.innerHTML = '';
+        if (closeBtn) projectDetail.appendChild(closeBtn);
+
+        // Add dossier-active class for container reset
+        projectDetail.classList.add('dossier-active');
+
+        // Build dossier grid
+        const grid = document.createElement('div');
+        grid.className = 'dossier-grid';
+
+        // --- LEFT COLUMN ---
+        const left = document.createElement('div');
+        left.className = 'dossier-left';
+
+        const title = document.createElement('h2');
+        title.className = 'dossier-title';
+        title.textContent = content.title;
+        left.appendChild(title);
+
+        const category = document.createElement('p');
+        category.className = 'dossier-category';
+        category.textContent = content.category;
+        left.appendChild(category);
+
+        if (content.col_left?.description) {
+            const desc = document.createElement('p');
+            desc.className = 'dossier-description';
+            desc.textContent = content.col_left.description;
+            left.appendChild(desc);
+        }
+
+        if (content.col_left?.specs && content.col_left.specs.length > 0) {
+            const specs = document.createElement('ul');
+            specs.className = 'dossier-specs';
+            content.col_left.specs.forEach(spec => {
+                const li = document.createElement('li');
+                li.textContent = spec;
+                specs.appendChild(li);
+            });
+            left.appendChild(specs);
+        }
+
+        grid.appendChild(left);
+
+        // --- RIGHT COLUMN ---
+        const right = document.createElement('div');
+        right.className = 'dossier-right';
+
+        if (content.col_right && content.col_right.length > 0) {
+            content.col_right.forEach(item => {
+                switch (item.type) {
+                    case 'video_hero':
+                        const video = document.createElement('video');
+                        video.className = 'dossier-video';
+                        video.src = item.src;
+                        video.autoplay = true;
+                        video.muted = true;
+                        video.loop = true;
+                        video.playsInline = true;
+                        video.play().catch(() => { });
+                        right.appendChild(video);
+                        break;
+
+                    case 'image_grid':
+                        if (item.srcs && item.srcs.length > 0) {
+                            const imgGrid = document.createElement('div');
+                            imgGrid.className = 'dossier-image-grid';
+                            item.srcs.forEach(src => {
+                                const img = document.createElement('img');
+                                img.src = src;
+                                img.alt = 'Project media';
+                                img.loading = 'lazy';
+                                imgGrid.appendChild(img);
+                            });
+                            right.appendChild(imgGrid);
+                        }
+                        break;
+
+                    case 'image_full':
+                        const imgFull = document.createElement('img');
+                        imgFull.className = 'dossier-image-full';
+                        imgFull.src = item.src;
+                        imgFull.alt = 'Project media';
+                        imgFull.loading = 'lazy';
+                        right.appendChild(imgFull);
+                        break;
+                }
+            });
+        }
+
+        grid.appendChild(right);
+        projectDetail.appendChild(grid);
+
+        // Show overlay
         projectDetail.classList.remove('hidden');
     }
 
     function closeProjectDetail() {
         if (!projectDetail) return;
         projectDetail.classList.add('hidden');
+
+        // Clean up dossier state
+        projectDetail.classList.remove('dossier-active');
+
+        // Stop any playing videos
+        const videos = projectDetail.querySelectorAll('video');
+        videos.forEach(v => {
+            v.pause();
+            v.src = '';
+        });
+
+        // Restore original structure (close button only, grid will be rebuilt on next open)
+        projectDetail.innerHTML = '<button class="project-close">×</button>';
+
+        // Re-attach close event
+        const newCloseBtn = projectDetail.querySelector('.project-close');
+        if (newCloseBtn) {
+            newCloseBtn.addEventListener('click', closeProjectDetail);
+        }
 
         // Smooth return to snapshot
         if (typeof gsap !== 'undefined') {
