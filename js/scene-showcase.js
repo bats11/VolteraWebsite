@@ -218,7 +218,7 @@ export function initShowcaseMap(resizeCallbacks) {
         color: 0x080808,           // Base nera profonda
         emissive: 0xffffff,        // White to modulate
         emissiveMap: videoTexture, // Video texture
-        emissiveIntensity: 0.0,    // Idle state: OFF (Dark Matter)
+        emissiveIntensity: 0.15,    // Idle state: 0.15 (Voltera Physics)
         side: THREE.DoubleSide,
         fog: true,
         toneMapped: false          // Evita compressione ACES
@@ -576,7 +576,7 @@ export function initShowcaseMap(resizeCallbacks) {
                 metalness: 0.1,
                 emissive: 0xffffff,
                 emissiveMap: childTexture,
-                emissiveIntensity: 0, // Idle: Dark Matter
+                emissiveIntensity: 0.15, // Idle: 0.15
                 toneMapped: false,
                 side: THREE.FrontSide
             });
@@ -876,7 +876,7 @@ export function initShowcaseMap(resizeCallbacks) {
                     if (child.isMesh && child.material) materials.push(child.material);
                 });
 
-                const targetIntensity = isHovered ? (monolith.userData.intensity ?? 2.0) : 0;
+                const targetIntensity = isHovered ? (monolith.userData.intensity ?? 2.0) : 0.15;
                 const duration = isHovered ? 0.6 : 1.5;
                 const ease = isHovered ? EASE_IGNITION : EASE_DECAY;
 
