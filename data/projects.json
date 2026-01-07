@@ -32,15 +32,24 @@
                         "src": "./assets/video/showcase-monolith.mp4"
                     },
                     {
-                        "type": "image_grid",
-                        "srcs": [
-                            "./assets/Images/placeholder1.jpg",
-                            "./assets/Images/placeholder2.jpg"
-                        ]
+                        "type": "video_hero",
+                        "src": "./assets/video/showcase-monolith.mp4"
+                    },
+                    {
+                        "type": "image_full",
+                        "src": "./assets/Images/placeholder1.jpg"
+                    },
+                    {
+                        "type": "image_full",
+                        "src": "./assets/Images/placeholder2.jpg"
                     },
                     {
                         "type": "image_full",
                         "src": "./assets/Images/placeholder3.jpg"
+                    },
+                    {
+                        "type": "image_full",
+                        "src": "./assets/Images/placeholder1.jpg"
                     }
                 ]
             }
