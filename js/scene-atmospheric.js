@@ -6,7 +6,6 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import ResizeManager from './resize-manager.js';
 
-
 /**
  * Atmospheric Hero Scene (Pyramid)
  * @param {HTMLElement} containerElement - The container element for the scene

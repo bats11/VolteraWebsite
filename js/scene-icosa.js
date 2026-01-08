@@ -1,11 +1,12 @@
 import * as THREE from 'three';
+import ResizeManager from './resize-manager.js';
 
 /**
  * Spatial Module Hero Scene
  * Architectural "exploded corner" with perpendicular grids and force-line axes
- * @param {Array} resizeCallbacks - Global resize callbacks array
+ * @param {HTMLElement} containerElement - The container element for the scene
  */
-export function initIcosahedronHero(resizeCallbacks) {
+export function initIcosahedronHero(containerElement) {
     const canvas = document.getElementById('hero-canvas-icosa');
     if (!canvas) return;
 
@@ -141,7 +142,7 @@ export function initIcosahedronHero(resizeCallbacks) {
     // ═══════════════════════════════════════════════════════════════
     // RESIZE CALLBACK
     // ═══════════════════════════════════════════════════════════════
-    resizeCallbacks.push(() => {
+    ResizeManager.subscribe(() => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
