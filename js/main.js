@@ -1,6 +1,7 @@
 import { initAtmosphericHero } from './scene-atmospheric.js';
 import { initAoxCore } from './scene-aox.js';
 import { initShowcaseMap } from './scene-showcase.js';
+import ShowcaseUI from './showcase-ui.js';
 
 // --- MOBILE BREAKPOINT ---
 const MOBILE_BREAKPOINT = 768;
@@ -11,6 +12,18 @@ const resizeCallbacks = [];
 window.addEventListener('resize', () => {
     resizeCallbacks.forEach(cb => cb());
 });
+
+// --- 0. HELPER FUNCTIONS ---
+function lockScroll() {
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+    document.body.classList.add('scroll-lock');
+}
+
+function unlockScroll() {
+    document.body.classList.remove('scroll-lock');
+    document.body.style.removeProperty('--scrollbar-width');
+}
 
 // --- 1. GLOBAL INIT ---
 window.onload = function () {
@@ -33,7 +46,23 @@ window.onload = function () {
 
     initThemeObserver();
     initAoxInteraction(resizeCallbacks);
+
     initRevealTextAnimation();
+
+    // --- ORCHESTRAZIONE SHOWCASE UI ---
+    // Inizializza la UI (Dossier)
+    ShowcaseUI.init(() => {
+        // Callback di chiusura UI: notifica la scena 3D
+        window.dispatchEvent(new CustomEvent('vltProjectClose'));
+        unlockScroll();
+    });
+
+    // Ascolta la selezione del progetto dalla scena 3D
+    window.addEventListener('vltProjectSelect', (e) => {
+        const projectData = e.detail;
+        ShowcaseUI.open(projectData);
+        lockScroll();
+    });
 
     // Handle desktop→mobile resize: stop AOX scene safely
 
