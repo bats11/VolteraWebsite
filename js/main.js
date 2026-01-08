@@ -37,7 +37,8 @@ window.onload = function () {
     // Map to store scene controllers keyed by container ID
     const sceneControllers = new Map();
 
-    const atmospheric = initAtmosphericHero(resizeCallbacks);
+    const atmosphericContainer = document.getElementById('canvas-container');
+    const atmospheric = initAtmosphericHero(resizeCallbacks, atmosphericContainer);
     if (atmospheric) sceneControllers.set('canvas-container', atmospheric);
 
     const showcaseContainer = document.getElementById('showcase-canvas');
@@ -94,7 +95,8 @@ window.onload = function () {
 
     // --- ASYNC AOX (Parallel & Non-Blocking) ---
     // Initialize AOX Core unconditionally
-    initAoxCore(resizeCallbacks).then(aox => {
+    const aoxContainer = document.getElementById('aox-canvas-container');
+    initAoxCore(resizeCallbacks, aoxContainer).then(aox => {
         if (aox) {
             aoxController = aox;
             const id = 'aox-canvas-container';

@@ -10,7 +10,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
  * Atmospheric Hero Scene (Pyramid)
  * @param {Array} resizeCallbacks - Global resize callbacks array
  */
-export function initAtmosphericHero(resizeCallbacks) {
+export function initAtmosphericHero(resizeCallbacks, containerElement) {
     // --- CONSTANTS ---
     const POS_PYRAMID = { y: 4.5, rotY: Math.PI / 2 };
     const SIZE_PYRAMID = { radius: 2.5, height: 5.5 };
@@ -50,7 +50,7 @@ export function initAtmosphericHero(resizeCallbacks) {
     const particles = [];
     let particleGeometry, particleMaterial, particleSystem;
 
-    const container = document.getElementById('canvas-container');
+    const container = containerElement;
     if (!container) return;
 
     scene = new THREE.Scene();

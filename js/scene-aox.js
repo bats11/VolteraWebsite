@@ -5,7 +5,7 @@ import * as THREE from 'three';
  * 50,000 particles with holographic effect and JSON-based morph targets
  * @param {Array} resizeCallbacks - Global resize callbacks array
  */
-export async function initAoxCore(resizeCallbacks) {
+export async function initAoxCore(resizeCallbacks, containerElement) {
     // --- CONSTANTS ---
     const COUNT = 50000;
     const PHI = Math.PI * (3 - Math.sqrt(5));  // Golden angle
@@ -23,7 +23,7 @@ export async function initAoxCore(resizeCallbacks) {
     let isRunning = false;
     let rafId = null;
 
-    const container = document.getElementById('aox-canvas-container');
+    const container = containerElement;
     if (!container) return;
 
     // --- MORPH TARGETS: Load JSON files with silent fail ---
