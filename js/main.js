@@ -27,7 +27,8 @@ window.onload = function () {
     const atmospheric = initAtmosphericHero(resizeCallbacks);
     if (atmospheric) sceneControllers.set('canvas-container', atmospheric);
 
-    const showcase = initShowcaseMap(resizeCallbacks);
+    const showcaseContainer = document.getElementById('showcase-canvas');
+    const showcase = initShowcaseMap(resizeCallbacks, showcaseContainer);
     if (showcase) sceneControllers.set('showcase-canvas', showcase);
 
     initThemeObserver();

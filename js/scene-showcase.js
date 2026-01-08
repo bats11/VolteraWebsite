@@ -4,15 +4,16 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import ShowcaseUI from './showcase-ui.js';
+
 
 /**
  * Showcase "The Infinite Map" - Three.js Scene Module
  * @param {Array} resizeCallbacks - Global resize callbacks array
  */
-export function initShowcaseMap(resizeCallbacks) {
+export function initShowcaseMap(resizeCallbacks, containerElement) {
     // --- DOM ELEMENTS ---
-    const container = document.getElementById('showcase-canvas');
+    const container = containerElement;
+    if (!container) return;
     const section = document.getElementById('showcase');
     const hud = document.getElementById('showcase-hud');
     const hudRef = hud?.querySelector('.hud-ref');
@@ -25,8 +26,8 @@ export function initShowcaseMap(resizeCallbacks) {
     if (!container || !section) return;
 
     // --- UI INIT ---
-    // Initialize ShowcaseUI with callback to reset camera
-    ShowcaseUI.init(() => {
+    // Camera reset will be handled by the global orchestrator response
+    window.addEventListener('vltProjectClose', () => {
         resetCamera();
     });
 
@@ -1068,8 +1069,8 @@ export function initShowcaseMap(resizeCallbacks) {
                 duration: 1.5,
                 ease: VOLTERA_EASE,
                 onComplete: () => {
-                    ShowcaseUI.open(monolith.userData);
-                    lockScroll();
+                    // Dispatch Global Event acting as "Project Select"
+                    window.dispatchEvent(new CustomEvent('vltProjectSelect', { detail: monolith.userData }));
                 }
             });
         }
@@ -1086,7 +1087,6 @@ export function initShowcaseMap(resizeCallbacks) {
                 ease: VOLTERA_EASE,
                 onComplete: () => {
                     isZooming = false;
-                    unlockScroll();
                     // Sync with scroll only after animation finishes to prevent jumps
                     updateCameraFromScroll();
                 }
@@ -1094,7 +1094,6 @@ export function initShowcaseMap(resizeCallbacks) {
         } else {
             // Fallback
             isZooming = false;
-            unlockScroll();
             updateCameraFromScroll();
         }
     }
@@ -1473,10 +1472,10 @@ export function initShowcaseMap(resizeCallbacks) {
 
     return {
         start: () => {
-            if (isRunning) return;
-            isRunning = true;
-            animate();
-            console.log('[Showcase] Scene started');
+            if (!isRunning) {
+                isRunning = true;
+                animate();
+            }
         },
         stop: () => {
             isRunning = false;
@@ -1496,16 +1495,5 @@ export function initShowcaseMap(resizeCallbacks) {
             console.log('[Showcase] Scene stopped and resources disposed');
         }
     };
-    // --- SCROLL LOCK HELPERS ---
-    function lockScroll() {
-        // Calculate scrollbar width
-        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-        document.body.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
-        document.body.classList.add('scroll-lock');
-    }
 
-    function unlockScroll() {
-        document.body.classList.remove('scroll-lock');
-        document.body.style.removeProperty('--scrollbar-width');
-    }
 }
