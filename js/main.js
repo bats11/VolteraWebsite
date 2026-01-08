@@ -2,16 +2,11 @@ import { initAtmosphericHero } from './scene-atmospheric.js';
 import { initAoxCore } from './scene-aox.js';
 import { initShowcaseMap } from './scene-showcase.js';
 import ShowcaseUI from './showcase-ui.js';
+import ResizeManager from './resize-manager.js';
 
 // --- MOBILE BREAKPOINT ---
 const MOBILE_BREAKPOINT = 768;
 const isMobile = () => window.innerWidth < MOBILE_BREAKPOINT;
-
-// --- GLOBAL RESIZE MANAGER ---
-const resizeCallbacks = [];
-window.addEventListener('resize', () => {
-    resizeCallbacks.forEach(cb => cb());
-});
 
 // --- 0. HELPER FUNCTIONS ---
 function lockScroll() {
@@ -27,6 +22,8 @@ function unlockScroll() {
 
 // --- 1. GLOBAL INIT ---
 window.onload = function () {
+    ResizeManager.init();
+
     if (window.lucide) {
         window.lucide.createIcons();
     }
@@ -38,15 +35,15 @@ window.onload = function () {
     const sceneControllers = new Map();
 
     const atmosphericContainer = document.getElementById('canvas-container');
-    const atmospheric = initAtmosphericHero(resizeCallbacks, atmosphericContainer);
+    const atmospheric = initAtmosphericHero(atmosphericContainer);
     if (atmospheric) sceneControllers.set('canvas-container', atmospheric);
 
     const showcaseContainer = document.getElementById('showcase-canvas');
-    const showcase = initShowcaseMap(resizeCallbacks, showcaseContainer);
+    const showcase = initShowcaseMap(showcaseContainer);
     if (showcase) sceneControllers.set('showcase-canvas', showcase);
 
     initThemeObserver();
-    initAoxInteraction(resizeCallbacks);
+    initAoxInteraction();
 
     initRevealTextAnimation();
 
@@ -96,7 +93,7 @@ window.onload = function () {
     // --- ASYNC AOX (Parallel & Non-Blocking) ---
     // Initialize AOX Core unconditionally
     const aoxContainer = document.getElementById('aox-canvas-container');
-    initAoxCore(resizeCallbacks, aoxContainer).then(aox => {
+    initAoxCore(aoxContainer).then(aox => {
         if (aox) {
             aoxController = aox;
             const id = 'aox-canvas-container';
@@ -197,13 +194,13 @@ function initRevealTextAnimation() {
 }
 
 // --- 5. AOX INTERACTION SYSTEM ---
-function initAoxInteraction(resizeCallbacks) {
+function initAoxInteraction() {
     const tiles = document.querySelectorAll('.aox-tile');
     const canvasContainer = document.getElementById('aox-canvas-container');
 
     // Viewport detection with resize re-evaluation
     let isTablet = window.innerWidth <= 1024;
-    resizeCallbacks.push(() => {
+    ResizeManager.subscribe(() => {
         isTablet = window.innerWidth <= 1024;
         // Reset active states when switching between modes
         if (!isTablet) {
@@ -258,7 +255,7 @@ function initAoxInteraction(resizeCallbacks) {
 
     // Resize callback for canvas container
     if (canvasContainer) {
-        resizeCallbacks.push(() => {
+        ResizeManager.subscribe(() => {
             // Future: resize morphing core
         });
     }

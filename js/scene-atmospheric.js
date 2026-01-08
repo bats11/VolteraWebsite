@@ -4,13 +4,14 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import ResizeManager from './resize-manager.js';
 
 
 /**
  * Atmospheric Hero Scene (Pyramid)
- * @param {Array} resizeCallbacks - Global resize callbacks array
+ * @param {HTMLElement} containerElement - The container element for the scene
  */
-export function initAtmosphericHero(resizeCallbacks, containerElement) {
+export function initAtmosphericHero(containerElement) {
     // --- CONSTANTS ---
     const POS_PYRAMID = { y: 4.5, rotY: Math.PI / 2 };
     const SIZE_PYRAMID = { radius: 2.5, height: 5.5 };
@@ -493,7 +494,7 @@ export function initAtmosphericHero(resizeCallbacks, containerElement) {
     }
 
     // Resize
-    resizeCallbacks.push(() => {
+    ResizeManager.subscribe(() => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);

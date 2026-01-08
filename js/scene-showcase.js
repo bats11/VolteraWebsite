@@ -4,13 +4,14 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import ResizeManager from './resize-manager.js';
 
 
 /**
  * Showcase "The Infinite Map" - Three.js Scene Module
- * @param {Array} resizeCallbacks - Global resize callbacks array
+ * @param {HTMLElement} containerElement - The container element for the scene
  */
-export function initShowcaseMap(resizeCallbacks, containerElement) {
+export function initShowcaseMap(containerElement) {
     // --- DOM ELEMENTS ---
     const container = containerElement;
     if (!container) return;
@@ -1220,7 +1221,7 @@ export function initShowcaseMap(resizeCallbacks, containerElement) {
     window.addEventListener('scroll', updateCameraFromScroll);
 
     // --- RESIZE ---
-    resizeCallbacks.push(() => {
+    ResizeManager.subscribe(() => {
         if (!container) return;
         const width = container.clientWidth;
         const height = container.clientHeight;
