@@ -11,7 +11,7 @@ const ShowcaseUI = {
 
     // State
     closeCallback: null,
-    closeCallback: null,
+
 
     /**
      * Initialize the UI module

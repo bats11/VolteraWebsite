@@ -2039,3 +2039,11 @@ footer {
     margin-top: 16px;
     display: block;
 }
+
+.u-margin-bottom-sm {
+    margin-bottom: 32px !important;
+}
+
+.u-margin-top-sm {
+    margin-top: 32px !important;
+}
