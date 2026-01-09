@@ -264,11 +264,13 @@ export function initAtmosphericHero(containerElement) {
 
 
     // Lights & Objects
+    // Use lower shadow resolution on mobile to reduce GPU memory usage
+    const shadowResolution = isMobile ? 512 : 1024;
     internalLight = new THREE.PointLight(0xffffff, 1500, 25);
     internalLight.position.set(0, POS_PYRAMID.y, 0);
     internalLight.castShadow = true;
-    internalLight.shadow.mapSize.width = 1024;
-    internalLight.shadow.mapSize.height = 1024;
+    internalLight.shadow.mapSize.width = shadowResolution;
+    internalLight.shadow.mapSize.height = shadowResolution;
     internalLight.shadow.camera.near = 0.5;
     internalLight.shadow.camera.far = 50;
     scene.add(internalLight);
