@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import gsap from 'gsap';
+// gsap is expected to be global
 
 export class ShowcaseInteraction {
     constructor(container, camera, scene, outlinePass, ground, hudElements) {
