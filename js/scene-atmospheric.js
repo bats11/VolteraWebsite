@@ -88,13 +88,18 @@ export function initAtmosphericHero(resizeCallbacks) {
     // MSAA Render Target (Hardware Antialiasing)
     // IMPORTANT: Use renderer.getPixelRatio() to render at full device resolution (e.g. Retina)
     const pixelRatio = renderer.getPixelRatio();
+
+    // Disable MSAA on mobile to prevent WebGL context loss (memory crash)
+    const isMobile = window.innerWidth < 768;
+    const msaaSamples = isMobile ? 0 : 8;
+
     const renderTarget = new THREE.WebGLRenderTarget(
         window.innerWidth * pixelRatio,
         window.innerHeight * pixelRatio,
         {
             type: THREE.HalfFloatType,
             format: THREE.RGBAFormat,
-            samples: 8, // High quality MSAA
+            samples: msaaSamples,
             depthBuffer: true,
             stencilBuffer: false
         }
