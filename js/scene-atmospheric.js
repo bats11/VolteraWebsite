@@ -59,8 +59,12 @@ export function initAtmosphericHero(containerElement) {
     camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(POS_CAMERA.x, POS_CAMERA.y, POS_CAMERA.z);
 
+    // Detect mobile early for all optimizations
+    const isMobile = window.innerWidth < 768;
+
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
-    renderer.setPixelRatio(window.devicePixelRatio);
+    // Clamp pixel ratio to reduce GPU load on high-DPI devices (mobile: max 1.5, desktop: max 2.0)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2.0));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
@@ -90,7 +94,6 @@ export function initAtmosphericHero(containerElement) {
     const pixelRatio = renderer.getPixelRatio();
 
     // Disable MSAA on mobile to prevent WebGL context loss (memory crash)
-    const isMobile = window.innerWidth < 768;
     const msaaSamples = isMobile ? 0 : 8;
 
     const renderTarget = new THREE.WebGLRenderTarget(
