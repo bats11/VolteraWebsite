@@ -1474,15 +1474,20 @@ export function initShowcaseMap(containerElement) {
     return {
         start: () => {
             if (!isRunning) {
+                console.log('[Showcase] Resumed');
                 isRunning = true;
                 animate();
             }
         },
         stop: () => {
+            console.log('[Showcase] Paused');
             isRunning = false;
-            if (rafId) cancelAnimationFrame(rafId);
-            rafId = null;
-
+            if (rafId) {
+                cancelAnimationFrame(rafId);
+                rafId = null;
+            }
+        },
+        dispose: () => {
             // Dispose resources
             monoliths.forEach(monolith => {
                 if (monolith.userData.disposables) {
