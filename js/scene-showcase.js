@@ -5,6 +5,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import ResizeManager from './resize-manager.js';
+import { fetchProjectsData } from './showcase-modules/ShowcaseData.js';
 
 
 /**
@@ -154,7 +155,7 @@ export function initShowcaseMap(containerElement) {
         color: 0x080808,           // Base nera profonda
         emissive: 0xffffff,        // White to modulate
         emissiveMap: videoTexture, // Video texture
-        emissiveIntensity: 5,    // Idle state: 0.15 (Voltera Physics)
+        emissiveIntensity: 12,     // Increased from 5 for more glow
         side: THREE.DoubleSide,
         fog: true,
         toneMapped: false          // Evita compressione ACES
@@ -566,11 +567,10 @@ export function initShowcaseMap(containerElement) {
     // --- LOAD DATA & CREATE MONOLITHS ---
     async function loadProjectsData() {
         try {
-            const response = await fetch('data/projects.json');
-            const data = await response.json();
+            const projects = await fetchProjectsData('data/projects.json');
             const basePath = './assets/video/';
 
-            data.projects.forEach(project => {
+            projects.forEach(project => {
                 let monolith;
                 const position = new THREE.Vector3(project.position.x, project.position.y, project.position.z);
 
@@ -618,7 +618,7 @@ export function initShowcaseMap(containerElement) {
                 monolith.add(labelData.object); // Parented to monolith
                 projectLabels.push(labelData);
             });
-            console.log(`[Showcase] Loaded ${data.projects.length} projects from JSON.`);
+            console.log(`[Showcase] Loaded ${projects.length} projects from JSON.`);
 
         } catch (err) {
             console.error('[Showcase] Failed to load projects data:', err);
