@@ -499,301 +499,314 @@ footer {
     margin-top: var(--space-xl);
 }
 
-/* --- 7. AOX SECTION (Mobile-First Architecture) --- */
+/* --- 7. AOX SECTION (Luxury Future UI) --- */
 :root {
+    --platinum-border: rgba(200, 200, 210, 0.15);
     --glass-blur: 12px;
     --tile-glow: rgba(255, 255, 255, 0.05);
 }
 
-/* --- LEVEL 1: BASE (MOBILE < 768px) --- */
 .aox-container {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-xs);
-    min-height: auto;
-    width: 100%;
 }
 
 .aox-header {
-    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.aox-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    font-size: clamp(2rem, 5vw, 4.2rem);
+    text-align: right;
+}
+
+.aox-badge,
+.method-badge,
+.collab-badge {
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    opacity: 0.5;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--space-sm);
+}
+
+#aox-canvas-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 80%;
+    z-index: 1;
+    pointer-events: none;
 }
 
 .aox-tiles-grid {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    gap: 0;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--space-sm);
+    position: relative;
+    z-index: 10;
+
+    /* --- INFRASTRUTTURA GRIGLIA MAGNETICA --- */
+    --grid-step: calc(100% / 12);
+
+    /* Variabili di Spostamento Magnetico (Multipli di griglia) */
+    --shift-narrow: var(--grid-step);
+    /* Spostamento di 1 colonna */
+    --shift-mid: calc(var(--grid-step) * 2);
+    /* Spostamento di 2 colonne */
+    --shift-wide: calc(var(--grid-step) * 3);
+    /* Spostamento di 3 colonne */
+    --shift-t5-outer: calc(var(--grid-step) * 1.5);
+    /* Spinta laterale specifica per Tile 5 */
 }
 
-/* Tile: Accordion Container Logic */
 .aox-tile {
     position: relative;
-    /* Accordion Animation Mechanics */
-    display: grid;
-    grid-template-rows: auto 0fr;
-    /* Default closed state */
-    transition: grid-template-rows 0.5s var(--ease-voltera, cubic-bezier(0.16, 1, 0.3, 1));
-
-    /* Visuals */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: var(--space-sm);
+    border-top: 0.5px solid transparent;
+    border-left: 0.5px solid transparent;
     background: transparent;
-    padding: 0;
+
+    /* FISICA DEL MOVIMENTO: Curva Voltera */
+    transition:
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        border 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        background 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        backdrop-filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+
     overflow: hidden;
+    pointer-events: auto;
+    will-change: transform;
 }
 
-/* Accordion Trigger / Title */
+/* STATO ATTIVO: Coerenza Multimodale */
+.aox-tile:hover {
+    z-index: 100 !important;
+    transform: scale(1.02);
+
+    /* Clean design: backgrounds and borders removed */
+    background: transparent;
+    border-top: 0.5px solid transparent;
+    border-left: 0.5px solid transparent;
+
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    /* Deep shadow removed for clean design */
+    overflow: visible;
+}
+
+/* Staggered Grid Layout */
+.aox-tile-1 {
+    grid-column: 1 / 5;
+}
+
+.aox-tile-2 {
+    grid-column: 9 / 14;
+}
+
+.aox-tile-3 {
+    grid-column: 2 / 6;
+    margin-top: var(--space-sm);
+}
+
+.aox-tile-4 {
+    grid-column: 8 / 12;
+    margin-top: var(--space-sm);
+}
+
+.aox-tile-5 {
+    grid-column: 4 / 9;
+    margin-top: var(--space-sm);
+}
+
+
+
+/* Tile Typography */
 .tile-title {
     font-family: var(--font-display);
-    font-size: 1.2rem;
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
     font-weight: 600;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-bottom: var(--space-xs);
+    line-height: 1.2;
     color: #FFFFFF;
-    padding: 24px 0;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: color 0.3s ease;
+    mix-blend-mode: plus-lighter;
 }
 
-/* Accordion Body Wrapper */
-/* IMPORTANT: This element creates the height for animation */
-.aox-panel {
-    min-height: 0;
-    overflow: hidden;
-    /* Flow Layout */
-    position: relative;
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    padding-bottom: 24px;
-}
-
-/* Typography Base */
-.panel-title {
+.tile-desc {
     font-family: var(--font-main);
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #FFF;
-}
-
-.panel-desc {
-    font-family: var(--font-tech);
     font-size: 0.9rem;
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 16px;
+    opacity: 0.7;
+    margin-bottom: var(--space-xs);
+    color: #FFFFFF;
+    mix-blend-mode: plus-lighter;
+}
+
+.tile-coords {
+    font-family: 'Courier New', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.aox-tile:hover .tile-coords {
+    opacity: 0.4;
+}
+
+/* --- Satellite Info-Boxes --- */
+.aox-panel {
+    position: absolute;
+    top: 0;
+    width: 280px;
+    padding: var(--space-sm);
+    border: none;
+    background: transparent;
+    /* Semi-transparent base removed */
+
+    /* AFFIORAMENTO: Stato iniziale (nascosto nella penombra) */
+    opacity: 0;
+    filter: blur(10px);
+    pointer-events: none;
+
+    /* Transizione atmosferica */
+    transition:
+        opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s,
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.6s ease 0.1s;
+
+    z-index: 20;
+}
+
+/* Smart Docking - Initial Offsets for Affioramento */
+.panel-right {
+    left: 100%;
+    margin-left: var(--space-xs);
+    transform: translateX(-30px);
+    /* Parte leggermente "dentro" */
+}
+
+.panel-left {
+    right: 100%;
+    margin-right: var(--space-xs);
+    transform: translateX(30px);
+    /* Parte leggermente "dentro" */
+}
+
+/* Reveal on Hover - L'EMERSIONE */
+.aox-tile:hover .aox-panel {
+    opacity: 1;
+    filter: blur(0px);
+    /* Focus progressivo */
+    pointer-events: auto;
+    transform: translateX(0);
+    /* Raggiunge la posizione finale */
+}
+
+/* Panel Typography */
+.panel-title {
+    font-family: var(--font-main);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #FFFFFF;
+    margin-bottom: var(--space-xs);
+    padding-bottom: 8px;
+    border-bottom: 0.5px solid rgba(200, 200, 210, 0.1);
 }
 
 .panel-specs {
     list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    font-family: var(--font-tech);
+    font-weight: 400;
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.6);
 }
 
-.panel-specs li {
-    font-family: 'Courier New', monospace;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.05);
-    padding: 4px 8px;
+.panel-specs li::before {
+    content: '—';
+    margin-right: 8px;
+    opacity: 0.4;
 }
 
-/* STATE: Active (Expanded) */
-.aox-tile.is-active {
-    grid-template-rows: auto 1fr;
+/* Panel Description & Coords Typography */
+.panel-desc {
+    font-family: var(--font-tech);
+    font-size: 0.75rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.65);
+    margin-bottom: var(--space-xs);
 }
 
-.aox-tile.is-active .aox-panel {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.aox-tile.is-active .tile-title {
-    color: var(--accent-color, #FFF);
-}
-
-/* HIDE DESKTOP ELEMENTS */
-.tile-desc,
-.tile-coords,
-#aox-canvas-container,
 .panel-coords {
-    display: none;
+    display: block;
+    font-family: 'Courier New', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.35);
+    margin-top: var(--space-xs);
+    padding-top: 8px;
+    border-top: 0.5px solid rgba(200, 200, 210, 0.08);
 }
 
-
-/* --- LEVEL 2: TABLET (min-width: 768px) --- */
-@media (min-width: 768px) {
-    .aox-container {
-        display: block;
-        min-height: 80vh;
-        /* Space for canvas */
-    }
-
-    /* Reveal Canvas */
-    #aox-canvas-container {
-        display: flex;
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        justify-content: center;
-        align-items: center;
-        pointer-events: none;
-        opacity: 0.7;
-    }
-
-    /* Canvas Sizing */
-    #aox-canvas-container canvas {
-        width: 100% !important;
-        height: 100% !important;
-    }
-
-    /* Button Bar Layout */
-    .aox-tiles-grid {
-        flex-direction: row;
-        justify-content: center;
-        gap: 16px;
-        position: relative;
-        z-index: 10;
-        margin-top: 20px;
-    }
-
-    /* Reset Accordion & Base Styles */
-    .aox-tile {
-        display: block;
-        /* Disable grid rows */
-        border: none;
-        overflow: visible;
-        /* Allow panel breakout */
-        width: auto;
-        /* Ensure no lingering grid rows transition affects layout */
-        transition: none;
-    }
-
-    /* Button Styling (Tech HUD) */
-    .tile-title {
-        font-family: 'Space Grotesk', var(--font-main);
-        font-size: 0.75rem;
-        letter-spacing: 0.1em;
-        padding: 12px 24px;
-
-        /* Glass Tech Look */
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: rgba(255, 255, 255, 0.7);
-
-        /* Breathing Animation */
-        animation: breathing-border 4s infinite ease-in-out;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    @keyframes breathing-border {
-
-        0%,
-        100% {
-            border-color: rgba(255, 255, 255, 0.1);
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        50% {
-            border-color: rgba(255, 255, 255, 0.4);
-            background: rgba(255, 255, 255, 0.08);
-        }
-    }
-
-    /* Hover & Active States */
-    .aox-tile:hover .tile-title,
-    .aox-tile.is-active .tile-title {
-        background: #FFFFFF;
-        color: #000000;
-        border-color: #FFFFFF;
-        animation: none;
-        transform: translateY(-2px);
-    }
-
-    /* Overlay Panel (Glass Floating) */
-    .aox-panel {
-        position: absolute;
-        top: 100%;
-        /* Anchor below the button row */
-        left: 50%;
-        transform: translateX(-50%) translateY(20px);
-        width: 380px;
-        margin-top: 30px;
-
-        /* Glass Effect */
-        background: rgba(10, 10, 10, 0.6);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        padding: 24px;
-
-        pointer-events: none;
-        opacity: 0;
-        transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        z-index: 100;
-    }
-
-    .aox-tile.is-active .aox-panel {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-        pointer-events: auto;
-    }
-}
-
-
-/* --- LEVEL 3: DESKTOP (min-width: 1024px) --- */
+/* --- MATRICE DI REAZIONE DESKTOP (>1024px) --- */
 @media (min-width: 1024px) {
 
-    /* Layout */
+    /* 1. DISTRUZIONE DEI "CONTAINING BLOCKS" */
     .aox-tiles-grid {
-        display: grid;
-        grid-template-columns: repeat(12, 1fr);
-        gap: var(--space-sm);
-        margin-top: 5vh;
-        width: 100%;
-        justify-content: stretch;
+        position: static;
     }
 
-    /* Reset Button Styling to Grid Tiles */
+    .aox-tile {
+        position: static;
+        transform: none;
+        will-change: auto;
+        overflow: visible;
+        /* Rimuoviamo qualsiasi animazione che possa creare stacking context involontari */
+        transition: opacity 0.8s var(--ease-voltera);
+    }
+
+    /* Rimuoviamo il scale(1.02) all'hover per evitare il blocco */
+    .aox-tile:hover {
+        transform: none;
+        z-index: auto;
+    }
+
+    /* 2. SPOSTAMENTO REAZIONE CINETICA (Child Animation) */
+
+    /* Bufferizzare l'animazione sui figli per non rompere il layout */
     .tile-title {
-        animation: none;
-        background: transparent !important;
-        /* Override tablet */
-        border: none !important;
-        padding: 0;
-        margin-bottom: 8px;
-
-        /* Desktop Typography */
-        font-family: var(--font-display);
-        font-size: 1.5rem;
-        color: #FFFFFF;
-        text-align: left;
-        justify-content: flex-start;
-        text-transform: uppercase;
-
-        /* Interaction */
         transform-origin: left center;
-        transition: transform 0.6s var(--ease-voltera), color 0.6s var(--ease-voltera);
+        transition: transform 0.8s var(--ease-voltera), color 0.8s var(--ease-voltera);
     }
 
-    .aox-tile:hover .tile-title {
-        transform: scale(1.05);
-        color: var(--accent-color, #FFF);
-    }
-
-    /* Show Descriptions */
     .tile-desc,
     .tile-coords {
-        display: block;
-        opacity: 0.6;
-        transition: opacity 0.6s ease, transform 0.6s var(--ease-voltera);
         transform-origin: left center;
+        transition: transform 0.8s var(--ease-voltera), opacity 0.8s var(--ease-voltera);
+    }
+
+    /* Interaction State */
+    .aox-tile:hover .tile-title {
+        transform: scale(1.03) translateX(10px);
+        color: var(--accent-color);
     }
 
     .aox-tile:hover .tile-desc,
@@ -802,113 +815,382 @@ footer {
         transform: translateX(5px);
     }
 
-    /* Grid Positioning */
-    .aox-tile-1 {
-        grid-column: 1 / 5;
+    /* 3. CONTAINER COME RIFERIMENTO UNICO */
+    .aox-container {
+        position: relative;
     }
 
-    .aox-tile-2 {
-        grid-column: 9 / 14;
-    }
-
-    .aox-tile-3 {
-        grid-column: 2 / 6;
-        margin-top: 40px;
-    }
-
-    .aox-tile-4 {
-        grid-column: 8 / 12;
-        margin-top: 40px;
-    }
-
-    .aox-tile-5 {
-        grid-column: 4 / 9;
-        margin-top: 60px;
-    }
-
-    /* Panel Docking Logic (Mirroring) */
+    /* 4. CONFIGURAZIONE HUD PANELS (LONG DECAY) */
     .aox-panel {
+        position: absolute;
         top: 50%;
-        /* Vertical Center relative to Tile */
-        width: 320px;
-        margin: 0;
-        left: auto;
-        /* Reset tablet center */
-        transform: none;
-        /* Reset tablet transform */
+        width: 400px;
+        z-index: 500;
+        pointer-events: none;
 
-        /* Clean Style (No glass on desktop per request implies minimal/transparent, 
-           but user said 'no heavy glass' on mobile. 
-           Desktop plan said: "Lateral docking animations. ... Effect 'Affioramento' (blur in/out)"
-           User feedback: "Left tiles -> Panel right... Right -> Panel left"
-           User feedback: "Long Decay"
-        */
-        background: transparent;
-        border: none;
-        backdrop-filter: none;
-        padding: 0;
+        /* Fisica e Penombra Attiva */
+        opacity: 0;
+        filter: blur(20px);
 
-        /* Physics: Long Decay (Fast In / Slow Out) */
+        /* Transizione Combinata: LONG DECAY (1.2s exit) */
         transition:
-            opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1),
-            transform 1.2s cubic-bezier(0.16, 1, 0.3, 1),
-            filter 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-
-        filter: blur(15px);
+            transform 1.2s var(--ease-voltera),
+            opacity 1.2s var(--ease-voltera),
+            filter 1.2s var(--ease-voltera);
     }
 
-    .panel-title {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        padding-bottom: 8px;
+    /* 5. LOGICA DI DOCKING SPECCHIATA (MIRRORING) */
+
+    /* DOCK DESTRO: Tile 1 (Brand) e Tile 3 (Web) */
+    .aox-tile:nth-child(1) .aox-panel,
+    .aox-tile:nth-child(3) .aox-panel {
+        right: 5% !important;
+        left: auto !important;
+        margin-left: 0 !important;
+        transform: translateY(-50%) translateX(30px);
     }
 
-    /* Mirroring & Positioning Offsets */
-
-    /* LEFT GROUP (Tiles 1, 3) -> Panel RIGHT */
-    .aox-tile-1 .aox-panel,
-    .aox-tile-3 .aox-panel {
-        left: 100%;
-        margin-left: 30px;
-        transform: translateY(-50%) translateX(-20px);
-        /* Initial: Inward shift */
+    /* DOCK SINISTRO: Tile 2 (Spazi), Tile 4 (Sistemi), Tile 5 (Cultura) */
+    .aox-tile:nth-child(2) .aox-panel,
+    .aox-tile:nth-child(4) .aox-panel,
+    .aox-tile:nth-child(5) .aox-panel {
+        left: 5% !important;
+        right: auto !important;
+        margin-right: 0 !important;
+        transform: translateY(-50%) translateX(-30px);
     }
 
-    /* RIGHT GROUP (Tiles 2, 4, 5) -> Panel LEFT */
-    .aox-tile-2 .aox-panel,
-    .aox-tile-4 .aox-panel,
-    .aox-tile-5 .aox-panel {
-        right: 100%;
-        margin-right: 30px;
-        text-align: right;
-        align-items: flex-end;
-        /* If flex */
-        transform: translateY(-50%) translateX(20px);
-        /* Initial: Inward shift */
-    }
-
-    /* Align panel content for right-side tiles */
-    .aox-tile-2 .panel-specs,
-    .aox-tile-4 .panel-specs,
-    .aox-tile-5 .panel-specs {
-        justify-content: flex-end;
-    }
-
-    /* HOVER / ACTIVE STATE (Desktop) */
-    .aox-tile:hover .aox-panel,
-    .aox-tile.is-active .aox-panel {
+    /* 6. EMERSIONE E FOCUS (Fast Entry, Slow Exit) */
+    .aox-tile:hover .aox-panel {
         opacity: 1;
-        filter: blur(0);
+        filter: blur(0px);
+        pointer-events: auto;
         transform: translateY(-50%) translateX(0);
 
-        /* Fast Entry Override (0.8s) */
-        transition-duration: 0.8s;
+        /* Fast Entry (0.8s) override */
+        transition:
+            transform 0.8s var(--ease-voltera),
+            opacity 0.8s var(--ease-voltera),
+            filter 0.8s var(--ease-voltera);
     }
 
-    /* Dimming other tiles */
+    /* Dimming globale per focus HUD */
     .aox-tiles-grid:has(.aox-tile:hover) .aox-tile:not(:hover) {
-        opacity: 0.3;
-        filter: blur(2px);
-        transition: opacity 0.6s ease, filter 0.6s ease;
+        opacity: 0;
+    }
+}
+
+/* Responsive AOX - SPLIT-ZONE HUD (Tablet) */
+@media (max-width: 1023px) {
+
+    /* 1. Container: Relative anchor for panel positioning */
+    .aox-container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        min-height: 85vh;
+        overflow: visible;
+        /* Critical: allows panel to float */
+    }
+
+    /* 2. HUD Navigation Grid - Flexible auto-fit layout */
+    .aox-tiles-grid {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+        width: 100%;
+        order: 2;
+    }
+
+    /* 3. Hide descriptive elements for minimal HUD */
+    .tile-desc,
+    .tile-coords {
+        display: none;
+    }
+
+    /* --- BREATHING BORDER ANIMATION --- */
+    @keyframes breathing-border {
+
+        0%,
+        100% {
+            opacity: 0.1;
+        }
+
+        50% {
+            opacity: 0.3;
+        }
+    }
+
+    /* 4. HUD Button Styling - Technical HUD Aesthetic */
+    .tile-title {
+        position: relative;
+        min-height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 16px 20px;
+        text-align: left;
+
+        /* Typography: Space Grotesk technical feel */
+        font-family: 'Space Grotesk', var(--font-main), sans-serif;
+        font-size: 0.65rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        line-height: 1.6;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.85);
+
+        /* Visual: Subtle glass background */
+        background: rgba(255, 255, 255, 0.03);
+        border: none;
+        margin-bottom: 0;
+
+        /* Transitions */
+        transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Bracket Border - Top-Left Corner */
+    .tile-title::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 20px;
+        height: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        border-left: 1px solid rgba(255, 255, 255, 0.2);
+        pointer-events: none;
+        animation: breathing-border 3s ease-in-out infinite;
+    }
+
+    /* Bracket Border - Bottom-Right Corner */
+    .tile-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 20px;
+        height: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        border-right: 1px solid rgba(255, 255, 255, 0.2);
+        pointer-events: none;
+        animation: breathing-border 3s ease-in-out infinite;
+        animation-delay: 1.5s;
+    }
+
+    /* :active Press Effect */
+    .tile-title:active {
+        transform: scale(0.97);
+    }
+
+    /* 5. Active Button State (.is-active managed by JS) */
+    .aox-tile.is-active .tile-title {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .aox-tile.is-active .tile-title::before,
+    .aox-tile.is-active .tile-title::after {
+        border-color: rgba(255, 255, 255, 0.9);
+        animation: none;
+        opacity: 1;
+    }
+
+    /* 6. STERILE TILE (Cruciale): Complete style reset to prevent panel anchoring */
+    .aox-tile {
+        position: static !important;
+        transform: none !important;
+        filter: none !important;
+        backdrop-filter: none !important;
+        will-change: auto !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .aox-tile-1,
+    .aox-tile-2,
+    .aox-tile-3,
+    .aox-tile-4,
+    .aox-tile-5 {
+        grid-column: auto;
+        margin-top: 0;
+    }
+
+    /* 7. PANNELLO MASTER SOVRAPPOSTO: Fixed position below button bar */
+    .aox-panel {
+        position: absolute;
+        top: auto !important;
+        /* Starts immediately below button bar */
+        left: 5% !important;
+        width: 90% !important;
+        /* Generous panel */
+        height: auto;
+        z-index: 120;
+        bottom: 100% !important;
+        margin: 0 0 20px 0 !important;
+        padding: var(--space-md);
+        background: rgba(8, 8, 8, 0.5);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        opacity: 0;
+        transform: translateY(-15px);
+        transition: all 0.7s var(--ease-out-expo);
+        pointer-events: none;
+    }
+
+    /* 8. Active Panel State */
+    .aox-tile.is-active .aox-panel {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    /* Disable hover reveal on tablet */
+    .aox-tile:hover .aox-panel {
+        opacity: 0;
+        transform: translateY(-15px);
+        pointer-events: none;
+    }
+
+    .aox-tile.is-active:hover .aox-panel {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    /* 9. VISION ZONE: Canvas centered without transform */
+    #aox-canvas-container {
+        position: relative;
+        order: 1;
+        width: 100%;
+        height: 600px;
+        transform: none !important;
+        /* Critical: preserve 3D morphing */
+        top: 0;
+        left: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        pointer-events: none;
+    }
+
+    #aox-canvas-container canvas {
+        pointer-events: auto;
+    }
+
+    /* --- NUOVO QUADRANTE INFERIORE (TABLET ONLY) --- */
+
+    /* Stato iniziale: nascosto */
+    .aox-tile .tile-desc {
+        display: none;
+    }
+
+    /* Stato attivo: quadrante visibile sotto la tile */
+    .aox-tile.is-active .tile-desc {
+        display: block;
+        position: absolute;
+        top: 100%;
+        left: 5%;
+        width: 90%;
+        margin-top: 25px;
+
+        /* Visual Styling (come .aox-panel) */
+        background: rgba(8, 8, 8, 0.6);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        padding: var(--space-sm);
+        border: 0.5px solid rgba(200, 200, 210, 0.15);
+
+        /* Typography (come .aox-panel / .panel-desc) */
+        font-family: var(--font-main);
+        font-size: 0.85rem;
+        line-height: 1.7;
+        letter-spacing: 0.02em;
+        color: rgba(255, 255, 255, 0.75);
+
+        /* Animazione: emersione fluida */
+        opacity: 0;
+        transform: translateY(-10px);
+        animation: desc-emerge 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Keyframe per animazione emersione */
+    @keyframes desc-emerge {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+@media (max-width: 768px) {
+
+    /* Hide 3D canvas container completely on mobile */
+    #aox-canvas-container {
+        display: none !important;
+    }
+
+    /* Reduce vertical space for Message-First layout */
+    .aox-container {
+        min-height: auto;
+    }
+
+    .aox-tiles-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-xs);
+    }
+
+    .aox-tile-1,
+    .aox-tile-2,
+    .aox-tile-3,
+    .aox-tile-4,
+    .aox-tile-5 {
+        grid-column: 1 / -1;
+    }
+
+    .aox-header {
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+
+    /* --- AOX ACCORDION MODE (Message-First) --- */
+
+    /* 1. Tile: Grid Accordion Container */
+    .aox-tile {
+        position: relative !important;
+        display: grid;
+        grid-template-rows: auto 0fr;
+        transition: grid-template-rows 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* 2. Panel: Collapsible Content Block */
+    .aox-panel {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        margin-top: 10px !important;
+        transform: none !important;
+        overflow: hidden;
+        min-height: auto;
+        opacity: 0;
+        background: rgba(8, 8, 8, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* 3. Active State: Expanded Accordion */
+    .aox-tile.is-active {
+        grid-template-rows: auto 1fr;
+    }
+
+    .aox-tile.is-active .aox-panel {
+        opacity: 1;
+        pointer-events: auto;
     }
 }
 
