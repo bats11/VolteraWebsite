@@ -1761,17 +1761,17 @@ footer {
 /* Dossier Grid Layout */
 .dossier-grid {
     display: grid;
-    grid-template-columns: 35% 65%;
+    grid-template-columns: 1fr;
     height: 100%;
     width: 100%;
-    gap: 40px;
-    padding: 80px 5%;
+    gap: 32px;
+    padding: 100px 5% 60px;
+    overflow-y: auto;
 }
 
 .dossier-left {
-    position: sticky;
-    top: 80px;
-    align-self: start;
+    position: static;
+    width: 100%;
 }
 
 .dossier-title {
@@ -1866,7 +1866,7 @@ footer {
 .cinema-main-stage {
     width: 100%;
     aspect-ratio: 16 / 9;
-    max-height: 55vh;
+    max-height: 40vh;
     object-fit: cover;
     border-radius: 4px;
     background: #0a0a0a;
@@ -1958,8 +1958,8 @@ footer {
     display: flex;
     flex-direction: row;
     gap: 16px;
-    max-height: 60vh;
-    aspect-ratio: 21 / 9;
+    max-height: 300px;
+    aspect-ratio: auto;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
@@ -2004,26 +2004,28 @@ footer {
     color: rgba(255, 255, 255, 0.9);
 }
 
-/* Responsive (Mobile/Tablet) */
-@media (max-width: 1023px) {
+/* Responsive (Desktop Restore) */
+@media (min-width: 1024px) {
     .dossier-grid {
-        grid-template-columns: 1fr;
-        overflow-y: auto;
-        gap: 32px;
-        padding: 100px 5% 60px;
+        grid-template-columns: 35% 65%;
+        gap: 40px;
+        padding: 80px 5%;
+        overflow-y: visible;
     }
 
     .dossier-left {
-        position: static;
+        position: sticky;
+        top: 80px;
+        align-self: start;
     }
 
     .media-strip {
-        max-height: 300px;
-        aspect-ratio: auto;
+        max-height: 60vh;
+        aspect-ratio: 21 / 9;
     }
 
     .cinema-main-stage {
-        max-height: 40vh;
+        max-height: 55vh;
     }
 }
 
