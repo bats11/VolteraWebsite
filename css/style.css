@@ -7,11 +7,11 @@
     --grid-line: rgba(255, 255, 255, 0.1);
 
     --space-xs: 16px;
-    --space-sm: 32px;
-    --space-md: 64px;
-    --space-lg: 120px;
-    --space-xl: 200px;
-    --space-xxl: 350px;
+    --space-sm: 24px;
+    --space-md: 48px;
+    --space-lg: 80px;
+    --space-xl: 120px;
+    --space-xxl: 180px;
 
     --font-display: 'Syne', sans-serif;
     --font-tech: 'Manrope', sans-serif;
@@ -30,6 +30,16 @@ body.light-theme {
     --text-secondary: #595959;
     --accent-color: #000000;
     --grid-line: rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 1024px) {
+    :root {
+        --space-sm: 32px;
+        --space-md: 64px;
+        --space-lg: 120px;
+        --space-xl: 200px;
+        --space-xxl: 350px;
+    }
 }
 
 * {
