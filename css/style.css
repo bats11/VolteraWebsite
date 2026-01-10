@@ -1387,13 +1387,15 @@ footer {
 .footer-content {
     margin-bottom: var(--space-md);
     text-align: left;
-    /* Default alignment, adjusted per grid if needed */
 }
 
+/* Base Mobile: Safe Typography (Stage 1) */
 .footer-email {
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 500;
-    font-size: clamp(2.5rem, 6vw, 5rem);
+    /* Safe for 320px screens */
+    font-size: clamp(1.8rem, 5vw, 2.2rem);
+    word-break: break-word;
     color: var(--text-primary);
     text-decoration: none;
     transition: all 0.4s var(--ease-out-expo);
@@ -1401,14 +1403,16 @@ footer {
 }
 
 .footer-email:hover {
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-    transform: translateX(10px);
+    opacity: 0.8;
 }
 
+/* Base Mobile: Vertical Column Layout */
 .footer-bottom {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 24px;
     border-top: 1px solid var(--grid-line);
     padding-top: var(--space-sm);
     font-family: var(--font-tech);
@@ -1439,17 +1443,26 @@ footer {
     text-decoration: underline;
 }
 
-/* Responsive Footer */
-@media (max-width: 768px) {
+/* Tablet: Layout Switch (Row) */
+@media (min-width: 768px) {
     .footer-bottom {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0;
+    }
+}
+
+/* Desktop: Restore Massive Typography & Premium FX (Stage 2) */
+@media (min-width: 1024px) {
+    .footer-email {
+        font-size: clamp(3.5rem, 6vw, 6rem);
     }
 
-    .footer-socials {
-        margin-top: 8px;
-        /* Spacing between copyright and socials */
+    .footer-email:hover {
+        opacity: 1;
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        transform: translateX(10px);
     }
 }
 
