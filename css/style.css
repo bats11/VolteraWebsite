@@ -1387,15 +1387,13 @@ footer {
 .footer-content {
     margin-bottom: var(--space-md);
     text-align: left;
+    /* Default alignment, adjusted per grid if needed */
 }
 
-/* Base Mobile: Safe Typography (Stage 1) */
 .footer-email {
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 500;
-    /* Safe for 320px screens */
-    font-size: clamp(1.8rem, 5vw, 2.2rem);
-    word-break: break-word;
+    font-size: clamp(2.5rem, 6vw, 5rem);
     color: var(--text-primary);
     text-decoration: none;
     transition: all 0.4s var(--ease-out-expo);
@@ -1403,16 +1401,14 @@ footer {
 }
 
 .footer-email:hover {
-    opacity: 0.8;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+    transform: translateX(10px);
 }
 
-/* Base Mobile: Vertical Column Layout */
 .footer-bottom {
     display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-    gap: 24px;
+    justify-content: space-between;
+    align-items: center;
     border-top: 1px solid var(--grid-line);
     padding-top: var(--space-sm);
     font-family: var(--font-tech);
@@ -1443,26 +1439,17 @@ footer {
     text-decoration: underline;
 }
 
-/* Tablet: Layout Switch (Row) */
-@media (min-width: 768px) {
+/* Responsive Footer */
+@media (max-width: 768px) {
     .footer-bottom {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        gap: 0;
-    }
-}
-
-/* Desktop: Restore Massive Typography & Premium FX (Stage 2) */
-@media (min-width: 1024px) {
-    .footer-email {
-        font-size: clamp(3.5rem, 6vw, 6rem);
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
     }
 
-    .footer-email:hover {
-        opacity: 1;
-        text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-        transform: translateX(10px);
+    .footer-socials {
+        margin-top: 8px;
+        /* Spacing between copyright and socials */
     }
 }
 
