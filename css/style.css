@@ -1453,81 +1453,40 @@ footer {
     }
 }
 
-/* --- 13. SHOWCASE UI COMPONENT (Refactored Mobile-First) --- */
+/* --- 13. SHOWCASE UI COMPONENT (Refactored from JS) --- */
 
-/* 
-   MOBILE BASE STYLES 
-   Default view: Single column, vertical scroll, full immersion.
-*/
-
-/* Main Container - The Viewport */
+/* Container Reset */
 #project-detail.dossier-active {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.project-detail {
-    /* Mobile: Il container principale scorre */
-    overflow-y: auto;
-    overflow-x: hidden;
-    height: 100dvh;
-    /* Dynamic CSS Viewport Units per Mobile Safari */
-    width: 100%;
-
-    /* Reset posizionamento */
+    max-width: none !important;
+    text-align: left !important;
     justify-content: flex-start;
     align-items: stretch;
-    padding: 0;
-    background: #080808;
-    /* Fallback solido per performance */
-}
-
-/* Close Button - Safe Zone Mobile */
-.project-close {
-    position: fixed;
-    /* Fixed per rimanere visibile durante lo scroll su mobile */
-    top: 20px;
-    right: 20px;
-    z-index: 2000;
-    /* Sopra tutto */
-    width: 40px;
-    height: 40px;
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(4px);
-    border-radius: 50%;
-    /* Più touch-friendly */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    padding: 0;
 }
 
 .dossier-main-container {
     width: 100%;
-    min-height: 100%;
+    height: 100%;
 }
 
-/* Layout Content - Flow Layout Verticale */
+/* Dossier Grid Layout */
 .dossier-grid {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 35% 65%;
+    height: 100%;
     width: 100%;
-    padding: 80px 5% 60px;
-    /* Top padding per evitare clash con header/close btn */
     gap: 40px;
+    padding: 80px 5%;
 }
 
-/* Left Column - Meta Data */
 .dossier-left {
-    position: static;
-    width: 100%;
+    position: sticky;
+    top: 80px;
+    align-self: start;
 }
 
 .dossier-title {
     font-family: var(--font-display);
-    font-size: clamp(2.5rem, 6vw, 3.5rem);
+    font-size: clamp(2rem, 5vw, 4rem);
     font-weight: 700;
     line-height: 1.05;
     margin-bottom: 16px;
@@ -1536,21 +1495,19 @@ footer {
 
 .dossier-category {
     font-family: var(--font-main);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    opacity: 0.6;
-    margin-bottom: 24px;
-    color: var(--text-highlight);
+    opacity: 0.5;
+    margin-bottom: 32px;
 }
 
 .dossier-description {
     font-family: var(--font-tech);
     font-size: 1rem;
-    line-height: 1.6;
-    opacity: 0.9;
-    margin-bottom: 32px;
-    max-width: 600px;
+    line-height: 1.7;
+    opacity: 0.8;
+    margin-bottom: 24px;
 }
 
 .dossier-specs {
@@ -1564,52 +1521,52 @@ footer {
 
 .dossier-specs li {
     font-family: var(--font-main);
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    padding: 6px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.03);
-    opacity: 0.8;
+    padding: 8px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    opacity: 0.7;
 }
 
-/* Right Column - Media Content */
+/* Right Column - Hidden Scrollbar (Vision-First) */
 .dossier-right {
-    width: 100%;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 40px;
-    /* Su mobile l'overflow è gestito dal body/container principale */
+    gap: 60px;
+    scroll-behavior: smooth;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
-/* Media Elements Resets */
+.dossier-right::-webkit-scrollbar {
+    display: none;
+}
+
+/* Media Elements */
 .dossier-video,
 .dossier-image-full {
     width: 100%;
-    height: auto;
-    max-height: 70vh;
-    /* Evita media troppo alti su mobile */
+    max-height: 60vh;
     object-fit: cover;
     border-radius: 4px;
-    background: #111;
 }
 
 .dossier-image-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    /* Stacked su mobile */
+    grid-template-columns: 1fr 1fr;
     gap: 16px;
 }
 
 .dossier-image-grid img {
     width: 100%;
-    height: auto;
-    aspect-ratio: 16 / 9;
+    height: 200px;
     object-fit: cover;
     border-radius: 4px;
 }
 
-/* ========== CINEMA MODE - Mobile Optimized ========== */
+/* ========== CINEMA MODE - Multi-Video Player ========== */
 .cinema-viewer {
     display: flex;
     flex-direction: column;
@@ -1619,57 +1576,104 @@ footer {
 .cinema-main-stage {
     width: 100%;
     aspect-ratio: 16 / 9;
+    max-height: 55vh;
     object-fit: cover;
     border-radius: 4px;
-    background: #000;
+    background: #0a0a0a;
+    transition: opacity 0.4s var(--ease-voltera);
 }
 
-/* Playlist scrollabile orizzontalmente su mobile */
+.cinema-main-stage.fading {
+    opacity: 0;
+}
+
 .cinema-playlist {
     display: flex;
     flex-direction: row;
     gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 10px;
-    /* Spazio per scrollbar touch */
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-}
-
-.cinema-playlist::-webkit-scrollbar {
-    display: none;
+    flex-wrap: wrap;
 }
 
 .cinema-playlist-item {
-    flex: 0 0 auto;
-    /* Non schiacciare i bottoni */
-    min-width: 100px;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.05);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 20px 16px;
+    min-width: 80px;
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.5);
-    transition: all 0.3s ease;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.3s var(--ease-voltera);
+}
+
+.cinema-playlist-item:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .cinema-playlist-item.active {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.4);
-    color: #fff;
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 1);
+    background: rgba(255, 255, 255, 0.06);
 }
 
-/* ========== STRIP MODE - Horizontal Gallery ========== */
-.media-strip-container {
+.playlist-index {
+    font-family: var(--font-main);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    margin-bottom: 8px;
+}
+
+.playlist-progress {
     width: 100%;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 1px;
+    overflow: hidden;
+}
+
+.playlist-progress-fill {
+    width: 0%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.6);
+    transition: width 0.1s linear;
+}
+
+.cinema-playlist-item.active .playlist-progress-fill {
+    width: 100%;
+    animation: progressPulse 3s ease-in-out infinite;
+}
+
+@keyframes progressPulse {
+
+    0%,
+    100% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* ========== STRIP MODE - Horizontal Image Gallery ========== */
+.media-strip-container {
     position: relative;
 }
 
 .media-strip {
     display: flex;
+    flex-direction: row;
     gap: 16px;
+    max-height: 60vh;
+    aspect-ratio: 21 / 9;
     overflow-x: auto;
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
-    padding-bottom: 20px;
-    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: none;
     scrollbar-width: none;
 }
 
@@ -1678,127 +1682,86 @@ footer {
 }
 
 .media-strip img {
-    scroll-snap-align: center;
-    height: auto;
-    width: 85vw;
-    /* Quasi full width su mobile */
-    aspect-ratio: 16 / 9;
+    height: 100%;
+    width: auto;
+    min-width: 280px;
     object-fit: cover;
-    flex-shrink: 0;
     border-radius: 4px;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+    transition: transform 0.6s var(--ease-voltera);
 }
 
-/* Helpers per layout */
+.media-strip img:hover {
+    transform: scale(1.02);
+}
+
 .strip-indicator {
     position: absolute;
-    bottom: 30px;
+    bottom: 16px;
     right: 16px;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 4px 8px;
-    border-radius: 4px;
+    font-family: var(--font-main);
     font-size: 0.7rem;
-    pointer-events: none;
+    letter-spacing: 0.15em;
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.6);
+    padding: 6px 12px;
+    border-radius: 2px;
+    backdrop-filter: blur(4px);
 }
 
-/* 
-   DESKTOP & TABLET ENHANCEMENTS 
-   Min-width: 1024px
-   Restores the split-screen, sticky layout.
-*/
-@media (min-width: 1024px) {
+.strip-indicator .strip-current {
+    color: rgba(255, 255, 255, 0.9);
+}
 
-    .project-detail {
-        overflow: hidden;
-        /* Blocca lo scroll del container principale */
-        /* Background con leggera trasparenza su desktop per effetto depth */
-        background: rgba(8, 8, 8, 0.96);
-    }
-
-    /* Reset Close Button per Desktop */
-    .project-close {
-        position: absolute;
-        /* Torna nel flusso relativo al container */
-        top: 120px;
-        right: 5%;
-        width: 48px;
-        height: 48px;
-        background: none;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 0;
-    }
-
-    .project-close:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-
+/* Responsive (Mobile/Tablet) */
+@media (max-width: 1023px) {
     .dossier-grid {
-        display: grid;
-        grid-template-columns: 35% 65%;
-        height: 100%;
-        /* Occupa tutta l'altezza per permettere lo scroll interno */
-        padding: 80px 5%;
-        overflow: hidden;
-        /* Contenitore fermo */
-    }
-
-    /* Left Column STICKY */
-    .dossier-left {
-        position: sticky;
-        top: 80px;
-        /* Offset dall'alto */
-        align-self: start;
-        padding-right: 40px;
-    }
-
-    .dossier-title {
-        font-size: clamp(3rem, 5vw, 4.5rem);
-    }
-
-    .dossier-description {
-        font-size: 1.1rem;
-    }
-
-    /* Right Column SCROLLABLE */
-    .dossier-right {
-        height: 100%;
+        grid-template-columns: 1fr;
         overflow-y: auto;
-        /* Scroll bar spostata qui */
-        padding-right: 10px;
-        /* Spazio per scrollbar visiva se presente */
-        padding-bottom: 120px;
-        /* Spazio finale */
-
-        /* Hide Scrollbar ma mantieni funzionalità */
-        scrollbar-width: none;
-        -ms-overflow-style: none;
+        gap: 32px;
+        padding: 100px 5% 60px;
     }
 
-    .dossier-right::-webkit-scrollbar {
-        display: none;
-    }
-
-    /* Grid layout per immagini su desktop */
-    .dossier-image-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .dossier-image-grid img {
-        height: 250px;
-        aspect-ratio: auto;
-    }
-
-    /* Cinema & Strip Mode Desktop adjustments */
-    .cinema-main-stage {
-        max-height: 60vh;
+    .dossier-left {
+        position: static;
     }
 
     .media-strip {
-        max-height: 60vh;
-    }
-
-    .media-strip img {
-        width: auto;
-        height: 100%;
+        max-height: 300px;
         aspect-ratio: auto;
     }
+
+    .cinema-main-stage {
+        max-height: 40vh;
+    }
+}
+
+/* --- REFACTORING HELPERS (Inline Removal) --- */
+/* Sostituisce style="..." su #metodo */
+#metodo.method-trigger {
+    background: transparent;
+    transition: background 1s ease;
+}
+
+/* Sostituisce style="..." su #respiro-quote quote paragraphs */
+.quote-text {
+    font-family: var(--font-main);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    opacity: 0.8;
+    max-width: 400px;
+}
+
+.quote-author {
+    margin-top: 16px;
+    display: block;
+}
+
+.u-margin-bottom-sm {
+    margin-bottom: 32px !important;
+}
+
+.u-margin-top-sm {
+    margin-top: 32px !important;
 }

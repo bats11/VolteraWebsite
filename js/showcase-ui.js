@@ -53,9 +53,6 @@ const ShowcaseUI = {
     /**
      * Close the Project Detail View
      */
-    /**
-     * Close the Project Detail View
-     */
     close() {
         if (!this.container) return;
 
@@ -63,12 +60,11 @@ const ShowcaseUI = {
         this.container.classList.add('hidden');
         this.container.classList.remove('dossier-active');
 
-        // 2. Stop any playing videos (DEEP CLEAN for iOS)
+        // 2. Stop any playing videos
         const videos = this.container.querySelectorAll('video');
         videos.forEach(v => {
             v.pause();
-            v.removeAttribute('src'); // Clean attribute
-            v.load(); // FORCE buffer release (Crucial for iOS memory)
+            v.src = '';
         });
 
         // 3. Clear Content (Keep structure clean)
