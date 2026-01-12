@@ -549,63 +549,55 @@ footer {
     width: 100%;
 }
 
-/* 2. TILE: STILE "TECH" (Mobile Originale) */
-.aox-tile {
-    /* Struttura Accordion */
-    position: relative;
-    display: grid;
-    grid-template-rows: auto 0fr;
-    /* Accordion chiuso */
-    transition: grid-template-rows 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+/* --- AGGIORNAMENTO LOGICA ACCORDION MOBILE (Visual Merge) --- */
 
-    /* Reset Stili Desktop */
+.aox-tile {
+    /* Layout Grid a 3 Righe */
+    display: grid;
+    grid-template-rows: auto 0fr 0fr;
+    /* Default: Desc e Panel chiusi */
+
+    /* Reset & Stili Base */
+    position: relative;
     padding: 0;
     background: transparent;
     border: none;
     overflow: visible;
-    /* Necessario per i brackets esterni */
-    will-change: grid-template-rows;
+    transition: grid-template-rows 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* STATO ATTIVO */
 .aox-tile.is-active {
-    grid-template-rows: auto 1fr;
-    /* Accordion aperto */
+    grid-template-rows: auto auto 1fr;
 }
 
-/* Nascondiamo descrizioni e coordinate nella lista base (come da originale) */
-.aox-tile .tile-desc,
-.aox-tile .tile-coords {
-    display: none;
-}
-
-/* 3. TILE TITLE: IL BOTTONE (Design Tecnico) */
+/* --- 1. TILE TITLE (Header Superiore) --- */
 .tile-title {
+    grid-row: 1;
     position: relative;
+    z-index: 2;
+    /* Sopra per gestire i bordi */
     min-height: 80px;
     display: flex;
     align-items: center;
-    justify-content: flex-start;
     padding: 16px 20px;
-    text-align: left;
-    margin-bottom: 0;
+    margin: 0;
     cursor: pointer;
 
-    /* TIPOGRAFIA ORIGINALE MOBILE */
+    /* Stile Tech Mobile */
     font-family: 'Space Grotesk', var(--font-main), sans-serif;
     font-size: 0.65rem;
     font-weight: 500;
     letter-spacing: 0.08em;
-    line-height: 1.6;
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.85);
 
-    /* SFONDO E BORDI ORIGINALI */
+    /* Background Condiviso */
     background: rgba(255, 255, 255, 0.03);
-    border: none;
-    transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s;
+    transition: background 0.4s;
 }
 
-/* Animazione Breathing Border (Recuperata) */
+/* Gestione Brackets (Angoli) */
 @keyframes breathing-border {
 
     0%,
@@ -618,7 +610,7 @@ footer {
     }
 }
 
-/* Bracket Top-Left */
+/* Top-Left: Sempre visibile sul titolo */
 .tile-title::before {
     content: '';
     position: absolute;
@@ -632,7 +624,7 @@ footer {
     animation: breathing-border 3s ease-in-out infinite;
 }
 
-/* Bracket Bottom-Right */
+/* Bottom-Right: Visibile SOLO quando chiuso */
 .tile-title::after {
     content: '';
     position: absolute;
@@ -643,111 +635,138 @@ footer {
     border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     border-right: 1px solid rgba(255, 255, 255, 0.2);
     pointer-events: none;
-    animation: breathing-border 3s ease-in-out infinite;
-    animation-delay: 1.5s;
+    animation: breathing-border 3s ease-in-out infinite 1.5s;
+    transition: opacity 0.2s;
 }
 
-/* Stati Interattivi (:active e .is-active) */
-.tile-title:active {
-    transform: scale(0.97);
-}
-
-.aox-tile.is-active .tile-title {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.aox-tile.is-active .tile-title::before,
+/* Quando attivo, nascondi l'angolo del titolo (passa alla desc) */
 .aox-tile.is-active .tile-title::after {
-    border-color: rgba(255, 255, 255, 0.9);
-    animation: none;
-    opacity: 1;
+    opacity: 0;
 }
 
-/* 4. PANNELLO (Accordion Content) */
-.aox-panel {
-    /* Posizionamento nel flusso (Reset da absolute) */
+/* Highlight attivo */
+.aox-tile.is-active .tile-title {
+    background: rgba(255, 255, 255, 0.08);
+    /* Leggermente più chiaro */
+}
+
+/* --- 2. TILE DESC (Header Inferiore - "Inside") --- */
+.aox-tile .tile-desc {
+    grid-row: 2;
     position: relative;
-    top: auto;
-    left: auto;
-    right: auto;
-    bottom: auto;
-    width: 100%;
-    margin: 0;
-    transform: none;
-
-    /* Stile Visivo Originale Mobile */
-    margin-top: 10px;
-    padding: var(--space-sm);
-    background: rgba(8, 8, 8, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: none;
-    /* O border sottile se presente nell'originale */
-
-    /* Animazione Fade-In */
-    opacity: 0;
     overflow: hidden;
-    /* Importante per l'accordion */
-    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Layout */
+    display: block;
+    margin: 0;
+    padding: 0 20px;
+    /* Stesso padding laterale del titolo */
+
+    /* Stile Visivo Merge */
+    background: rgba(255, 255, 255, 0.08);
+    /* Stesso bg del titolo attivo */
+
+    /* Tipografia */
+    font-family: var(--font-main);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: all 0.3s ease;
+}
+
+/* Quando attivo */
+.aox-tile.is-active .tile-desc {
+    opacity: 0.9;
+    transform: translateY(0);
+    padding-bottom: 20px;
+    /* Spazio finale prima del pannello */
+}
+
+/* Bottom-Right Bracket: Appare sulla Descrizione quando attiva */
+.aox-tile.is-active .tile-desc::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.9);
+    /* Più solido quando attivo */
+    border-right: 1px solid rgba(255, 255, 255, 0.9);
     pointer-events: none;
 }
 
-/* Visibilità Pannello Attivo */
+/* --- 3. PANNELLO (Contenuto Separato) --- */
+.aox-panel {
+    grid-row: 3;
+    position: relative;
+    width: 100%;
+    margin-top: 4px;
+    /* Piccolo stacco visivo dal blocco titolo+desc */
+
+    padding: var(--space-sm);
+    background: rgba(8, 8, 8, 0.6);
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    /* Linea guida visiva */
+
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity 0.4s 0.1s;
+}
+
 .aox-tile.is-active .aox-panel {
     opacity: 1;
     pointer-events: auto;
-    /* overflow: visible;  <- Rimosso per sicurezza su mobile, meglio hidden o auto */
 }
 
-/* Tipografia Pannello (Ripristino Stili Tech) */
+/* Helper Classi Interne (Invariate) */
+.aox-tile .tile-coords {
+    display: none;
+}
+
 .panel-title {
     font-family: var(--font-main);
     font-weight: 600;
     font-size: 0.85rem;
-    letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: #FFFFFF;
-    margin-bottom: var(--space-xs);
-    padding-bottom: 8px;
-    border-bottom: 0.5px solid rgba(200, 200, 210, 0.1);
+    margin-bottom: 12px;
+    color: #fff;
 }
 
 .panel-desc {
     font-family: var(--font-tech);
-    font-size: 0.75rem;
-    line-height: 1.7;
-    color: rgba(255, 255, 255, 0.65);
-    margin-bottom: var(--space-xs);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    opacity: 0.8;
+    margin-bottom: 16px;
 }
 
 .panel-specs {
     font-family: var(--font-tech);
-    font-weight: 400;
-    font-size: 0.8rem;
-    line-height: 1.8;
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+    opacity: 0.6;
     list-style: none;
 }
 
 .panel-specs li::before {
     content: '—';
     margin-right: 8px;
-    opacity: 0.4;
 }
 
 .panel-coords {
     display: block;
-    font-family: 'Courier New', monospace;
+    font-family: monospace;
     font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.35);
-    margin-top: var(--space-xs);
+    margin-top: 16px;
+    opacity: 0.4;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     padding-top: 8px;
-    border-top: 0.5px solid rgba(200, 200, 210, 0.08);
 }
 
-/* Nascondiamo Canvas 3D su Mobile */
 #aox-canvas-container {
     display: none;
 }
