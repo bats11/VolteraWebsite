@@ -2012,7 +2012,7 @@ footer {
         transform: translate(-50%, -50%) !important;
         width: 60%;
         height: 80%;
-        z-index: 1;
+        z-index: 0;
         pointer-events: none;
         display: block;
         /* Override flex del tablet */
@@ -2101,7 +2101,7 @@ footer {
         /* Reset Box Model Tablet */
         min-height: auto;
         padding: 0;
-        margin-bottom: var(--space-xs);
+        padding-bottom: var(--space-xs);
         background: transparent !important;
         display: block;
         text-align: left;
@@ -2140,7 +2140,7 @@ footer {
         font-size: 0.9rem;
         color: #FFFFFF;
         mix-blend-mode: plus-lighter;
-        margin-bottom: var(--space-xs);
+        padding-bottom: var(--space-xs);
 
         transition: transform 0.8s var(--ease-voltera), opacity 0.8s var(--ease-voltera);
     }
