@@ -2080,7 +2080,7 @@ footer {
 
     /* Dimming Effect: Quando una è hover, le altre svaniscono */
     .aox-tiles-grid:has(.aox-tile:hover) .aox-tile:not(:hover) {
-        opacity: 0.2;
+        opacity: 0;
     }
 
     /* --- 5. TIPOGRAFIA & STILE VISIVO (Reset Button Look) --- */
