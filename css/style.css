@@ -2025,7 +2025,7 @@ footer {
         grid-template-columns: repeat(12, 1fr);
         /* Griglia fissa 12 col */
         gap: var(--space-sm);
-        position: relative;
+        position: static;
         /* Anchor point per i pannelli desktop */
         z-index: 10;
         width: 100%;
