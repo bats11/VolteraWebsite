@@ -4,13 +4,13 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-
+import ResizeManager from './resize-manager.js';
 
 /**
  * Atmospheric Hero Scene (Pyramid)
- * @param {Array} resizeCallbacks - Global resize callbacks array
+ * @param {HTMLElement} containerElement - The container element for the scene
  */
-export function initAtmosphericHero(resizeCallbacks) {
+export function initAtmosphericHero(containerElement) {
     // --- CONSTANTS ---
     const POS_PYRAMID = { y: 4.5, rotY: Math.PI / 2 };
     const SIZE_PYRAMID = { radius: 2.5, height: 5.5 };
@@ -50,7 +50,7 @@ export function initAtmosphericHero(resizeCallbacks) {
     const particles = [];
     let particleGeometry, particleMaterial, particleSystem;
 
-    const container = document.getElementById('canvas-container');
+    const container = containerElement;
     if (!container) return;
 
     scene = new THREE.Scene();
@@ -59,8 +59,12 @@ export function initAtmosphericHero(resizeCallbacks) {
     camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(POS_CAMERA.x, POS_CAMERA.y, POS_CAMERA.z);
 
+    // Detect mobile early for all optimizations
+    const isMobile = window.innerWidth < 768;
+
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
-    renderer.setPixelRatio(window.devicePixelRatio);
+    // Clamp pixel ratio to reduce GPU load on high-DPI devices (mobile: max 1.5, desktop: max 2.0)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2.0));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
@@ -90,7 +94,6 @@ export function initAtmosphericHero(resizeCallbacks) {
     const pixelRatio = renderer.getPixelRatio();
 
     // Disable MSAA on mobile to prevent WebGL context loss (memory crash)
-    const isMobile = window.innerWidth < 768;
     const msaaSamples = isMobile ? 0 : 8;
 
     const renderTarget = new THREE.WebGLRenderTarget(
@@ -99,7 +102,7 @@ export function initAtmosphericHero(resizeCallbacks) {
         {
             type: THREE.HalfFloatType,
             format: THREE.RGBAFormat,
-            samples: msaaSamples,
+            samples: msaaSamples, // Conditional: 0 on mobile, 8 on desktop
             depthBuffer: true,
             stencilBuffer: false
         }
@@ -264,11 +267,13 @@ export function initAtmosphericHero(resizeCallbacks) {
 
 
     // Lights & Objects
+    // Use lower shadow resolution on mobile to reduce GPU memory usage
+    const shadowResolution = isMobile ? 512 : 1024;
     internalLight = new THREE.PointLight(0xffffff, 1500, 25);
     internalLight.position.set(0, POS_PYRAMID.y, 0);
     internalLight.castShadow = true;
-    internalLight.shadow.mapSize.width = 1024;
-    internalLight.shadow.mapSize.height = 1024;
+    internalLight.shadow.mapSize.width = shadowResolution;
+    internalLight.shadow.mapSize.height = shadowResolution;
     internalLight.shadow.camera.near = 0.5;
     internalLight.shadow.camera.far = 50;
     scene.add(internalLight);
@@ -498,7 +503,7 @@ export function initAtmosphericHero(resizeCallbacks) {
     }
 
     // Resize
-    resizeCallbacks.push(() => {
+    ResizeManager.subscribe(() => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);

@@ -1,809 +1,2163 @@
 /* --- 1. SISTEMA CORE --- */
+
 :root {
+
     --bg-color: #080808;
+
     --text-primary: #E8E8E6;
+
     --text-secondary: #888888;
+
     --accent-color: #FFFFFF;
+
     --grid-line: rgba(255, 255, 255, 0.1);
 
+
+
     --space-xs: 16px;
-    --space-sm: 32px;
-    --space-md: 64px;
-    --space-lg: 120px;
-    --space-xl: 200px;
-    --space-xxl: 350px;
+
+    --space-sm: 24px;
+
+    --space-md: 48px;
+
+    --space-lg: 80px;
+
+    --space-xl: 120px;
+
+    --space-xxl: 180px;
+
+
 
     --font-display: 'Syne', sans-serif;
+
     --font-tech: 'Manrope', sans-serif;
+
     --font-main: 'Space Grotesk', sans-serif;
 
+
+
     --ease-out-expo: cubic-bezier(0.25, 1, 0.5, 1);
+
     /* Ease Out Quart */
+
     --ease-voltera: cubic-bezier(0.16, 1, 0.3, 1);
+
     /* Voltera Inertia */
+
     --showcase-height: 600vh;
+
 }
+
+
 
 body.light-theme {
+
     --bg-color: #F2F2F0;
+
     --text-primary: #1A1A1A;
+
     --text-secondary: #595959;
+
     --accent-color: #000000;
+
     --grid-line: rgba(0, 0, 0, 0.1);
+
 }
+
+
+
+@media (min-width: 1024px) {
+
+    :root {
+
+        --space-sm: 32px;
+
+        --space-md: 64px;
+
+        --space-lg: 120px;
+
+        --space-xl: 200px;
+
+        --space-xxl: 350px;
+
+    }
+
+}
+
+
 
 * {
+
     margin: 0;
+
     padding: 0;
+
     box-sizing: border-box;
+
     -webkit-tap-highlight-color: transparent;
+
 }
+
+
 
 html {
+
     scroll-behavior: smooth;
+
 }
+
+
 
 /* --- VOLTERA CHROMATIC SELECTION --- */
+
 /* Global Selection (Spazio Scuro / Default) - Holographic Glow */
+
 ::-moz-selection {
+
     background: transparent;
+
     color: #FFFFFF;
+
     text-shadow:
+
         0 0 8px rgba(200, 224, 240, 0.8),
+
         0 0 16px rgba(200, 224, 240, 0.5),
+
         0 0 24px rgba(200, 224, 240, 0.3);
+
 }
+
+
 
 ::selection {
+
     background: transparent;
+
     color: #FFFFFF;
+
     text-shadow:
+
         0 0 8px rgba(200, 224, 240, 0.8),
+
         0 0 16px rgba(200, 224, 240, 0.5),
+
         0 0 24px rgba(200, 224, 240, 0.3);
+
 }
+
+
 
 /* Theme-Specific Selection (Spazio Chiaro) - Chrome Engraved Effect */
+
 body.light-theme ::-moz-selection {
+
     background: transparent;
+
     color: #080808;
+
     text-shadow:
+
         0 0.5px 0 rgba(0, 0, 0, 0.8),
+
         0 1px 2px rgba(128, 128, 128, 0.3);
+
 }
+
+
 
 body.light-theme ::selection {
+
     background: transparent;
+
     color: #080808;
+
     text-shadow:
+
         0 0.5px 0 rgba(0, 0, 0, 0.8),
+
         0 1px 2px rgba(128, 128, 128, 0.3);
+
 }
+
+
 
 body {
+
     background-color: var(--bg-color);
+
     color: var(--text-primary);
+
     font-family: var(--font-tech);
+
     -webkit-font-smoothing: antialiased;
+
     overflow-x: hidden;
+
     transition: background-color 2.5s var(--ease-out-expo), color 2.5s var(--ease-out-expo) !important;
+
 }
+
+
 
 body.scroll-lock {
+
     overflow: hidden;
+
     padding-right: var(--scrollbar-width, 0px);
+
 }
+
+
 
 /* --- 2. STILI HERO SECTION (ATMOSPHERIC) --- */
+
 .hero-section {
+
     position: relative;
+
     width: 100%;
+
     height: 100vh;
+
     display: flex;
+
     justify-content: center;
+
     align-items: center;
+
     overflow: hidden;
+
     background: #000;
+
 }
+
+
 
 #canvas-container {
+
     position: absolute;
+
     top: 0;
+
     left: 0;
+
     width: 100%;
+
     height: 100%;
+
     z-index: 0;
+
     background: transparent;
+
 }
+
+
 
 .ui-overlay {
+
     position: absolute;
+
     top: 0;
+
     left: 0;
+
     width: 100%;
+
     height: 100%;
+
     z-index: 10;
+
     display: flex;
+
     flex-direction: column;
+
     justify-content: center;
+
     align-items: center;
+
     text-align: center;
+
     padding: 20px;
+
     pointer-events: none;
+
     mix-blend-mode: exclusion;
+
 }
+
+
 
 .content-wrapper {
+
     animation: fadeInUp 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
     opacity: 0;
+
     animation-delay: 0.5s;
+
     margin-bottom: 2rem;
+
     pointer-events: none;
+
 }
+
+
 
 .action-wrapper {
+
     position: absolute;
+
     bottom: 10%;
+
     animation-delay: 1s;
+
     opacity: 0;
+
     animation: fadeInUp 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
     pointer-events: auto;
+
 }
+
+
 
 .hero-title {
+
     font-family: var(--font-main);
+
     font-weight: 500;
+
     font-size: clamp(3.5rem, 11vw, 9rem);
+
     line-height: 0.85;
+
     letter-spacing: -0.04em;
+
     margin-bottom: 2rem;
+
     text-transform: uppercase;
+
 }
+
+
 
 .hero-subtitle {
+
     font-family: var(--font-main);
+
     font-weight: 300;
+
     font-size: clamp(0.75rem, 1.2vw, 0.95rem);
+
     line-height: 1.8;
+
     max-width: 500px;
+
     margin: 0 auto;
+
     letter-spacing: 0.12em;
+
     text-transform: uppercase;
+
     color: rgba(255, 255, 255, 0.8);
+
 }
+
+
 
 .cta-button {
+
     display: inline-block;
+
     text-decoration: none;
+
     color: #fff;
+
     font-size: 0.7rem;
+
     font-weight: 600;
+
     letter-spacing: 0.25em;
+
     text-transform: uppercase;
+
     border: 1px solid rgba(255, 255, 255, 0.5);
+
     padding: 18px 36px;
+
     transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+
     backdrop-filter: blur(5px);
+
     cursor: pointer;
+
 }
+
+
 
 .cta-button:hover {
+
     background-color: #fff;
+
     color: #000;
+
     box-shadow: 0 0 40px rgba(255, 255, 255, 0.4);
+
     transform: translateY(-2px);
+
 }
+
+
 
 @keyframes fadeInUp {
+
     from {
+
         opacity: 0;
+
         transform: translateY(40px);
+
     }
+
+
 
     to {
+
         opacity: 1;
+
         transform: translateY(0);
+
     }
+
 }
+
+
 
 #loader {
+
     position: fixed;
+
     top: 0;
+
     left: 0;
+
     width: 100%;
+
     height: 100%;
+
     background: #000;
+
     z-index: 9999;
+
     display: flex;
+
     justify-content: center;
+
     align-items: center;
+
     transition: opacity 0.5s ease;
+
     pointer-events: none;
+
 }
+
+
 
 .spinner {
+
     width: 40px;
+
     height: 40px;
+
     border: 2px solid #333;
+
     border-top: 2px solid #fff;
+
     border-radius: 50%;
+
     animation: spin 1s linear infinite;
+
 }
+
+
 
 @keyframes spin {
+
     100% {
+
         transform: rotate(360deg);
+
     }
+
 }
+
+
 
 /* --- 3. TIPOGRAFIA HOMEPAGE STANDARD --- */
+
 /* Extracting Heading Styles for Visual Classes */
+
 .display-huge,
+
 .display-large,
+
 .display-medium {
+
     font-family: var(--font-display);
+
     font-weight: 700;
+
     line-height: 0.95;
+
     letter-spacing: -0.02em;
+
 }
+
+
 
 /* Global Heading Reset (SEO Invisible Layer) */
+
 h1,
+
 h2,
+
 h3,
+
 h4,
+
 h5,
+
 h6 {
+
     margin: 0;
+
     padding: 0;
+
     font-size: inherit;
+
     font-weight: inherit;
+
     line-height: inherit;
+
     display: block;
+
 }
+
+
 
 .display-huge {
+
     font-size: clamp(3.5rem, 10vw, 8rem);
+
     margin-bottom: var(--space-sm);
+
 }
+
+
 
 .display-large {
+
     font-size: clamp(2.5rem, 6vw, 5rem);
+
     margin-bottom: var(--space-sm);
+
 }
+
+
 
 .display-medium {
+
     font-size: clamp(2rem, 4vw, 3.5rem);
+
     margin-bottom: var(--space-xs);
+
 }
+
+
 
 /* SCROLL FADE TITLE STYLE */
+
 #fade-title {
+
     opacity: 0;
+
     transform: translateY(40px);
+
     will-change: opacity, transform;
+
 }
+
+
 
 /* --- 4. NAVIGAZIONE --- */
+
 nav {
+
     position: fixed;
+
     top: 0;
+
     left: 0;
+
     width: 100%;
+
     padding: var(--space-sm) 5%;
+
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
+
     z-index: 1000;
+
     mix-blend-mode: difference;
+
     color: white;
+
 }
+
+
 
 .logo {
+
     font-family: var(--font-display);
+
     font-weight: 800;
+
     font-size: 1.5rem;
+
     letter-spacing: -0.04em;
+
 }
+
+
 
 .nav-links {
+
     display: none;
+
     gap: 32px;
+
 }
+
+
 
 .link-hover-std {
+
     font-family: var(--font-tech);
+
     font-weight: 500;
+
     text-transform: uppercase;
+
     font-size: 0.8rem;
+
     letter-spacing: 0.05em;
+
     text-decoration: none;
+
     color: inherit;
+
     padding-bottom: 4px;
+
     border-bottom: 1px solid transparent;
+
     transition: border-color 0.3s ease;
+
 }
+
+
 
 .link-hover-std:hover {
+
     border-bottom: 1px solid var(--accent-color);
+
 }
+
+
 
 .menu-trigger {
+
     display: flex;
+
     cursor: pointer;
+
     z-index: 1100;
+
 }
+
+
 
 .mobile-overlay {
+
     position: fixed;
+
     top: 0;
+
     right: -100%;
+
     width: 100%;
+
     height: 100vh;
+
     background: var(--bg-color);
+
     z-index: 1050;
+
     display: flex;
+
     flex-direction: column;
+
     justify-content: center;
+
     align-items: center;
+
     gap: 32px;
+
     transition: right 0.6s var(--ease-out-expo);
+
 }
+
+
 
 .mobile-overlay.active {
+
     right: 0;
+
 }
+
+
 
 .mobile-overlay a {
+
     font-family: var(--font-display);
+
     font-size: 2.5rem;
+
     font-weight: 700;
+
     text-decoration: none;
+
     color: var(--text-primary);
+
 }
 
+
+
 @media (min-width: 1024px) {
+
     .nav-links {
+
         display: flex;
+
     }
+
+
 
     .menu-trigger {
+
         display: none;
+
     }
+
 }
+
+
 
 /* --- 5. LAYOUT & GRID --- */
+
 .container {
+
     width: 90%;
+
     max-width: 1440px;
+
     margin: 0 auto;
+
     position: relative;
+
 }
+
+
 
 section.main-content {
+
     padding: var(--space-xl) 0;
+
     position: relative;
+
 }
+
+
 
 section.main-content.vision {
+
     padding-top: var(--space-xxl);
+
     padding-bottom: var(--space-xxl);
+
 }
+
+
 
 /* Vision - Long Decay Gradient */
+
 .vision {
+
     position: relative;
+
     background-color: var(--bg-color);
+
     transition: background-color 1.8s var(--ease-out-expo);
+
 }
+
+
 
 .vision::before {
+
     content: '';
+
     display: block;
+
     position: absolute;
+
     top: 0;
+
     left: 0;
+
     width: 100%;
+
     height: 50vh;
+
     background: linear-gradient(to bottom, #000000 0%, #040404 40%, #080808 100%);
+
     z-index: 5;
+
     pointer-events: none;
+
 }
+
+
 
 body.light-theme .vision::before {
+
     opacity: 0;
+
     transition: opacity 1.8s var(--ease-out-expo);
+
 }
+
+
 
 .vision .container {
+
     position: relative;
+
     z-index: 10;
+
 }
+
+
 
 /* Reveal Text Animation - Penombra Attiva */
+
 .reveal-text {
+
     opacity: 0;
+
     transform: translateY(100px);
+
     filter: blur(20px);
+
     will-change: transform, opacity, filter;
+
 }
+
+
 
 .grid-asym {
+
     display: grid;
+
     grid-template-columns: 1fr;
+
     gap: var(--space-md);
+
 }
+
+
 
 @media (min-width: 1024px) {
+
     .grid-asym {
+
         grid-template-columns: 2fr 10fr;
+
     }
+
+
 
     .grid-asym-reverse {
+
         display: grid;
+
         grid-template-columns: 6fr 6fr;
+
     }
+
 }
+
+
 
 /* --- 6. COMPONENTI --- */
+
 .work-card {
+
     display: block;
+
     margin-bottom: var(--space-lg);
+
     text-decoration: none;
+
     color: inherit;
+
 }
+
+
 
 .work-media {
+
     width: 100%;
+
     aspect-ratio: 16/9;
+
     background-color: #1a1a1a;
+
     margin-bottom: var(--space-xs);
+
     overflow: hidden;
+
     filter: grayscale(100%);
+
     transition: filter 0.6s ease;
+
 }
+
+
 
 .work-card:hover .work-media {
+
     filter: grayscale(0%);
+
 }
+
+
 
 .work-media img {
+
     width: 100%;
+
     height: 100%;
+
     object-fit: cover;
+
     transition: transform 1.2s var(--ease-out-expo);
+
 }
 
+
+
 .work-card:hover .work-media img {
+
     transform: scale(1.05);
+
 }
+
+
+
+
 
 
 
 .client-grid {
+
     display: grid;
+
     grid-template-columns: repeat(2, 1fr);
+
     gap: var(--space-md);
+
     opacity: 0.3;
+
 }
+
+
 
 @media (min-width: 768px) {
+
     .client-grid {
+
         grid-template-columns: repeat(4, 1fr);
+
     }
+
 }
+
+
 
 footer {
+
     border-top: 1px solid var(--grid-line);
+
     padding: var(--space-md) 0;
+
     margin-top: var(--space-xl);
+
 }
 
-/* --- 7. AOX SECTION (Luxury Future UI) --- */
-:root {
-    --platinum-border: rgba(200, 200, 210, 0.15);
-    --glass-blur: 12px;
-    --tile-glow: rgba(255, 255, 255, 0.05);
-}
 
-.aox-container {
-    position: relative;
-}
 
-.aox-header {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
+/* --- 7. AOX SECTION (REFACTORING v2026) --- */
 
-.aox-title {
-    font-family: var(--font-display);
-    font-weight: 800;
-    letter-spacing: -0.04em;
-    text-transform: uppercase;
-    font-size: clamp(2rem, 5vw, 4.2rem);
-    text-align: right;
-}
+/* Layered Architecture: Mobile First -> Tablet -> Desktop */
 
-.aox-badge,
-.method-badge,
-.collab-badge {
+.aox-badge {
     font-family: 'Courier New', monospace;
     font-size: 0.7rem;
     text-transform: uppercase;
     opacity: 0.5;
     letter-spacing: 0.1em;
     margin-bottom: var(--space-sm);
+    display: block;
 }
 
-#aox-canvas-container {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60%;
-    height: 80%;
-    z-index: 1;
-    pointer-events: none;
+/* =========================================
+
+   LAYER 1: MOBILE CORE (Default / :root)
+
+   Logica: Accordion Verticale, Content-First
+
+   ========================================= */
+
+/* --- LAYER 1: IMPLEMENTAZIONE MOBILE CORE --- */
+
+
+
+/* --- LAYER 1: MOBILE CORE (Design Originale Fedele) --- */
+
+
+
+/* 1. CONTAINER & STRUTTURA */
+
+.aox-container {
+
+    position: relative;
+
+    display: flex;
+
+    flex-direction: column;
+
+    min-height: auto;
+
+    /* Reset altezza per mobile */
+
+    gap: var(--space-xs);
+
+    padding-bottom: var(--space-xl);
+
 }
+
+
+
+.aox-header {
+
+    display: flex;
+
+    flex-direction: column;
+
+    /* Stack verticale su mobile */
+
+    gap: var(--space-xs);
+
+    align-items: flex-end;
+
+    margin-bottom: var(--space-md);
+
+}
+
+
+
+/* Griglia diventa Lista Verticale (Accordion) */
 
 .aox-tiles-grid {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: var(--space-sm);
-    position: relative;
-    z-index: 10;
 
-    /* --- INFRASTRUTTURA GRIGLIA MAGNETICA --- */
-    --grid-step: calc(100% / 12);
+    display: flex;
 
-    /* Variabili di Spostamento Magnetico (Multipli di griglia) */
-    --shift-narrow: var(--grid-step);
-    /* Spostamento di 1 colonna */
-    --shift-mid: calc(var(--grid-step) * 2);
-    /* Spostamento di 2 colonne */
-    --shift-wide: calc(var(--grid-step) * 3);
-    /* Spostamento di 3 colonne */
-    --shift-t5-outer: calc(var(--grid-step) * 1.5);
-    /* Spinta laterale specifica per Tile 5 */
+    flex-direction: column;
+
+    gap: 10px;
+
+    /* Gap originale mobile */
+
+    width: 100%;
+
 }
+
+
+
+/* --- AGGIORNAMENTO LOGICA ACCORDION MOBILE (Visual Merge) --- */
+
+
 
 .aox-tile {
+
+    /* Layout Grid a 3 Righe */
+
+    display: grid;
+
+    grid-template-rows: auto 0fr 0fr;
+
+    /* Default: Desc e Panel chiusi */
+
+
+
+    /* Reset & Stili Base */
+
     position: relative;
-    padding: var(--space-sm);
-    border-top: 0.5px solid transparent;
-    border-left: 0.5px solid transparent;
+
+    padding: 0;
+
     background: transparent;
 
-    /* FISICA DEL MOVIMENTO: Curva Voltera */
-    transition:
-        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-        border 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-        background 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-        backdrop-filter 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-        opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-
-    overflow: hidden;
-    pointer-events: auto;
-    will-change: transform;
-}
-
-/* STATO ATTIVO: Coerenza Multimodale */
-.aox-tile:hover {
-    z-index: 100 !important;
-    transform: scale(1.02);
-
-    /* Clean design: backgrounds and borders removed */
-    background: transparent;
-    border-top: 0.5px solid transparent;
-    border-left: 0.5px solid transparent;
-
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    /* Deep shadow removed for clean design */
-    overflow: visible;
-}
-
-/* Staggered Grid Layout */
-.aox-tile-1 {
-    grid-column: 1 / 5;
-}
-
-.aox-tile-2 {
-    grid-column: 9 / 14;
-}
-
-.aox-tile-3 {
-    grid-column: 2 / 6;
-    margin-top: var(--space-sm);
-}
-
-.aox-tile-4 {
-    grid-column: 8 / 12;
-    margin-top: var(--space-sm);
-}
-
-.aox-tile-5 {
-    grid-column: 4 / 9;
-    margin-top: var(--space-sm);
-}
-
-
-
-/* Tile Typography */
-.tile-title {
-    font-family: var(--font-display);
-    font-size: clamp(1.1rem, 2vw, 1.4rem);
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    margin-bottom: var(--space-xs);
-    line-height: 1.2;
-    color: #FFFFFF;
-    mix-blend-mode: plus-lighter;
-}
-
-.tile-desc {
-    font-family: var(--font-main);
-    font-size: 0.9rem;
-    line-height: 1.6;
-    opacity: 0.7;
-    margin-bottom: var(--space-xs);
-    color: #FFFFFF;
-    mix-blend-mode: plus-lighter;
-}
-
-.tile-coords {
-    font-family: 'Courier New', monospace;
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.aox-tile:hover .tile-coords {
-    opacity: 0.4;
-}
-
-/* --- Satellite Info-Boxes --- */
-.aox-panel {
-    position: absolute;
-    top: 0;
-    width: 280px;
-    padding: var(--space-sm);
     border: none;
-    background: transparent;
-    /* Semi-transparent base removed */
 
-    /* AFFIORAMENTO: Stato iniziale (nascosto nella penombra) */
-    opacity: 0;
-    filter: blur(10px);
+    overflow: visible;
+
+    transition: grid-template-rows 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+
+}
+
+
+
+/* STATO ATTIVO */
+
+.aox-tile.is-active {
+
+    grid-template-rows: auto auto 1fr;
+
+}
+
+
+
+/* --- 1. TILE TITLE (Header Superiore) --- */
+
+.tile-title {
+
+    grid-row: 1;
+
+    position: relative;
+
+    z-index: 2;
+
+    /* Sopra per gestire i bordi */
+
+    min-height: 80px;
+
+    display: flex;
+
+    align-items: center;
+
+    padding: 16px 20px;
+
+    margin: 0;
+
+    cursor: pointer;
+
+
+
+    /* Stile Tech Mobile */
+
+    font-family: 'Space Grotesk', var(--font-main), sans-serif;
+
+    font-size: 0.65rem;
+
+    font-weight: 500;
+
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+
+    color: rgba(255, 255, 255, 0.85);
+
+
+
+    /* Background Condiviso */
+
+    background: rgba(255, 255, 255, 0.03);
+
+    transition: background 0.4s;
+
+}
+
+
+
+/* Gestione Brackets (Angoli) */
+
+@keyframes breathing-border {
+
+
+
+    0%,
+
+    100% {
+
+        opacity: 0.1;
+
+    }
+
+
+
+    50% {
+
+        opacity: 0.3;
+
+    }
+
+}
+
+
+
+/* Top-Left: Sempre visibile sul titolo */
+
+.tile-title::before {
+
+    content: '';
+
+    position: absolute;
+
+    top: 0;
+
+    left: 0;
+
+    width: 20px;
+
+    height: 20px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+
     pointer-events: none;
 
-    /* Transizione atmosferica */
-    transition:
-        opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s,
-        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-        filter 0.6s ease 0.1s;
+    animation: breathing-border 3s ease-in-out infinite;
 
-    z-index: 20;
 }
 
-/* Smart Docking - Initial Offsets for Affioramento */
-.panel-right {
-    left: 100%;
-    margin-left: var(--space-xs);
-    transform: translateX(-30px);
-    /* Parte leggermente "dentro" */
+
+
+/* Bottom-Right: Visibile SOLO quando chiuso */
+
+.tile-title::after {
+
+    content: '';
+
+    position: absolute;
+
+    bottom: 0;
+
+    right: 0;
+
+    width: 20px;
+
+    height: 20px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+
+    pointer-events: none;
+
+    animation: breathing-border 3s ease-in-out infinite 1.5s;
+
+    transition: opacity 0.2s;
+
 }
 
-.panel-left {
-    right: 100%;
-    margin-right: var(--space-xs);
-    transform: translateX(30px);
-    /* Parte leggermente "dentro" */
-}
-
-/* Reveal on Hover - L'EMERSIONE */
-.aox-tile:hover .aox-panel {
+.aox-tile.is-active .tile-title::before {
+    border-color: rgba(255, 255, 255, 0.9);
+    animation: none;
     opacity: 1;
-    filter: blur(0px);
-    /* Focus progressivo */
-    pointer-events: auto;
-    transform: translateX(0);
-    /* Raggiunge la posizione finale */
 }
 
-/* Panel Typography */
-.panel-title {
-    font-family: var(--font-main);
-    font-weight: 600;
-    font-size: 0.85rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: #FFFFFF;
-    margin-bottom: var(--space-xs);
-    padding-bottom: 8px;
-    border-bottom: 0.5px solid rgba(200, 200, 210, 0.1);
+/* Quando attivo, nascondi l'angolo del titolo (passa alla desc) */
+
+.aox-tile.is-active .tile-title::after {
+
+    opacity: 0;
+
 }
+
+
+
+/* Highlight attivo */
+
+.aox-tile.is-active .tile-title {
+
+    background: rgba(255, 255, 255, 0.08);
+
+    /* Leggermente più chiaro */
+
+}
+
+
+
+/* --- 2. TILE DESC (Header Inferiore - "Inside") --- */
+
+.aox-tile .tile-desc {
+
+    grid-row: 2;
+
+    position: relative;
+
+    overflow: hidden;
+
+
+
+    /* Layout */
+
+    display: block;
+
+    margin: 0;
+
+    padding: 0 20px;
+
+    /* Stesso padding laterale del titolo */
+
+
+
+    /* Stile Visivo Merge */
+
+    background: rgba(255, 255, 255, 0.08);
+
+    /* Stesso bg del titolo attivo */
+
+
+
+    /* Tipografia */
+
+    font-family: var(--font-main);
+
+    font-size: 0.85rem;
+
+    line-height: 1.5;
+
+    color: var(--text-primary);
+
+
+
+    opacity: 0;
+
+    transform: translateY(-5px);
+
+    transition: all 0.3s ease;
+
+}
+
+
+
+/* Quando attivo */
+
+.aox-tile.is-active .tile-desc {
+
+    opacity: 0.9;
+
+    transform: translateY(0);
+
+    padding-bottom: 20px;
+
+    /* Spazio finale prima del pannello */
+
+}
+
+
+
+/* Bottom-Right Bracket: Appare sulla Descrizione quando attiva */
+
+.aox-tile.is-active .tile-desc::after {
+
+    content: '';
+
+    position: absolute;
+
+    bottom: 0;
+
+    right: 0;
+
+    width: 20px;
+
+    height: 20px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.9);
+
+    /* Più solido quando attivo */
+
+    border-right: 1px solid rgba(255, 255, 255, 0.9);
+
+    pointer-events: none;
+
+}
+
+
+
+/* --- 3. PANNELLO (Contenuto Separato) --- */
+
+.aox-panel {
+
+    grid-row: 3;
+
+    position: relative;
+
+    width: 100%;
+
+    margin-top: 4px;
+
+    /* Piccolo stacco visivo dal blocco titolo+desc */
+
+
+
+    padding: var(--space-sm);
+
+    background: rgba(8, 8, 8, 0.6);
+
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+
+    /* Linea guida visiva */
+
+
+
+    opacity: 0;
+
+    overflow: hidden;
+
+    pointer-events: none;
+
+    transition: opacity 0.4s 0.1s;
+
+}
+
+
+
+.aox-tile.is-active .aox-panel {
+
+    opacity: 1;
+
+    pointer-events: auto;
+
+}
+
+
+
+/* Helper Classi Interne (Invariate) */
+
+.aox-tile .tile-coords {
+
+    display: none;
+
+}
+
+
+
+.panel-title {
+
+    font-family: var(--font-main);
+
+    font-weight: 600;
+
+    font-size: 0.85rem;
+
+    text-transform: uppercase;
+
+    margin-bottom: 12px;
+
+    color: #fff;
+
+}
+
+
+
+.panel-desc {
+
+    font-family: var(--font-tech);
+
+    font-size: 0.8rem;
+
+    line-height: 1.6;
+
+    opacity: 0.8;
+
+    margin-bottom: 16px;
+
+}
+
+
 
 .panel-specs {
-    list-style: none;
+
     font-family: var(--font-tech);
-    font-weight: 400;
-    font-size: 0.8rem;
-    line-height: 1.8;
-    color: rgba(255, 255, 255, 0.6);
+
+    font-size: 0.75rem;
+
+    opacity: 0.6;
+
+    list-style: none;
+
 }
+
+
 
 .panel-specs li::before {
+
     content: '—';
+
     margin-right: 8px;
-    opacity: 0.4;
+
 }
 
-/* Panel Description & Coords Typography */
-.panel-desc {
-    font-family: var(--font-tech);
-    font-size: 0.75rem;
-    line-height: 1.7;
-    color: rgba(255, 255, 255, 0.65);
-    margin-bottom: var(--space-xs);
-}
+
 
 .panel-coords {
+
     display: block;
-    font-family: 'Courier New', monospace;
+
+    font-family: monospace;
+
     font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.35);
-    margin-top: var(--space-xs);
+
+    margin-top: 16px;
+
+    opacity: 0.4;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
     padding-top: 8px;
-    border-top: 0.5px solid rgba(200, 200, 210, 0.08);
+
 }
 
-/* --- MATRICE DI REAZIONE DESKTOP (>1024px) --- */
-@media (min-width: 1024px) {
 
-    /* 1. DISTRUZIONE DEI "CONTAINING BLOCKS" */
-    .aox-tiles-grid {
-        position: static;
+
+#aox-canvas-container {
+
+    display: none;
+
+}
+
+
+
+
+
+/* =========================================
+
+   LAYER 2: TABLET BRIDGE (min-width: 768px)
+
+   Logica: Grid Auto-Fit, Master Panel, Split Zone
+
+   ========================================= */
+
+/* =========================================
+
+   LAYER 2: TABLET BRIDGE (min-width: 768px)
+
+   Logica: Grid Auto-Fit, Master Panel, Split Zone
+
+   ========================================= */
+
+@media (min-width: 768px) {
+
+
+
+    /* 1. CONTAINER & LAYOUT */
+
+    .aox-container {
+
+        position: relative;
+
+        display: flex;
+
+        flex-direction: column;
+
+        min-height: 85vh;
+
+        overflow: visible;
+
+        padding-bottom: 100px;
+
+        /* Spazio extra per la descrizione sotto */
+
     }
+
+
+
+    /* 2. CANVAS 3D (Visibile in alto) */
+
+    #aox-canvas-container {
+
+        display: flex;
+
+        position: relative;
+
+        order: 1;
+
+        width: 100%;
+
+        height: 45vh;
+
+        /* Altezza bilanciata */
+
+        justify-content: center;
+
+        align-items: center;
+
+        transform: none !important;
+
+        pointer-events: none;
+
+        z-index: 1;
+
+    }
+
+
+
+    #aox-canvas-container canvas {
+
+        pointer-events: auto;
+
+    }
+
+
+
+    /* 3. GRIGLIA PULSANTI (Centro Operativo) */
+
+    .aox-tiles-grid {
+
+        position: relative;
+
+        order: 2;
+
+        display: grid;
+
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+
+        gap: 10px;
+
+        width: 100%;
+
+        margin-top: 0;
+
+        z-index: 10;
+
+    }
+
+
+
+    /* 4. TILE STERILIZZATA */
 
     .aox-tile {
+
+        display: block;
+
         position: static;
-        transform: none;
-        will-change: auto;
+
+        padding: 0;
+
+        background: transparent;
+
+        border: none;
+
         overflow: visible;
-        /* Rimuoviamo qualsiasi animazione che possa creare stacking context involontari */
-        transition: opacity 0.8s var(--ease-voltera);
+
+        height: auto;
+
     }
 
-    /* Rimuoviamo il scale(1.02) all'hover per evitare il blocco */
-    .aox-tile:hover {
-        transform: none;
-        z-index: auto;
+
+
+    .aox-tile.is-active {
+
+        background: transparent;
+
     }
 
-    /* 2. SPOSTAMENTO REAZIONE CINETICA (Child Animation) */
 
-    /* Bufferizzare l'animazione sui figli per non rompere il layout */
+
+    /* 5. TILE TITLE (Il Pulsante) */
+
     .tile-title {
+
+        min-height: 80px;
+
+        padding: 16px 20px;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: flex-start;
+
+        text-align: left;
+
+        background: rgba(255, 255, 255, 0.03);
+
+        border: none;
+
+        transition: background 0.4s, transform 0.4s;
+
+    }
+
+
+
+    /* Breathing Borders */
+
+    @keyframes breathing-border {
+
+
+
+        0%,
+
+        100% {
+
+            opacity: 0.1;
+
+        }
+
+
+
+        50% {
+
+            opacity: 0.3;
+
+        }
+
+    }
+
+
+
+    .tile-title::before {
+
+        content: '';
+
+        position: absolute;
+
+        top: 0;
+
+        left: 0;
+
+        width: 20px;
+
+        height: 20px;
+
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+
+        border-left: 1px solid rgba(255, 255, 255, 0.2);
+
+        animation: breathing-border 3s ease-in-out infinite;
+
+        display: block;
+
+    }
+
+
+
+    .tile-title::after {
+
+        content: '';
+
+        position: absolute;
+
+        bottom: 0;
+
+        right: 0;
+
+        width: 20px;
+
+        height: 20px;
+
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+
+        border-right: 1px solid rgba(255, 255, 255, 0.2);
+
+        animation: breathing-border 3s ease-in-out infinite 1.5s;
+
+        opacity: 1;
+
+        display: block;
+
+    }
+
+
+
+    .aox-tile.is-active .tile-title {
+
+        background: rgba(255, 255, 255, 0.1);
+
+    }
+
+
+
+    .aox-tile.is-active .tile-title::before,
+    .aox-tile.is-active .tile-title::after {
+        opacity: 1;
+        border-color: rgba(255, 255, 255, 0.9);
+        animation: none;
+    }
+
+
+
+    /* 6. DESCRIZIONE (Quadrante Inferiore - SOTTO la Griglia) */
+
+    .aox-tile .tile-desc {
+
+        display: none;
+
+    }
+
+
+
+    .aox-tile.is-active .tile-desc {
+
+        display: block;
+
+        position: absolute;
+
+        z-index: 100;
+
+        top: 100%;
+
+        left: 5%;
+
+        width: 90%;
+
+        margin-top: 25px;
+
+        background: rgba(8, 8, 8, 0.6);
+
+        backdrop-filter: blur(20px);
+
+        -webkit-backdrop-filter: blur(20px);
+
+        padding: var(--space-sm);
+
+        border: 0.5px solid rgba(200, 200, 210, 0.15);
+
+        font-family: var(--font-main);
+
+        font-size: 0.85rem;
+
+        line-height: 1.7;
+
+        color: rgba(255, 255, 255, 0.75);
+
+        opacity: 0;
+
+        transform: translateY(-10px);
+
+        animation: desc-emerge 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+    }
+
+
+
+    @keyframes desc-emerge {
+
+        to {
+
+            opacity: 1;
+
+            transform: translateY(0);
+
+        }
+
+    }
+
+
+
+    /* 7. MASTER PANEL (Info Tecniche - SOPRA la Griglia) */
+
+    .aox-panel {
+
+        position: absolute;
+
+        z-index: 120;
+
+        bottom: 100%;
+
+        left: 5%;
+
+        width: 90%;
+
+        margin-bottom: 20px;
+
+        background: rgba(8, 8, 8, 0.3);
+
+        backdrop-filter: blur(5px);
+
+        border: 1px solid rgba(255, 255, 255, 0.1);
+
+        padding: var(--space-md);
+
+        opacity: 0;
+
+        transform: translateY(-15px);
+
+        transition: all 0.7s var(--ease-out-expo);
+
+        pointer-events: none;
+
+        display: block;
+
+    }
+
+
+
+    .aox-tile.is-active .aox-panel {
+
+        opacity: 1;
+
+        transform: translateY(0);
+
+        pointer-events: auto;
+
+    }
+
+
+
+    .panel-title {
+
+        margin-bottom: 8px;
+
+        border-bottom: 0.5px solid rgba(200, 200, 210, 0.1);
+
+    }
+
+
+
+    /* CORREZIONE: Manteniamo visibile la descrizione anche nel pannello superiore */
+
+    .panel-desc {
+
+        display: block;
+
+        /* ERA display: none; */
+
+        font-family: var(--font-tech);
+
+        font-size: 0.8rem;
+
+        line-height: 1.6;
+
+        opacity: 0.9;
+
+        margin-bottom: 12px;
+
+    }
+
+}
+
+
+
+
+
+/* =========================================
+
+   /* =========================================
+   LAYER 3: DESKTOP VISION (min-width: 1024px)
+   Logica: Asym Grid 12-col, Docking Laterale, Hover 3D
+   Obiettivo: Ripristino fedele styleBACKUP.css
+   ========================================= */
+
+@media (min-width: 1024px) {
+
+    /* --- 1. RESET STRUTTURALE (Override Tablet) --- */
+
+    .aox-container {
+        display: block;
+        /* Rimuove flex column del mobile/tablet */
+        min-height: auto;
+        padding-bottom: 0;
+        overflow: visible;
+        /* Necessario per i pannelli fluttuanti */
+    }
+
+    .aox-header {
+        flex-direction: row;
+        /* Torna orizzontale */
+        align-items: baseline;
+        justify-content: flex-end;
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+    }
+
+    .aox-title {
+        text-align: right;
+    }
+
+    /* --- 2. CANVAS 3D (Posizionamento Assoluto "The Void") --- */
+
+    #aox-canvas-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) !important;
+        width: 60%;
+        height: 80%;
+        z-index: 0;
+        pointer-events: none;
+        display: block;
+        /* Override flex del tablet */
+    }
+
+    /* --- 3. GRIGLIA ASIMMETRICA (12 Colonne) --- */
+
+    .aox-tiles-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        /* Griglia fissa 12 col */
+        gap: var(--space-sm);
+        position: static;
+        /* Anchor point per i pannelli desktop */
+        z-index: 10;
+        width: 100%;
+
+        /* Variabili griglia per calcoli precisi */
+        --grid-step: calc(100% / 12);
+    }
+
+    /* --- 4. TILE LAYOUT (Staggered Pattern) --- */
+
+    /* Reset totale della Tile dallo stile "Bottone Tablet" */
+    .aox-tile {
+        position: static;
+        /* Cruciale: evita stacking context locali */
+        height: auto;
+        padding: var(--space-sm);
+        border-top: 0.5px solid transparent;
+        /* Predisposizione hover */
+        border-left: 0.5px solid transparent;
+        background: transparent;
+        transition:
+            opacity 0.8s var(--ease-voltera),
+            border 0.8s var(--ease-voltera);
+
+        /* Reset Grid Interna (Accordion) */
+        display: block;
+    }
+
+    /* Posizionamento Tiles (Fedele al Backup) */
+    .aox-tile-1 {
+        grid-column: 1 / 5;
+    }
+
+    .aox-tile-2 {
+        grid-column: 9 / 14;
+    }
+
+    .aox-tile-3 {
+        grid-column: 2 / 6;
+        margin-top: var(--space-sm);
+    }
+
+    .aox-tile-4 {
+        grid-column: 8 / 12;
+        margin-top: var(--space-sm);
+    }
+
+    .aox-tile-5 {
+        grid-column: 4 / 9;
+        margin-top: var(--space-sm);
+    }
+
+    /* Dimming Effect: Quando una è hover, le altre svaniscono */
+    .aox-tiles-grid:has(.aox-tile:hover) .aox-tile:not(:hover) {
+        opacity: 0;
+    }
+
+    /* --- 5. TIPOGRAFIA & STILE VISIVO (Reset Button Look) --- */
+
+    /* Reset Titolo (Via background, via breathing borders) */
+    .tile-title {
+        font-family: var(--font-display);
+        /* Syne */
+        font-size: clamp(1.1rem, 2vw, 1.4rem);
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        line-height: 1.2;
+        text-transform: none;
+        /* Reset uppercase forzato */
+        color: #FFFFFF;
+        mix-blend-mode: plus-lighter;
+
+        /* Reset Box Model Tablet */
+        min-height: auto;
+        padding: 0;
+        padding-bottom: var(--space-xs);
+        background: transparent !important;
+        display: block;
+        text-align: left;
+
+        /* Animazione Cinetic */
         transform-origin: left center;
         transition: transform 0.8s var(--ease-voltera), color 0.8s var(--ease-voltera);
     }
 
-    .tile-desc,
-    .tile-coords {
-        transform-origin: left center;
+    /* Distruzione Breathing Borders del Tablet */
+    .tile-title::before,
+    .tile-title::after {
+        display: none !important;
+        animation: none !important;
+    }
+
+    /* Reset Descrizione (Deve essere visibile subito, non hidden) */
+    .aox-tile .tile-desc {
+        display: block !important;
+        /* Override display:none del tablet */
+        position: relative;
+        top: auto;
+        left: auto;
+        width: auto;
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        border: none;
+        backdrop-filter: none;
+        opacity: 0.7;
+        transform: none;
+        animation: none;
+
+        /* Font Originale Desktop */
+        font-family: var(--font-main);
+        font-size: 0.9rem;
+        color: #FFFFFF;
+        mix-blend-mode: plus-lighter;
+        padding-bottom: var(--space-xs);
+
         transition: transform 0.8s var(--ease-voltera), opacity 0.8s var(--ease-voltera);
     }
 
-    /* Interaction State */
+    .tile-coords {
+        display: block !important;
+        /* Ritorna visibile su desktop */
+        font-family: 'Courier New', monospace;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        opacity: 0.4;
+        transition: transform 0.8s var(--ease-voltera), opacity 0.8s var(--ease-voltera);
+    }
+
+    /* --- 6. INTERAZIONE HOVER (Cinematica) --- */
+
     .aox-tile:hover .tile-title {
         transform: scale(1.03) translateX(10px);
         color: var(--accent-color);
@@ -815,922 +2169,1800 @@ footer {
         transform: translateX(5px);
     }
 
-    /* 3. CONTAINER COME RIFERIMENTO UNICO */
-    .aox-container {
-        position: relative;
-    }
+    /* --- 7. PANEL LOGIC (Docking & Mirroring) --- */
 
-    /* 4. CONFIGURAZIONE HUD PANELS (LONG DECAY) */
+    /* Il pannello su Desktop NON è sotto la tile, ma fluttua ai lati */
     .aox-panel {
         position: absolute;
-        top: 50%;
-        width: 400px;
+        top: 50% !important;
+        /* Centro verticale rispetto al container */
+        bottom: auto !important;
+        width: 400px !important;
         z-index: 500;
         pointer-events: none;
 
-        /* Fisica e Penombra Attiva */
+        /* Reset Stili Tablet */
+        margin: 0 !important;
+        background: transparent;
+        /* No background box su desktop */
+        backdrop-filter: none;
+        border: none;
+
+        /* Fisica Long Decay (Exit lento) */
         opacity: 0;
         filter: blur(20px);
+        transform: translateY(-50%);
+        /* Solo centraggio verticale iniziale */
 
-        /* Transizione Combinata: LONG DECAY (1.2s exit) */
         transition:
             transform 1.2s var(--ease-voltera),
             opacity 1.2s var(--ease-voltera),
             filter 1.2s var(--ease-voltera);
     }
 
-    /* 5. LOGICA DI DOCKING SPECCHIATA (MIRRORING) */
+    /* TIPOGRAFIA PANNELLO DESKTOP */
+    .panel-title {
+        font-size: 0.85rem;
+        letter-spacing: 0.15em;
+        padding-bottom: 8px;
+        border-bottom: 0.5px solid rgba(200, 200, 210, 0.1);
+    }
 
-    /* DOCK DESTRO: Tile 1 (Brand) e Tile 3 (Web) */
+    .panel-specs {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* --- 8. LOGICA DOCKING (Mirroring) --- */
+
+    /* GRUPPO DESTRO (Tile 1, 3): Pannello appare a DESTRA */
     .aox-tile:nth-child(1) .aox-panel,
     .aox-tile:nth-child(3) .aox-panel {
         right: 5% !important;
         left: auto !important;
-        margin-left: 0 !important;
         transform: translateY(-50%) translateX(30px);
+        /* Parte spostato a dx */
+        text-align: right;
     }
 
-    /* DOCK SINISTRO: Tile 2 (Spazi), Tile 4 (Sistemi), Tile 5 (Cultura) */
+    /* GRUPPO SINISTRO (Tile 2, 4, 5): Pannello appare a SINISTRA */
     .aox-tile:nth-child(2) .aox-panel,
     .aox-tile:nth-child(4) .aox-panel,
     .aox-tile:nth-child(5) .aox-panel {
         left: 5% !important;
         right: auto !important;
-        margin-right: 0 !important;
         transform: translateY(-50%) translateX(-30px);
+        /* Parte spostato a sx */
+        text-align: left;
     }
 
-    /* 6. EMERSIONE E FOCUS (Fast Entry, Slow Exit) */
+    /* --- 9. EMERSIONE PANNELLO (Hover) --- */
+
     .aox-tile:hover .aox-panel {
         opacity: 1;
         filter: blur(0px);
         pointer-events: auto;
+
+        /* Reset Transform per portarlo in posizione finale */
         transform: translateY(-50%) translateX(0);
 
-        /* Fast Entry (0.8s) override */
+        /* Fast Entry (0.8s) */
         transition:
             transform 0.8s var(--ease-voltera),
             opacity 0.8s var(--ease-voltera),
             filter 0.8s var(--ease-voltera);
     }
 
-    /* Dimming globale per focus HUD */
-    .aox-tiles-grid:has(.aox-tile:hover) .aox-tile:not(:hover) {
-        opacity: 0;
-    }
-}
-
-/* Responsive AOX - SPLIT-ZONE HUD (Tablet) */
-@media (max-width: 1023px) {
-
-    /* 1. Container: Relative anchor for panel positioning */
-    .aox-container {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        min-height: 85vh;
-        overflow: visible;
-        /* Critical: allows panel to float */
-    }
-
-    /* 2. HUD Navigation Grid - Flexible auto-fit layout */
-    .aox-tiles-grid {
-        position: relative;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 10px;
-        width: 100%;
-        order: 2;
-    }
-
-    /* 3. Hide descriptive elements for minimal HUD */
-    .tile-desc,
-    .tile-coords {
-        display: none;
-    }
-
-    /* --- BREATHING BORDER ANIMATION --- */
-    @keyframes breathing-border {
-
-        0%,
-        100% {
-            opacity: 0.1;
-        }
-
-        50% {
-            opacity: 0.3;
-        }
-    }
-
-    /* 4. HUD Button Styling - Technical HUD Aesthetic */
-    .tile-title {
-        position: relative;
-        min-height: 80px;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        padding: 16px 20px;
-        text-align: left;
-
-        /* Typography: Space Grotesk technical feel */
-        font-family: 'Space Grotesk', var(--font-main), sans-serif;
-        font-size: 0.65rem;
-        font-weight: 500;
-        letter-spacing: 0.08em;
-        line-height: 1.6;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.85);
-
-        /* Visual: Subtle glass background */
-        background: rgba(255, 255, 255, 0.03);
-        border: none;
-        margin-bottom: 0;
-
-        /* Transitions */
-        transition: background 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-            transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* Bracket Border - Top-Left Corner */
-    .tile-title::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 20px;
-        height: 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-        border-left: 1px solid rgba(255, 255, 255, 0.2);
-        pointer-events: none;
-        animation: breathing-border 3s ease-in-out infinite;
-    }
-
-    /* Bracket Border - Bottom-Right Corner */
-    .tile-title::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        width: 20px;
-        height: 20px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        border-right: 1px solid rgba(255, 255, 255, 0.2);
-        pointer-events: none;
-        animation: breathing-border 3s ease-in-out infinite;
-        animation-delay: 1.5s;
-    }
-
-    /* :active Press Effect */
-    .tile-title:active {
-        transform: scale(0.97);
-    }
-
-    /* 5. Active Button State (.is-active managed by JS) */
-    .aox-tile.is-active .tile-title {
-        background: rgba(255, 255, 255, 0.1);
-    }
-
-    .aox-tile.is-active .tile-title::before,
-    .aox-tile.is-active .tile-title::after {
-        border-color: rgba(255, 255, 255, 0.9);
-        animation: none;
-        opacity: 1;
-    }
-
-    /* 6. STERILE TILE (Cruciale): Complete style reset to prevent panel anchoring */
-    .aox-tile {
-        position: static !important;
-        transform: none !important;
-        filter: none !important;
-        backdrop-filter: none !important;
-        will-change: auto !important;
-        padding: 0 !important;
-        box-shadow: none !important;
-    }
-
-    .aox-tile-1,
-    .aox-tile-2,
-    .aox-tile-3,
-    .aox-tile-4,
-    .aox-tile-5 {
-        grid-column: auto;
-        margin-top: 0;
-    }
-
-    /* 7. PANNELLO MASTER SOVRAPPOSTO: Fixed position below button bar */
-    .aox-panel {
-        position: absolute;
-        top: auto !important;
-        /* Starts immediately below button bar */
-        left: 5% !important;
-        width: 90% !important;
-        /* Generous panel */
-        height: auto;
-        z-index: 120;
-        bottom: 100% !important;
-        margin: 0 0 20px 0 !important;
-        padding: var(--space-md);
-        background: rgba(8, 8, 8, 0.5);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        opacity: 0;
-        transform: translateY(-15px);
-        transition: all 0.7s var(--ease-out-expo);
-        pointer-events: none;
-    }
-
-    /* 8. Active Panel State */
-    .aox-tile.is-active .aox-panel {
-        opacity: 1;
-        transform: translateY(0);
-        pointer-events: auto;
-    }
-
-    /* Disable hover reveal on tablet */
-    .aox-tile:hover .aox-panel {
-        opacity: 0;
-        transform: translateY(-15px);
-        pointer-events: none;
-    }
-
-    .aox-tile.is-active:hover .aox-panel {
-        opacity: 1;
-        transform: translateY(0);
-        pointer-events: auto;
-    }
-
-    /* 9. VISION ZONE: Canvas centered without transform */
-    #aox-canvas-container {
-        position: relative;
-        order: 1;
-        width: 100%;
-        height: 600px;
-        transform: none !important;
-        /* Critical: preserve 3D morphing */
-        top: 0;
-        left: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        pointer-events: none;
-    }
-
-    #aox-canvas-container canvas {
-        pointer-events: auto;
-    }
-
-    /* --- NUOVO QUADRANTE INFERIORE (TABLET ONLY) --- */
-
-    /* Stato iniziale: nascosto */
-    .aox-tile .tile-desc {
-        display: none;
-    }
-
-    /* Stato attivo: quadrante visibile sotto la tile */
-    .aox-tile.is-active .tile-desc {
+    /* Pulizia descrizione duplicata (se presente nel DOM per il tablet) */
+    .aox-panel .panel-desc {
         display: block;
-        position: absolute;
-        top: 100%;
-        left: 5%;
-        width: 90%;
-        margin-top: 25px;
-
-        /* Visual Styling (come .aox-panel) */
-        background: rgba(8, 8, 8, 0.6);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        padding: var(--space-sm);
-        border: 0.5px solid rgba(200, 200, 210, 0.15);
-
-        /* Typography (come .aox-panel / .panel-desc) */
-        font-family: var(--font-main);
-        font-size: 0.85rem;
-        line-height: 1.7;
-        letter-spacing: 0.02em;
-        color: rgba(255, 255, 255, 0.75);
-
-        /* Animazione: emersione fluida */
-        opacity: 0;
-        transform: translateY(-10px);
-        animation: desc-emerge 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    /* Keyframe per animazione emersione */
-    @keyframes desc-emerge {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        color: rgba(255, 255, 255, 0.65);
     }
 }
 
-@media (max-width: 768px) {
 
-    /* Hide 3D canvas container completely on mobile */
-    #aox-canvas-container {
-        display: none !important;
-    }
-
-    /* Reduce vertical space for Message-First layout */
-    .aox-container {
-        min-height: auto;
-    }
-
-    .aox-tiles-grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-xs);
-    }
-
-    .aox-tile-1,
-    .aox-tile-2,
-    .aox-tile-3,
-    .aox-tile-4,
-    .aox-tile-5 {
-        grid-column: 1 / -1;
-    }
-
-    .aox-header {
-        flex-direction: column;
-        gap: var(--space-xs);
-    }
-
-    /* --- AOX ACCORDION MODE (Message-First) --- */
-
-    /* 1. Tile: Grid Accordion Container */
-    .aox-tile {
-        position: relative !important;
-        display: grid;
-        grid-template-rows: auto 0fr;
-        transition: grid-template-rows 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* 2. Panel: Collapsible Content Block */
-    .aox-panel {
-        position: relative !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        margin-top: 10px !important;
-        transform: none !important;
-        overflow: hidden;
-        min-height: auto;
-        opacity: 0;
-        background: rgba(8, 8, 8, 0.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* 3. Active State: Expanded Accordion */
-    .aox-tile.is-active {
-        grid-template-rows: auto 1fr;
-    }
-
-    .aox-tile.is-active .aox-panel {
-        opacity: 1;
-        pointer-events: auto;
-    }
-}
 
 /* --- 8. SHOWCASE SECTION (The Infinite Map) --- */
+
 #showcase {
+
     height: var(--showcase-height);
+
     background: #080808;
+
     position: relative;
+
 }
+
+
 
 .showcase-sticky {
+
     position: sticky;
+
     top: 0;
+
     height: 100vh;
+
     width: 100%;
+
     overflow: hidden;
+
 }
+
+
 
 #showcase-canvas {
+
     position: absolute;
+
     inset: 0;
+
     z-index: 1;
+
 }
+
+
 
 .showcase-bottom-fade {
+
     position: absolute;
+
     bottom: 0;
+
     left: 0;
+
     width: 100%;
+
     height: 250px;
+
     background: linear-gradient(to top, #080808, transparent);
+
     z-index: 2;
+
     pointer-events: none;
+
 }
+
+
 
 /* UI Overlay - Wireframe/Technical Style */
+
 .showcase-ui {
+
     position: absolute;
+
     inset: 0;
+
     z-index: 10;
+
     pointer-events: none;
+
     padding: var(--space-sm) 5%;
+
 }
+
+
 
 .showcase-label {
+
     font-family: var(--font-main);
+
     font-size: 0.7rem;
+
     font-weight: 500;
+
     letter-spacing: 0.2em;
+
     text-transform: uppercase;
+
     opacity: 0.4;
+
     border-left: 1px solid rgba(255, 255, 255, 0.2);
+
     padding-left: 12px;
+
     margin-top: 40px;
+
 }
+
+
 
 .showcase-cta {
+
     position: absolute;
+
     bottom: var(--space-md);
+
     left: 50%;
+
     transform: translateX(-50%);
+
     font-family: var(--font-main);
+
     font-size: 0.75rem;
+
     letter-spacing: 0.15em;
+
     text-transform: uppercase;
+
     color: var(--text-primary);
+
     text-decoration: none;
+
     border: 1px solid rgba(255, 255, 255, 0.3);
+
     padding: 16px 32px;
+
     pointer-events: auto;
+
     transition: all 0.5s var(--ease-out-expo);
+
 }
+
+
 
 .showcase-cta:hover {
+
     background: rgba(255, 255, 255, 0.1);
+
     border-color: rgba(255, 255, 255, 0.5);
+
 }
+
+
 
 /* HUD Container - Technical Display */
+
 #showcase-hud {
+
     position: absolute;
+
     bottom: 120px;
+
     left: 5%;
+
     font-family: var(--font-main);
+
     font-size: 0.65rem;
+
     letter-spacing: 0.12em;
+
     text-transform: uppercase;
+
     opacity: 0;
+
     transition: opacity 0.6s ease;
+
 }
+
+
 
 #showcase-hud.active {
+
     opacity: 0.6;
+
 }
+
+
 
 #showcase-hud .hud-ref,
+
 #showcase-hud .hud-status {
+
     display: block;
+
     line-height: 1.8;
+
 }
+
+
 
 /* Project Detail Overlay */
+
 .project-detail {
+
     position: absolute;
+
     inset: 0;
+
     z-index: 100;
+
     display: flex;
+
     flex-direction: column;
+
     justify-content: center;
+
     align-items: center;
+
     background: rgba(8, 8, 8, 0.95);
+
     opacity: 1;
+
     transition: opacity 0.8s var(--ease-out-expo);
+
     overflow-y: auto;
+
     pointer-events: auto;
+
 }
+
+
 
 .project-detail.hidden {
+
     opacity: 0;
+
     pointer-events: none;
+
 }
+
+
 
 .project-title {
+
     font-family: var(--font-display);
+
     font-size: clamp(3rem, 8vw, 7rem);
+
     font-weight: 700;
+
     letter-spacing: -0.02em;
+
     text-align: center;
+
     line-height: 1;
+
 }
+
+
 
 .project-meta {
+
     font-family: var(--font-main);
+
     font-size: 0.8rem;
+
     letter-spacing: 0.15em;
+
     text-transform: uppercase;
+
     opacity: 0.5;
+
     margin-top: var(--space-sm);
+
 }
+
+
 
 .project-close {
+
     position: absolute;
+
     top: 120px;
+
     right: 5%;
+
     z-index: 1001;
+
     pointer-events: auto;
+
     background: none;
+
     border: 1px solid rgba(255, 255, 255, 0.3);
+
     color: var(--text-primary);
+
     font-size: 1.5rem;
+
     width: 48px;
+
     height: 48px;
+
     cursor: pointer;
+
     transition: all 0.3s ease;
+
 }
+
+
 
 .project-close:hover {
+
     background: rgba(255, 255, 255, 0.1);
+
 }
+
+
 
 /* Showcase Responsive */
+
 @media (max-width: 768px) {
+
     .showcase-label {
+
         font-size: 0.6rem;
+
     }
+
+
 
     .showcase-cta {
+
         font-size: 0.65rem;
+
         padding: 12px 24px;
+
     }
+
+
 
     #showcase-hud {
+
         bottom: 100px;
+
         font-size: 0.55rem;
+
     }
+
+
 
     .project-title {
+
         padding: 0 5%;
+
     }
+
 }
+
+
 
 /* --- 9. SPATIAL HUD LABELS (CSS2DRenderer) --- */
+
 #showcase-css-layer {
+
     position: absolute;
+
     inset: 0;
+
     z-index: 5;
+
     pointer-events: none;
+
     overflow: hidden;
+
 }
+
+
 
 /* Project Tag Container */
+
 .project-tag {
+
     font-family: 'Space Grotesk', var(--font-main), sans-serif;
+
     font-size: 0.75rem;
+
     font-weight: 400;
+
     letter-spacing: 0.12em;
+
     color: #FFFFFF;
+
     text-transform: uppercase;
+
     pointer-events: none;
+
     white-space: nowrap;
 
+
+
     /* Positioning */
+
     display: flex;
+
     flex-direction: column;
+
     align-items: center;
+
     position: relative;
+
+
 
     /* HUD Feel */
+
     background: rgba(0, 0, 0, 0.5);
+
     backdrop-filter: blur(8px);
+
     -webkit-backdrop-filter: blur(8px);
+
     padding: 10px 18px;
+
     border: 1px solid rgba(255, 255, 255, 0.3);
 
+
+
     /* Inerzia Voltera */
+
     transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+
 }
+
+
 
 /* --- TECHNICAL BRACKETS (HUD LOCK-ON) --- */
+
 .project-tag::before,
+
 .project-tag::after {
+
     content: '';
+
     position: absolute;
+
     width: 12px;
+
     height: 12px;
+
     border-color: #FFFFFF;
+
     border-style: solid;
+
     border-width: 0;
+
     opacity: 0;
 
+
+
     /* Long Decay: 0.8s Exit / 0.6s Entry */
+
     transition:
+
         opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+
         transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+
 }
+
+
 
 /* Bracket Top-Left */
+
 .project-tag::before {
+
     top: -1px;
+
     left: -1px;
+
     border-top-width: 2px;
+
     border-left-width: 2px;
+
     transform: translate(-3px, -3px);
+
 }
+
+
 
 /* Bracket Bottom-Right */
+
 .project-tag::after {
+
     bottom: -1px;
+
     right: -1px;
+
     border-bottom-width: 2px;
+
     border-right-width: 2px;
+
     transform: translate(3px, 3px);
+
 }
+
+
 
 /* ACTIVE STATE (LOCK-ON) */
+
 .project-tag.is-active::before,
+
 .project-tag.is-active::after {
+
     opacity: 1;
+
     transform: translate(0, 0);
+
     /* Fast Entry */
+
     transition:
+
         opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+
         transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+
 }
+
+
 
 /* Linea di ancoraggio verticale (Refactored to child element) */
+
 .project-tag__line {
+
     position: absolute;
+
     top: 100%;
+
     left: 50%;
+
     transform: translateX(-50%);
+
     width: 1px;
+
     height: 50px;
+
     background: linear-gradient(to bottom,
+
             rgba(255, 255, 255, 0.35),
+
             rgba(255, 255, 255, 0.05));
+
     pointer-events: none;
+
 }
+
+
 
 /* Title styling */
+
 .project-tag__title {
+
     font-weight: 600;
+
     letter-spacing: 0.1em;
+
     margin-bottom: 6px;
+
 }
+
+
 
 /* Metadata row */
+
 .project-tag__meta {
+
     font-size: 0.65rem;
+
     opacity: 0.5;
+
     letter-spacing: 0.12em;
+
 }
+
+
 
 /* Separator */
+
 .project-tag__meta::before {
+
     content: '';
+
     display: block;
+
     width: 16px;
+
     height: 1px;
+
     background: rgba(255, 255, 255, 0.2);
+
     margin: 4px auto;
+
 }
+
+
 
 /* --- 9.5 RESPIRO SECTION (Visual Pause) --- */
+
 #respiro-quote {
+
     min-height: 100vh;
+
     /* Altezza pari al 100% del viewport */
+
     display: flex;
+
     /* Attiva il modello flex per il posizionamento */
+
     align-items: center;
+
     /* Centra il contenuto verticalmente */
+
     padding: 0;
+
     /* Rimuove il padding fisso per non eccedere i 100vh */
+
     position: relative;
 
+
+
     /* Background Image Implementation */
+
     background-image: url('../assets/Images/Statue2.jpg');
+
     background-size: cover;
+
     background-position: center;
+
     background-repeat: no-repeat;
+
 }
+
+
+
+
 
 
 
 #respiro-quote .container {
+
     position: relative;
+
     z-index: 2;
+
 }
+
+
 
 /* --- 10. PARTNER SECTION --- */
+
 .partner-classic {
+
     background: transparent;
+
 }
+
+
 
 .partner-header {
+
     margin-bottom: var(--space-lg);
+
 }
+
+
 
 .partner-badge {
+
     font-family: var(--font-main);
+
     /* Space Grotesk */
+
     font-size: 0.7rem;
+
     text-transform: uppercase;
+
     opacity: 0.5;
+
     letter-spacing: 0.1em;
+
     margin-bottom: var(--space-sm);
+
 }
+
+
 
 .partner-intro {
+
     font-family: var(--font-tech);
+
     /* Manrope */
+
     font-size: 1.2rem;
+
     line-height: 1.6;
+
     max-width: 800px;
+
     opacity: 0.8;
+
 }
+
+
 
 .partner-grid-standard {
+
     display: grid;
+
     grid-template-columns: repeat(2, 1fr);
+
     gap: var(--space-md);
+
 }
+
+
 
 @media (min-width: 768px) {
+
     .partner-grid-standard {
+
         grid-template-columns: repeat(4, 1fr);
+
     }
+
 }
+
+
 
 .partner-logo {
+
     height: 80px;
+
     display: flex;
+
     align-items: center;
+
     justify-content: center;
+
     border: 1px solid var(--grid-line);
+
     opacity: 0.25;
+
     filter: grayscale(100%);
+
     transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+
 }
+
+
 
 .partner-logo:hover {
+
     opacity: 1;
+
     filter: grayscale(0%);
+
 }
+
+
 
 /* --- 11. COLLABORATION SECTION --- */
+
 #collaborazione {
+
     padding: var(--space-xl) 0;
+
 }
+
+
 
 #collaborazione .collab-hud {
+
     display: flex;
+
     flex-direction: column;
+
     justify-content: flex-start;
+
 }
+
+
 
 .collab-badge {
+
     font-family: 'Space Grotesk', var(--font-main), sans-serif;
+
     font-size: 0.7rem;
+
     text-transform: uppercase;
+
     opacity: 0.5;
+
     letter-spacing: 0.1em;
+
     margin-bottom: var(--space-sm);
+
     color: var(--text-primary);
+
 }
+
+
 
 .collab-content {
+
     display: flex;
+
     flex-direction: column;
+
     align-items: flex-start;
+
     gap: var(--space-sm);
+
 }
+
+
 
 .collab-subtitle {
+
     font-family: var(--font-tech);
+
     font-size: 1.1rem;
+
     font-weight: 500;
+
     opacity: 0.8;
+
 }
+
+
 
 .collab-text-main {
+
     font-family: var(--font-tech);
+
     font-size: 1.8rem;
+
     line-height: 1.4;
+
     font-weight: 400;
+
     max-width: 800px;
+
 }
+
+
 
 .collab-text-detail {
+
     font-family: var(--font-tech);
+
     font-size: 1rem;
+
     line-height: 1.6;
+
     opacity: 0.7;
+
     max-width: 600px;
+
     margin-bottom: var(--space-sm);
+
 }
+
+
 
 /* Interaction & Motion */
+
 #collaborazione a,
+
 #collaborazione i {
+
     transition: all 0.6s var(--ease-voltera);
+
 }
+
+
 
 #collaborazione a:hover i {
+
     transform: translate(2px, -2px);
+
 }
+
+
 
 /* --- 12. CLOSING & FOOTER (ASTRO PREP) --- */
+
 .closing-vision {
+
     padding-top: var(--space-xl);
+
     padding-bottom: var(--space-xl);
+
     background-color: transparent;
+
     color: var(--text-primary);
+
 }
+
+
 
 .closing-text {
+
     font-family: var(--font-display);
+
     font-weight: 500;
+
     font-size: clamp(2rem, 4vw, 3.5rem);
+
     line-height: 1.1;
+
     letter-spacing: -0.02em;
+
     text-align: center;
+
     color: var(--text-primary);
+
     max-width: 900px;
+
     margin: 0 auto;
+
 }
+
+
 
 .vlt-footer {
+
     border-top: 1px solid var(--grid-line);
+
     background-color: transparent;
+
     margin-top: var(--space-xl);
+
     padding: var(--space-md) 0 var(--space-sm) 0;
+
     color: var(--text-primary);
+
 }
+
+
 
 .footer-content {
+
     margin-bottom: var(--space-md);
+
     text-align: left;
+
     /* Default alignment, adjusted per grid if needed */
+
 }
+
+
 
 .footer-email {
+
     font-family: 'Space Grotesk', sans-serif;
+
     font-weight: 500;
+
     font-size: clamp(2.5rem, 6vw, 5rem);
+
     color: var(--text-primary);
+
     text-decoration: none;
+
     transition: all 0.4s var(--ease-out-expo);
+
     display: inline-block;
+
 }
+
+
 
 .footer-email:hover {
+
     text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+
     transform: translateX(10px);
+
 }
+
+
 
 .footer-bottom {
+
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 24px;
+
     border-top: 1px solid var(--grid-line);
+
     padding-top: var(--space-sm);
+
     font-family: var(--font-tech);
+
     font-size: 0.75rem;
+
     opacity: 0.6;
+
     text-transform: uppercase;
+
     letter-spacing: 0.05em;
+
 }
+
+
 
 .footer-hud-left {
+
     display: flex;
+
     align-items: center;
+
 }
+
+
 
 .footer-socials {
+
     display: flex;
+
     gap: 24px;
+
+    margin-top: 0;
+
 }
+
+
 
 .footer-socials a {
+
     color: var(--text-primary);
+
     text-decoration: none;
+
     transition: opacity 0.3s ease;
+
 }
+
+
 
 .footer-socials a:hover {
+
     opacity: 1;
+
     text-decoration: underline;
+
 }
 
-/* Responsive Footer */
-@media (max-width: 768px) {
+
+
+/* Responsive Footer -> Desktop Restore */
+
+@media (min-width: 768px) {
+
     .footer-bottom {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
+
+        flex-direction: row;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        gap: 0;
+
     }
 
-    .footer-socials {
-        margin-top: 8px;
-        /* Spacing between copyright and socials */
+}
+
+
+
+/* --- 13. SHOWCASE UI COMPONENT (Refactored from JS) --- */
+
+
+
+/* Container Reset */
+
+#project-detail.dossier-active {
+
+    max-width: none !important;
+
+    text-align: left !important;
+
+    justify-content: flex-start;
+
+    align-items: stretch;
+
+}
+
+
+
+.dossier-main-container {
+
+    width: 100%;
+
+    height: 100%;
+
+}
+
+
+
+/* Dossier Grid Layout */
+
+.dossier-grid {
+
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    height: 100%;
+
+    width: 100%;
+
+    gap: 32px;
+
+    padding: 100px 5% 60px;
+
+    overflow-y: auto;
+
+}
+
+
+
+.dossier-left {
+
+    position: static;
+
+    width: 100%;
+
+}
+
+
+
+.dossier-title {
+
+    font-family: var(--font-display);
+
+    font-size: clamp(2rem, 5vw, 4rem);
+
+    font-weight: 700;
+
+    line-height: 1.05;
+
+    margin-bottom: 16px;
+
+    color: var(--text-primary);
+
+}
+
+
+
+.dossier-category {
+
+    font-family: var(--font-main);
+
+    font-size: 0.7rem;
+
+    letter-spacing: 0.15em;
+
+    text-transform: uppercase;
+
+    opacity: 0.5;
+
+    margin-bottom: 32px;
+
+}
+
+
+
+.dossier-description {
+
+    font-family: var(--font-tech);
+
+    font-size: 1rem;
+
+    line-height: 1.7;
+
+    opacity: 0.8;
+
+    margin-bottom: 24px;
+
+}
+
+
+
+.dossier-specs {
+
+    list-style: none;
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 8px;
+
+    padding: 0;
+
+    margin: 0;
+
+}
+
+
+
+.dossier-specs li {
+
+    font-family: var(--font-main);
+
+    font-size: 0.7rem;
+
+    letter-spacing: 0.1em;
+
+    text-transform: uppercase;
+
+    padding: 8px 16px;
+
+    border: 1px solid rgba(255, 255, 255, 0.2);
+
+    opacity: 0.7;
+
+}
+
+
+
+/* Right Column - Hidden Scrollbar (Vision-First) */
+
+.dossier-right {
+
+    overflow-y: auto;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 60px;
+
+    scroll-behavior: smooth;
+
+    -ms-overflow-style: none;
+
+    scrollbar-width: none;
+
+}
+
+
+
+.dossier-right::-webkit-scrollbar {
+
+    display: none;
+
+}
+
+
+
+/* Media Elements */
+
+.dossier-video,
+
+.dossier-image-full {
+
+    width: 100%;
+
+    max-height: 60vh;
+
+    object-fit: cover;
+
+    border-radius: 4px;
+
+}
+
+
+
+.dossier-image-grid {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 16px;
+
+}
+
+
+
+.dossier-image-grid img {
+
+    width: 100%;
+
+    height: 200px;
+
+    object-fit: cover;
+
+    border-radius: 4px;
+
+}
+
+
+
+/* ========== CINEMA MODE - Multi-Video Player ========== */
+
+.cinema-viewer {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 16px;
+
+}
+
+
+
+.cinema-main-stage {
+
+    width: 100%;
+
+    aspect-ratio: 16 / 9;
+
+    max-height: 40vh;
+
+    object-fit: cover;
+
+    border-radius: 4px;
+
+    background: #0a0a0a;
+
+    transition: opacity 0.4s var(--ease-voltera);
+
+}
+
+
+
+.cinema-main-stage.fading {
+
+    opacity: 0;
+
+}
+
+
+
+.cinema-playlist {
+
+    display: flex;
+
+    flex-direction: row;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
+
+}
+
+
+
+.cinema-playlist-item {
+
+    position: relative;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    padding: 12px 20px 16px;
+
+    min-width: 80px;
+
+    background: rgba(255, 255, 255, 0.02);
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    color: rgba(255, 255, 255, 0.4);
+
+    cursor: pointer;
+
+    transition: all 0.3s var(--ease-voltera);
+
+}
+
+
+
+.cinema-playlist-item:hover {
+
+    border-color: rgba(255, 255, 255, 0.3);
+
+    color: rgba(255, 255, 255, 0.7);
+
+    background: rgba(255, 255, 255, 0.04);
+
+}
+
+
+
+.cinema-playlist-item.active {
+
+    border-color: rgba(255, 255, 255, 0.5);
+
+    color: rgba(255, 255, 255, 1);
+
+    background: rgba(255, 255, 255, 0.06);
+
+}
+
+
+
+.playlist-index {
+
+    font-family: var(--font-main);
+
+    font-size: 0.65rem;
+
+    letter-spacing: 0.15em;
+
+    margin-bottom: 8px;
+
+}
+
+
+
+.playlist-progress {
+
+    width: 100%;
+
+    height: 2px;
+
+    background: rgba(255, 255, 255, 0.1);
+
+    border-radius: 1px;
+
+    overflow: hidden;
+
+}
+
+
+
+.playlist-progress-fill {
+
+    width: 0%;
+
+    height: 100%;
+
+    background: rgba(255, 255, 255, 0.6);
+
+    transition: width 0.1s linear;
+
+}
+
+
+
+.cinema-playlist-item.active .playlist-progress-fill {
+
+    width: 100%;
+
+    animation: progressPulse 3s ease-in-out infinite;
+
+}
+
+
+
+@keyframes progressPulse {
+
+
+
+    0%,
+
+    100% {
+
+        opacity: 0.6;
+
     }
+
+
+
+    50% {
+
+        opacity: 1;
+
+    }
+
+}
+
+
+
+/* ========== STRIP MODE - Horizontal Image Gallery ========== */
+
+.media-strip-container {
+
+    position: relative;
+
+}
+
+
+
+.media-strip {
+
+    display: flex;
+
+    flex-direction: row;
+
+    gap: 16px;
+
+    max-height: 300px;
+
+    aspect-ratio: auto;
+
+    overflow-x: auto;
+
+    overflow-y: hidden;
+
+    scroll-snap-type: x mandatory;
+
+    -ms-overflow-style: none;
+
+    scrollbar-width: none;
+
+}
+
+
+
+.media-strip::-webkit-scrollbar {
+
+    display: none;
+
+}
+
+
+
+.media-strip img {
+
+    height: 100%;
+
+    width: auto;
+
+    min-width: 280px;
+
+    object-fit: cover;
+
+    border-radius: 4px;
+
+    scroll-snap-align: start;
+
+    flex-shrink: 0;
+
+    transition: transform 0.6s var(--ease-voltera);
+
+}
+
+
+
+.media-strip img:hover {
+
+    transform: scale(1.02);
+
+}
+
+
+
+.strip-indicator {
+
+    position: absolute;
+
+    bottom: 16px;
+
+    right: 16px;
+
+    font-family: var(--font-main);
+
+    font-size: 0.7rem;
+
+    letter-spacing: 0.15em;
+
+    color: rgba(255, 255, 255, 0.5);
+
+    background: rgba(0, 0, 0, 0.6);
+
+    padding: 6px 12px;
+
+    border-radius: 2px;
+
+    backdrop-filter: blur(4px);
+
+}
+
+
+
+.strip-indicator .strip-current {
+
+    color: rgba(255, 255, 255, 0.9);
+
+}
+
+
+
+/* Responsive (Desktop Restore) */
+
+@media (min-width: 1024px) {
+
+    .dossier-grid {
+
+        grid-template-columns: 35% 65%;
+
+        gap: 40px;
+
+        padding: 80px 5%;
+
+        overflow-y: visible;
+
+    }
+
+
+
+    .dossier-left {
+
+        position: sticky;
+
+        top: 80px;
+
+        align-self: start;
+
+    }
+
+
+
+    .media-strip {
+
+        max-height: 60vh;
+
+        aspect-ratio: 21 / 9;
+
+    }
+
+
+
+    .cinema-main-stage {
+
+        max-height: 55vh;
+
+    }
+
+}
+
+
+
+/* --- REFACTORING HELPERS (Inline Removal) --- */
+
+/* Sostituisce style="..." su #metodo */
+
+#metodo.method-trigger {
+
+    background: transparent;
+
+    transition: background 1s ease;
+
+}
+
+
+
+/* Sostituisce style="..." su #respiro-quote quote paragraphs */
+
+.quote-text {
+
+    font-family: var(--font-main);
+
+    font-size: 1.1rem;
+
+    line-height: 1.6;
+
+    opacity: 0.8;
+
+    max-width: 400px;
+
+}
+
+
+
+.quote-author {
+
+    margin-top: 16px;
+
+    display: block;
+
+}
+
+
+
+.u-margin-bottom-sm {
+
+    margin-bottom: 32px !important;
+
+}
+
+
+
+.u-margin-top-sm {
+
+    margin-top: 32px !important;
+
 }

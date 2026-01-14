@@ -1,19 +1,29 @@
 import { initAtmosphericHero } from './scene-atmospheric.js';
 import { initAoxCore } from './scene-aox.js';
 import { initShowcaseMap } from './scene-showcase.js';
+import ShowcaseUI from './showcase-ui.js';
+import ResizeManager from './resize-manager.js';
 
 // --- MOBILE BREAKPOINT ---
 const MOBILE_BREAKPOINT = 768;
 const isMobile = () => window.innerWidth < MOBILE_BREAKPOINT;
 
-// --- GLOBAL RESIZE MANAGER ---
-const resizeCallbacks = [];
-window.addEventListener('resize', () => {
-    resizeCallbacks.forEach(cb => cb());
-});
+// --- 0. HELPER FUNCTIONS ---
+function lockScroll() {
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.setProperty('--scrollbar-width', `${scrollbarWidth}px`);
+    document.body.classList.add('scroll-lock');
+}
+
+function unlockScroll() {
+    document.body.classList.remove('scroll-lock');
+    document.body.style.removeProperty('--scrollbar-width');
+}
 
 // --- 1. GLOBAL INIT ---
 window.onload = function () {
+    ResizeManager.init();
+
     if (window.lucide) {
         window.lucide.createIcons();
     }
@@ -24,15 +34,33 @@ window.onload = function () {
     // Map to store scene controllers keyed by container ID
     const sceneControllers = new Map();
 
-    const atmospheric = initAtmosphericHero(resizeCallbacks);
+    const atmosphericContainer = document.getElementById('canvas-container');
+    const atmospheric = initAtmosphericHero(atmosphericContainer);
     if (atmospheric) sceneControllers.set('canvas-container', atmospheric);
 
-    const showcase = initShowcaseMap(resizeCallbacks);
+    const showcaseContainer = document.getElementById('showcase-canvas');
+    const showcase = initShowcaseMap(showcaseContainer);
     if (showcase) sceneControllers.set('showcase-canvas', showcase);
 
     initThemeObserver();
-    initAoxInteraction(resizeCallbacks);
+    initAoxInteraction();
+
     initRevealTextAnimation();
+
+    // --- ORCHESTRAZIONE SHOWCASE UI ---
+    // Inizializza la UI (Dossier)
+    ShowcaseUI.init(() => {
+        // Callback di chiusura UI: notifica la scena 3D
+        window.dispatchEvent(new CustomEvent('vltProjectClose'));
+        unlockScroll();
+    });
+
+    // Ascolta la selezione del progetto dalla scena 3D
+    window.addEventListener('vltProjectSelect', (e) => {
+        const projectData = e.detail;
+        ShowcaseUI.open(projectData);
+        lockScroll();
+    });
 
     // Handle desktop→mobile resize: stop AOX scene safely
 
@@ -64,7 +92,8 @@ window.onload = function () {
 
     // --- ASYNC AOX (Parallel & Non-Blocking) ---
     // Initialize AOX Core unconditionally
-    initAoxCore(resizeCallbacks).then(aox => {
+    const aoxContainer = document.getElementById('aox-canvas-container');
+    initAoxCore(aoxContainer).then(aox => {
         if (aox) {
             aoxController = aox;
             const id = 'aox-canvas-container';
@@ -165,13 +194,13 @@ function initRevealTextAnimation() {
 }
 
 // --- 5. AOX INTERACTION SYSTEM ---
-function initAoxInteraction(resizeCallbacks) {
+function initAoxInteraction() {
     const tiles = document.querySelectorAll('.aox-tile');
     const canvasContainer = document.getElementById('aox-canvas-container');
 
     // Viewport detection with resize re-evaluation
     let isTablet = window.innerWidth <= 1024;
-    resizeCallbacks.push(() => {
+    ResizeManager.subscribe(() => {
         isTablet = window.innerWidth <= 1024;
         // Reset active states when switching between modes
         if (!isTablet) {
@@ -226,7 +255,7 @@ function initAoxInteraction(resizeCallbacks) {
 
     // Resize callback for canvas container
     if (canvasContainer) {
-        resizeCallbacks.push(() => {
+        ResizeManager.subscribe(() => {
             // Future: resize morphing core
         });
     }

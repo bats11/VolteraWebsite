@@ -1,11 +1,12 @@
 import * as THREE from 'three';
+import ResizeManager from './resize-manager.js';
 
 /**
  * AOX Core 3D Scene - Morphing Particle System
  * 50,000 particles with holographic effect and JSON-based morph targets
- * @param {Array} resizeCallbacks - Global resize callbacks array
+ * @param {HTMLElement} containerElement - The container element for the scene
  */
-export async function initAoxCore(resizeCallbacks) {
+export async function initAoxCore(containerElement) {
     // --- CONSTANTS ---
     const COUNT = 50000;
     const PHI = Math.PI * (3 - Math.sqrt(5));  // Golden angle
@@ -23,7 +24,7 @@ export async function initAoxCore(resizeCallbacks) {
     let isRunning = false;
     let rafId = null;
 
-    const container = document.getElementById('aox-canvas-container');
+    const container = containerElement;
     if (!container) return;
 
     // --- MORPH TARGETS: Load JSON files with silent fail ---
@@ -258,7 +259,7 @@ export async function initAoxCore(resizeCallbacks) {
     });
 
     // --- RESIZE ---
-    resizeCallbacks.push(() => {
+    ResizeManager.subscribe(() => {
         if (!container) return;
         const width = container.clientWidth;
         const height = container.clientHeight;
