@@ -3,9 +3,11 @@ import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { fetchProjectsData } from './ShowcaseData.js';
 
 export class ShowcaseFactory {
-    constructor(scene, renderer) {
+    constructor(scene, renderer, config) {
         this.scene = scene;
         this.renderer = renderer;
+        this.config = config || {};
+        this.baseAssetPath = this.config.baseAssetPath || './assets/video/';
 
         // Resources
         this.textureCache = new Map();
@@ -35,7 +37,7 @@ export class ShowcaseFactory {
         this.coreOscillation = null;
         this.lightningState = null;
 
-        // Constants (Moved from main file if specific to generation)
+        // Constants
         this.NEON_CONFIG = {
             baseIntensity: 0.7,
             pulseAmplitude: 1,
@@ -58,9 +60,8 @@ export class ShowcaseFactory {
         // 1. Load Data & Create Monoliths
         try {
             const projects = await fetchProjectsData('data/projects.json');
-            const basePath = './assets/video/';
 
-            projects.forEach(project => {
+            projects.forEach((project, index) => {
                 let monolith;
                 const position = new THREE.Vector3(project.position.x, project.position.y, project.position.z);
 
@@ -91,7 +92,7 @@ export class ShowcaseFactory {
                 monolith.userData = { ...project };
 
                 // Video Texture
-                const videoUrl = basePath + (project.videoUrl || 'showcase-monolith.mp4');
+                const videoUrl = this.baseAssetPath + (project.videoUrl || 'showcase-monolith.mp4');
                 const projectTexture = this.getVideoTexture(videoUrl);
 
                 // Apply Matter Stream
@@ -102,6 +103,16 @@ export class ShowcaseFactory {
                 this.scene.add(monolith);
                 result.monoliths.push(monolith);
                 this.monoliths.push(monolith); // Local ref
+
+                // GSAP Infinite Rotation
+                // Alternating direction based on index
+                const direction = index % 2 === 0 ? 1 : -1;
+                gsap.to(monolith.rotation, {
+                    y: `+=${Math.PI * 2 * direction}`,
+                    duration: 120, // Slow, long decay style
+                    repeat: -1,
+                    ease: "none"
+                });
 
                 // Project Label
                 const labelData = this.createProjectLabel(project);
@@ -121,25 +132,22 @@ export class ShowcaseFactory {
         return result;
     }
 
-    update(time) {
-        // 1. Slow rotation for monoliths
-        this.monoliths.forEach((m, i) => {
-            m.rotation.y += 0.001 * (i % 2 === 0 ? 1 : -1);
-        });
+    /**
+     * Updates internal animations. 
+     * @param {number} time - Global time in seconds.
+     * @param {number} delta - Delta time in seconds.
+     */
+    update(time, delta) {
+        // Monolith and Prop rotations are handled by GSAP now.
 
-        // 2. Props rotation
-        if (this.propsGroup) {
-            this.propsGroup.rotation.y += 0.001;
-        }
-
-        // 3. Core Oscillation
+        // 1. Core Oscillation (Vertex Manipulation needs explicit frame update)
         if (this.coreGeometry && this.coreOscillation) {
             this.updateCoreOscillation(time);
         }
 
-        // 4. Lightning Flicker
+        // 2. Lightning Flicker (Deterministic logic)
         if (this.lightningMesh && this.lightningState) {
-            this.updateLightning();
+            this.updateLightning(time);
         }
     }
 
@@ -151,7 +159,12 @@ export class ShowcaseFactory {
         this.disposables = [];
 
         // Dispose texture cache
-        this.textureCache.forEach(texture => texture.dispose());
+        this.textureCache.forEach(texture => {
+            if (texture.source && texture.source.data && texture.source.data.pause) {
+                texture.source.data.pause();
+            }
+            texture.dispose();
+        });
         this.textureCache.clear();
 
         // Dispose specific geometries/materials created internally
@@ -162,10 +175,7 @@ export class ShowcaseFactory {
         this.propMaterials.forEach(m => m.dispose());
         this.propMaterials = [];
 
-        // Note: Monolith geometries/materials that were added to scene but not tracked in 'disposables' 
-        // should be cleaned up by the caller or we should track them all. 
-        // For now, relies on main dispose loop calling dispose on textures/materials attached to monolith userdata.
-        // Ideally, we move all ownership here.
+        // Note: GSAP tweens on monoliths should be killed by the Orchestrator's ctx.revert()
 
         console.log('[ShowcaseFactory] Resources disposed');
     }
@@ -430,7 +440,7 @@ export class ShowcaseFactory {
         this.coreGeometry.computeVertexNormals();
 
         // Core Material
-        const videoTexture = this.getVideoTexture('./assets/video/showcase-monolith.mp4');
+        const videoTexture = this.getVideoTexture(this.baseAssetPath + 'showcase-monolith.mp4');
         const coreMaterial = new THREE.MeshStandardMaterial({
             color: 0x080808,
             emissive: 0xffffff,
@@ -508,6 +518,14 @@ export class ShowcaseFactory {
 
         this.propsGroup.position.set(0, 3, -80);
         this.scene.add(this.propsGroup);
+
+        // Props Rotation via GSAP
+        gsap.to(this.propsGroup.rotation, {
+            y: "+=" + Math.PI * 2,
+            duration: 100,
+            repeat: -1,
+            ease: "none"
+        });
     }
 
     updateCoreOscillation(time) {
@@ -520,7 +538,8 @@ export class ShowcaseFactory {
         for (let i = 0; i < 4; i++) {
             const ref = refs[i];
             const factor = 0.5 + Math.sin(time * speeds[i] + offsets[i]) * 0.3;
-            const glitch = (Math.random() - 0.5) * 0.05;
+            // Deterministic glitch using Sine of time * heavy multiplier
+            const glitch = Math.sin(time * 50 + i) * 0.05;
 
             const oscX = ref.x + (cx - ref.x) * factor + glitch;
             const oscY = ref.y + (cy - ref.y) * factor + glitch;
@@ -559,19 +578,25 @@ export class ShowcaseFactory {
         this.coreGeometry.computeVertexNormals();
     }
 
-    generateLightningPath(boltIndex) {
+    generateLightningPath(boltIndex, time) {
         const posArr = this.lightningGeometry.attributes.position.array;
         const LIGHTNING_SEGMENTS = 8;
         const baseIdx = boltIndex * LIGHTNING_SEGMENTS * 6;
 
-        const edgeIdx = Math.floor(Math.random() * this.lightningState.edges.length);
+        // Deterministic Pseudo-Random
+        const seed = time + boltIndex * 13.37;
+        const rand = (offset) => Math.sin(seed * offset * 43758.5453) * 0.5 + 0.5;
+
+        // Select edge deterministically
+        const edgeIdx = Math.floor(rand(1) * this.lightningState.edges.length);
         const [edgeA, edgeB] = this.lightningState.edges[edgeIdx];
-        const t = Math.random();
+        const t = rand(2);
+
         const startX = edgeA.x + (edgeB.x - edgeA.x) * t;
         const startY = edgeA.y + (edgeB.y - edgeA.y) * t;
         const startZ = edgeA.z + (edgeB.z - edgeA.z) * t;
 
-        const targetVert = this.lightningState.coreVerts[Math.floor(Math.random() * 4)];
+        const targetVert = this.lightningState.coreVerts[Math.floor(rand(3) * 4)];
         const endX = targetVert.x;
         const endY = targetVert.y;
         const endZ = targetVert.z;
@@ -588,9 +613,9 @@ export class ShowcaseFactory {
 
             if (i < LIGHTNING_SEGMENTS - 1) {
                 const jitter = 0.4;
-                nextX += (Math.random() - 0.5) * jitter;
-                nextY += (Math.random() - 0.5) * jitter;
-                nextZ += (Math.random() - 0.5) * jitter;
+                nextX += (rand(4 + i) - 0.5) * jitter;
+                nextY += (rand(5 + i) - 0.5) * jitter;
+                nextZ += (rand(6 + i) - 0.5) * jitter;
             } else {
                 nextX = endX; nextY = endY; nextZ = endZ;
             }
@@ -603,12 +628,15 @@ export class ShowcaseFactory {
         }
     }
 
-    updateLightning() {
-        const shouldFlicker = Math.random() < this.lightningState.flickerChance;
+    updateLightning(time) {
+        // Flicker based on time logic
+        const flickerSpeed = 5; // Hz equivalent
+        const noise = Math.sin(time * flickerSpeed);
+        const shouldFlicker = noise > 0.8; // High threshold for intermittent flicker
 
         if (shouldFlicker) {
             for (let i = 0; i < 6; i++) {
-                this.generateLightningPath(i);
+                this.generateLightningPath(i, time);
             }
             this.lightningGeometry.attributes.position.needsUpdate = true;
             this.lightningMesh.visible = true;

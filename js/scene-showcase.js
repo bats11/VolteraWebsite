@@ -3,71 +3,91 @@ import ResizeManager from './resize-manager.js';
 import { createStage } from './showcase-modules/ShowcaseStage.js';
 import { ShowcaseFactory } from './showcase-modules/ShowcaseFactory.js';
 import { ShowcaseInteraction } from './showcase-modules/ShowcaseInteraction.js';
+// gsap is assumed global
 
 /**
  * Showcase "The Infinite Map" - Three.js Scene Module
- * Orchestrator pattern: Connects Stage, Factory, and Interaction modules.
+ * Orchestrator: Centralizes Time, DOM injection, and Lifecycle Management.
  * @param {HTMLElement} containerElement - The container element for the scene
  */
 export function initShowcaseMap(containerElement) {
-    // --- DOM CHECK ---
+    // --- 1. DOM GATHERING & UI CONFIG ---
     const container = containerElement;
-    const section = document.getElementById('showcase'); // Still needed for some checks if any, or just strictly passing container
-    if (!container || !section) return;
-
-    // --- HUD ELEMENTS ---
-    // We gather them here to pass to Interaction module
+    const section = document.getElementById('showcase');
     const hud = document.getElementById('showcase-hud');
     const hudRef = hud?.querySelector('.hud-ref');
     const hudStatus = hud?.querySelector('.hud-status');
-    const hudElements = { hud, hudRef, hudStatus };
+    const cssLayer = document.getElementById('showcase-css-layer');
+
+    // Safety check
+    if (!container || !section) {
+        console.warn('[Showcase] Missing container or showcase section. Initialization aborted.');
+        return;
+    }
+
+    const uiConfig = {
+        container,
+        section,
+        hud: { hud, hudRef, hudStatus },
+        cssLayer
+    };
 
     // --- STATE ---
     let isRunning = false;
     let rafId = null;
+    let ctx = null; // GSAP Context for easy cleanup
 
-    // --- 1. STAGE (Scene, Camera, Renderer, Post-Processing) ---
-    const stage = createStage(container, { startZ: 20, cameraY: 2 });
+    // --- MODULES (Placeholder refs) ---
+    let stage, interaction, factory, labelRenderer;
+    let resizeUnsubscribe;
 
-    // --- 2. CSS RENDERER (Overlay for Labels) ---
-    let labelRenderer;
-    const cssLayer = document.getElementById('showcase-css-layer');
-    if (cssLayer) {
-        labelRenderer = new CSS2DRenderer();
-        labelRenderer.setSize(container.clientWidth, container.clientHeight);
-        labelRenderer.domElement.style.position = 'absolute';
-        labelRenderer.domElement.style.top = '0';
-        labelRenderer.domElement.style.left = '0';
-        labelRenderer.domElement.style.pointerEvents = 'none';
-        cssLayer.appendChild(labelRenderer.domElement);
-    }
+    // --- INITIALIZATION WRAPPED IN CONTEXT ---
+    // We use a small timeout or just immediate execution. 
+    // Since we are creating GSAP tweens inside classes, we should create any global GSAP context if needed,
+    // but typically we can just use `gsap.context` to wrap the specific creations or just rely on revert().
+    // Ideally, we create a context that we can .add() things to, or just create one scope that we revert.
 
-    // --- 3. INTERACTION (Input, Scroll, Raycasting) ---
-    // Dependency Injection: Interaction needs access to Scene components and HUD
-    const interaction = new ShowcaseInteraction(
-        container,
-        stage.camera,
-        stage.scene,
-        stage.outlinePass,
-        stage.ground,
-        hudElements
-    );
+    ctx = gsap.context(() => {
+        // --- 2. STAGE ---
+        stage = createStage(uiConfig, { startZ: 20, cameraY: 2 });
 
-    // --- 4. FACTORY (Content Generation) ---
-    const factory = new ShowcaseFactory(stage.scene, stage.renderer);
+        // --- 3. CSS RENDERER ---
+        if (uiConfig.cssLayer) {
+            labelRenderer = new CSS2DRenderer();
+            labelRenderer.setSize(container.clientWidth, container.clientHeight);
+            labelRenderer.domElement.style.position = 'absolute';
+            labelRenderer.domElement.style.top = '0';
+            labelRenderer.domElement.style.left = '0';
+            labelRenderer.domElement.style.pointerEvents = 'none';
+            uiConfig.cssLayer.appendChild(labelRenderer.domElement);
+        }
 
-    // --- ASYNC WIRING ---
-    // Build content -> Pass data to Interaction
-    factory.build().then(data => {
-        interaction.setTargets(data.monoliths);
-        interaction.setLabels(data.projectLabels);
-        console.log('[Showcase] Modules wired successfully');
-    });
+        // --- 4. INTERACTION ---
+        interaction = new ShowcaseInteraction(
+            uiConfig,
+            stage.camera,
+            stage.scene,
+            stage.outlinePass,
+            stage.ground
+        );
+
+        // --- 5. FACTORY ---
+        // Pass base path via config
+        factory = new ShowcaseFactory(stage.scene, stage.renderer, {
+            baseAssetPath: './assets/video/' // Centralized asset config
+        });
+
+        // --- ASYNC WIRING ---
+        factory.build().then(data => {
+            interaction.setTargets(data.monoliths);
+            interaction.setLabels(data.projectLabels);
+            console.log('[Showcase] Modules wired successfully');
+        });
+
+    }); // End GSAP Context
 
     // --- RESIZE HANDLING ---
-    // We subscribe to the global ResizeManager
-    // Stage handles its own resize internally (scene/camera/composer)
-    const resizeUnsubscribe = ResizeManager.subscribe(() => {
+    resizeUnsubscribe = ResizeManager.subscribe(() => {
         if (!container) return;
         const width = container.clientWidth;
         const height = container.clientHeight;
@@ -76,28 +96,34 @@ export function initShowcaseMap(containerElement) {
             labelRenderer.setSize(width, height);
         }
 
-        // Propagate resize to interaction (e.g. if it needs to update cached rects)
+        // Propagate down
         interaction.resize(width, height);
+        // Stage handles its own resize via subscription but we could manually trigger if we wanted strict order
     });
 
     // --- ANIMATION LOOP ---
-    function animate() {
+    // Deterministic Time
+    let lastTime = 0;
+
+    function animate(timeRaw) {
         if (!isRunning) return;
         rafId = requestAnimationFrame(animate);
-        const time = performance.now() * 0.001;
 
-        // 1. Update Factory (Animations: Core, Lightning, Monolith rotation)
-        factory.update(time);
+        // Convert to seconds
+        const time = timeRaw * 0.001;
+        const delta = time - lastTime;
+        lastTime = time;
 
-        // 2. Update Interaction (Camera movement, Label opacity, Hover logic)
-        interaction.update(time);
+        // 1. Update Factory (Deterministic Vertex Anim & Logic)
+        factory.update(time, delta);
 
-        // 3. Render CSS Labels
+        // 2. Update Interaction (Camera Physics)
+        interaction.update(time, delta);
+
+        // 3. Render
         if (labelRenderer) {
             labelRenderer.render(stage.scene, stage.camera);
         }
-
-        // 4. Render Scene (Composer handles Post-Processing)
         stage.composer.render();
     }
 
@@ -109,7 +135,8 @@ export function initShowcaseMap(containerElement) {
             if (!isRunning) {
                 console.log('[Showcase] Resumed');
                 isRunning = true;
-                animate();
+                lastTime = performance.now() * 0.001; // Reset lastTime to avoid huge delta jump
+                animate(performance.now());
             }
         },
         stop: () => {
@@ -121,18 +148,19 @@ export function initShowcaseMap(containerElement) {
             }
         },
         dispose: () => {
-            // Unsubscribe from resize
             if (resizeUnsubscribe) resizeUnsubscribe();
 
-            // Dispose Modules in reverse order of creation/dependency
+            // Reverse disposal
             interaction.dispose();
             factory.dispose();
             stage.dispose();
 
-            // Cleanup local CSS Renderer
             if (labelRenderer && labelRenderer.domElement.parentNode) {
                 labelRenderer.domElement.parentNode.removeChild(labelRenderer.domElement);
             }
+
+            // CLEANUP ALL GSAP
+            if (ctx) ctx.revert();
 
             console.log('[Showcase] Orchestrator disposed');
         }

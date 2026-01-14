@@ -2,13 +2,16 @@ import * as THREE from 'three';
 // gsap is expected to be global
 
 export class ShowcaseInteraction {
-    constructor(container, camera, scene, outlinePass, ground, hudElements) {
-        this.container = container;
+    constructor(uiConfig, camera, scene, outlinePass, ground) {
+        // UI Config contains: { container, section, hud, cssLayer }
+        this.container = uiConfig.container;
+        this.section = uiConfig.section;
+        this.hudElements = uiConfig.hud || {}; // { hud, hudRef, hudStatus }
+
         this.camera = camera;
-        this.scene = scene; // Keep for potential global needs
+        this.scene = scene;
         this.outlinePass = outlinePass;
         this.ground = ground;
-        this.hudElements = hudElements; // { hud, hudRef, hudStatus }
 
         // --- CONSTANTS ---
         this.TRAVEL_CONFIG = {
@@ -16,9 +19,8 @@ export class ShowcaseInteraction {
             endZ: -60,
             travelFinishThreshold: 0.8
         };
-        // Fallback if custom ease is not defined
-        this.VOLTERA_EASE = "power4.out";
-        this.EASE_ACTIVE = typeof CustomEase !== 'undefined' ? "voltera" : this.VOLTERA_EASE;
+        // Voltera Ease: cubic-bezier(0.16, 1, 0.3, 1)
+        this.VOLTERA_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
         this.DRAG_LIMIT = 0.25;
         this.DRAG_SENSITIVITY = 0.001;
         this.LABEL_VISIBILITY = { fadeInStart: 25, fadeInEnd: 10, inertiaFactor: 0.08 };
@@ -30,13 +32,19 @@ export class ShowcaseInteraction {
         this.mouse = new THREE.Vector2();
         this.mouseWorld = new THREE.Vector3(0, 0, 0);
 
-        this.isZooming = false;
+        this.isZooming = false; // "Cinematic Mode" flag
         this.isDragging = false;
         this.dragStart = { x: 0, y: 0 };
-        this.cameraRotation = {
-            targetX: 0, targetY: 0,
-            currentX: 0, currentY: 0
-        };
+
+        // GSAP quickTo proxies
+        this.rotationProxy = { x: 0, y: 0 };
+        // We initialize these in initListeners or later to ensure gsap is ready, 
+        // but safe to do here if gsap is global.
+
+        // Setup quickTo for camera rotation
+        this.rotateXTo = gsap.quickTo(this.rotationProxy, "x", { duration: 0.6, ease: this.VOLTERA_EASE });
+        this.rotateYTo = gsap.quickTo(this.rotationProxy, "y", { duration: 0.6, ease: this.VOLTERA_EASE });
+
         this.initialCameraQuaternion = new THREE.Quaternion().copy(this.camera.quaternion);
         this.cameraSnapshot = new THREE.Vector3();
 
@@ -80,25 +88,21 @@ export class ShowcaseInteraction {
     }
 
     resize(width, height) {
-        // Raycaster update is handled in onMouseMove/handleClick using container bounds,
-        // but if we had cached rects we would update them here.
-        // Primarily useful if we did specific resolution dependent logic.
-        // For now, no specific resize logic needed internally as we calculate relative to rect on event,
-        // but good to have for future proofing.
+        // Recalculate generic scroll progress to avoid jumps
+        this.updateCameraFromScroll();
     }
 
-    update(time) {
-        // Camera Drag Inertia
-        this.cameraRotation.currentX += (this.cameraRotation.targetX - this.cameraRotation.currentX) * 0.1;
-        this.cameraRotation.currentY += (this.cameraRotation.targetY - this.cameraRotation.currentY) * 0.1;
-
+    update(time, delta) {
+        // 1. Apply Camera Rotation (from quickTo proxy)
+        // Only if not zooming/cinematic
         if (!this.isZooming) {
             this.camera.quaternion.copy(this.initialCameraQuaternion);
-            this.camera.rotateY(this.cameraRotation.currentY);
-            this.camera.rotateX(this.cameraRotation.currentX);
+            // Apply current proxy values
+            this.camera.rotateY(this.rotationProxy.y);
+            this.camera.rotateX(this.rotationProxy.x);
         }
 
-        // Label Opacity
+        // 2. Label Opacity
         const labelWorldPos = new THREE.Vector3();
         this.projectLabels.forEach(labelData => {
             this.updateLabelOpacity(labelData, this.camera.position, labelWorldPos);
@@ -129,10 +133,18 @@ export class ShowcaseInteraction {
         if (this.isDragging) {
             const dx = event.clientX - this.dragStart.x;
             const dy = event.clientY - this.dragStart.y;
-            this.cameraRotation.targetY -= dx * this.DRAG_SENSITIVITY;
-            this.cameraRotation.targetX -= dy * this.DRAG_SENSITIVITY;
-            this.cameraRotation.targetY = Math.max(-this.DRAG_LIMIT, Math.min(this.DRAG_LIMIT, this.cameraRotation.targetY));
-            this.cameraRotation.targetX = Math.max(-this.DRAG_LIMIT, Math.min(this.DRAG_LIMIT, this.cameraRotation.targetX));
+
+            // Calculate target rotation
+            let targetY = this.rotationProxy.y - dx * this.DRAG_SENSITIVITY;
+            let targetX = this.rotationProxy.x - dy * this.DRAG_SENSITIVITY;
+
+            targetY = Math.max(-this.DRAG_LIMIT, Math.min(this.DRAG_LIMIT, targetY));
+            targetX = Math.max(-this.DRAG_LIMIT, Math.min(this.DRAG_LIMIT, targetX));
+
+            // Feed into quickTo
+            this.rotateYTo(targetY);
+            this.rotateXTo(targetX);
+
             this.dragStart.x = event.clientX;
             this.dragStart.y = event.clientY;
         }
@@ -158,6 +170,11 @@ export class ShowcaseInteraction {
             this.dragStart.x = event.clientX;
             this.dragStart.y = event.clientY;
             this.container.style.cursor = 'grabbing';
+
+            // When dragging starts, we might want to make the settle time longer? 
+            // Or keep it snappy. "active" state = 0.6s.
+            // When user releases, maybe we drift? 
+            // For now, keeping the configured quickTo duration.
         }
     }
 
@@ -173,6 +190,12 @@ export class ShowcaseInteraction {
 
         if (tapDuration < 300 && tapDistance < 10) {
             this.handleClick(event);
+        } else {
+            // Drag ended, let it settle.
+            // Option: Increase duration for a "drift" effect?
+            // this.rotateXTo.tween.duration(1.2); 
+            // Not readily available in quickTo API directly without creating new tween or recreating.
+            // We'll stick to uniform Voltera feel for now.
         }
     }
 
@@ -199,7 +222,6 @@ export class ShowcaseInteraction {
         this.raycaster.setFromCamera(this.mouse, this.camera);
         const intersects = this.raycaster.intersectObjects(this.monoliths, true);
 
-        // If pulse animation runs, stop it on hover
         if (intersects.length > 0 && this.pulseTimeline && this.pulseTimeline.isActive()) {
             this.pulseTimeline.kill();
             this.pulseTimeline = null;
@@ -233,12 +255,10 @@ export class ShowcaseInteraction {
         const monolith = this.monoliths.find(m => m.userData.id === projectId);
         if (!monolith) return;
 
-        // Outline Pass Management
         if (isHovered && this.outlinePass.selectedObjects[0] !== monolith) {
             this.outlinePass.selectedObjects = [monolith];
         }
 
-        // Material & Transform Animations
         const materials = [];
         monolith.traverse(child => {
             if (child.isMesh && child.material) materials.push(child.material);
@@ -279,7 +299,6 @@ export class ShowcaseInteraction {
             });
         }
 
-        // HUD Sync
         this.projectLabels.forEach(label => {
             if (label.element.dataset.projectId === projectId) {
                 label.element.classList.toggle('is-active', isHovered);
@@ -287,11 +306,10 @@ export class ShowcaseInteraction {
         });
     }
 
-    // --- HUD ---
     showHUD(data) {
-        if (!this.hudElements.hud || !this.hudElements.hudRef || !this.hudElements.hudStatus) return;
-        this.hudElements.hudRef.textContent = data.ref;
-        this.hudElements.hudStatus.textContent = data.status;
+        if (!this.hudElements.hud) return;
+        if (this.hudElements.hudRef) this.hudElements.hudRef.textContent = data.ref;
+        if (this.hudElements.hudStatus) this.hudElements.hudStatus.textContent = data.status;
         this.hudElements.hud.classList.add('active');
     }
 
@@ -300,10 +318,9 @@ export class ShowcaseInteraction {
         this.hudElements.hud.classList.remove('active');
     }
 
-    // --- CAMERA MOVEMENTS ---
     zoomToProject(monolith) {
         this.cameraSnapshot.copy(this.camera.position);
-        this.isZooming = true;
+        this.isZooming = true; // Locks quickTo updates
 
         const targetPos = monolith.position.clone();
         targetPos.z += 5;
@@ -323,27 +340,21 @@ export class ShowcaseInteraction {
             x: this.cameraSnapshot.x, y: this.cameraSnapshot.y, z: this.cameraSnapshot.z,
             duration: 1.2, ease: this.VOLTERA_EASE,
             onComplete: () => {
-                this.isZooming = false;
-                this.updateCameraFromScroll();
+                this.isZooming = false; // Unlocks quickTo
+                this.updateCameraFromScroll(); // Reset position
             }
         });
     }
 
     updateCameraFromScroll() {
-        // Need to get the showcase section element safely.
-        // We can look it up here or pass it in dependency. Pass it in dependency is better but for now let's query it.
-        // Or cleaner: since we have container, we can use that?
-        // In main code it was: const section = document.getElementById('showcase');
-        // Let's assume container is the showcase div or child of it?
-        // Actually the container passed to initShowcaseMap is usually the canvas container.
-        // Let's rely on global scroll and finding the element for now as per previous logic, or just assume the container parent is the section if appropriate.
-        // But to be safe and strictly follow previous code structure:
-        const section = document.getElementById('showcase');
-        if (!section) return;
+        if (!this.section) return;
 
-        const rect = section.getBoundingClientRect();
-        const sectionHeight = section.offsetHeight - window.innerHeight;
+        const rect = this.section.getBoundingClientRect();
+        // Calculate dynamic height in case of resize
+        const sectionHeight = this.section.offsetHeight - window.innerHeight;
         const scrolled = -rect.top;
+
+        // Clamp scroll progress [0, 1]
         this.scrollProgress = Math.max(0, Math.min(1, scrolled / sectionHeight));
 
         if (this.scrollProgress > 0.0001 && !this.pulseTriggered) {
@@ -351,7 +362,6 @@ export class ShowcaseInteraction {
             this.pulseTriggered = true;
         }
 
-        // Ground Fade
         if (this.ground && this.ground.material) {
             const fadeStart = this.TRAVEL_CONFIG.travelFinishThreshold;
             const fadeEnd = 0.95;
@@ -392,7 +402,7 @@ export class ShowcaseInteraction {
             .to(this.outlinePass, { edgeStrength: 4.0, duration: 0.1 })
             .to(this.outlinePass, { edgeStrength: 1.0, duration: 0.2 })
             .to(this.outlinePass, { edgeStrength: 4.0, duration: 0.1 })
-            .to(this.outlinePass, { edgeStrength: 0.0, duration: 2.0, ease: this.EASE_ACTIVE });
+            .to(this.outlinePass, { edgeStrength: 0.0, duration: 2.0, ease: this.VOLTERA_EASE });
     }
 
     checkMobileHUDTrigger() {
@@ -430,5 +440,8 @@ export class ShowcaseInteraction {
         this.monoliths.forEach(m => {
             if (m.userData.breathTimeline) m.userData.breathTimeline.kill();
         });
+
+        // QuickTo instances are just functions, but they create tweens on the target object.
+        // The orchestrator's ctx.revert() will handle cleaning up those underlying tweens.
     }
 }

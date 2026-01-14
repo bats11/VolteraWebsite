@@ -56,8 +56,8 @@ const backdropFragmentShader = `
  * @param {number} [config.cameraY=2] - Camera Y position
  * @returns {Object} Stage object with scene, camera, renderer, composer, outlinePass, dispose
  */
-export function createStage(containerElement, config) {
-    const container = containerElement;
+export function createStage(uiConfig, config) {
+    const { container } = uiConfig;
     const startZ = config.startZ;
     const cameraY = config.cameraY ?? 2;
 
@@ -90,7 +90,7 @@ export function createStage(containerElement, config) {
     renderer.setClearColor(0x080808, 1);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.0;
+    renderer.toneMappingExposure = 1.0; // Stabilized exposure
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
@@ -184,7 +184,8 @@ export function createStage(containerElement, config) {
     const backdropMesh = new THREE.Mesh(backdropGeometry, backdropMaterial);
     backdropMesh.name = 'backdrop';
     scene.add(backdropMesh);
-    disposables.push(backdropGeometry, backdropMaterial);
+    // Track manually for strict disposal
+    // disposables.push(backdropGeometry, backdropMaterial); // Adding them to generic disposables too just in case
 
     // --- RESIZE HANDLER ---
     resizeUnsubscribe = ResizeManager.subscribe(() => {
@@ -209,12 +210,19 @@ export function createStage(containerElement, config) {
             resizeUnsubscribe();
         }
 
-        // Dispose all tracked resources
+        // Dispose generic tracked resources
         disposables.forEach(resource => {
             if (resource && resource.dispose) {
                 resource.dispose();
             }
         });
+
+        // Strict Disposal for Backdrop
+        if (backdropGeometry) backdropGeometry.dispose();
+        if (backdropMaterial) {
+            // backdropMaterial.uniforms... nothing to dispose in uniforms usually unless textures
+            backdropMaterial.dispose();
+        }
 
         // Dispose renderer
         renderer.dispose();
