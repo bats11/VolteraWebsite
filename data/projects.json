@@ -134,7 +134,9 @@
                         "type": "image_grid",
                         "srcs": [
                             "./assets/Images/placeholder1.jpg",
-                            "./assets/Images/placeholder2.jpg"
+                            "./assets/Images/placeholder2.jpg",
+                            "./assets/Images/placeholder3.jpg",
+                            "./assets/Images/placeholder4.jpg"
                         ]
                     },
                     {
