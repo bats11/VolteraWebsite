@@ -180,6 +180,7 @@ const ShowcaseUI = {
 
     /**
      * Helper to resolve paths correctly
+     * (Mantenuta come utility per il futuro sviluppo)
      */
     _resolvePath(src, type) {
         if (!src) return '';
@@ -197,189 +198,25 @@ const ShowcaseUI = {
 
     /**
      * Inject rich media into the project article
+     * CLEARED FOR NEW DEVELOPMENT
      */
     hydrateMedia(article, data) {
-        const content = data.htmlContent;
-        if (!content || !content.col_right) return;
-
+        // 1. Create Clean Container for the Right Column
         const right = document.createElement('div');
         right.className = 'dossier-right';
-        /*right.style.aspectRatio = '16/9';*/
 
-        // 1. PRE-PROCESS ITEMS (Resolve all paths first)
-        // This ensures that whether we use Cinema, Strip or Fallback, paths are correct.
-        const processedItems = content.col_right.map(item => {
-            // Clone item to avoid mutating original data
-            const newItem = { ...item };
+        // Qui andrà la tua nuova logica.
+        // Per ora il contenitore è vuoto e pulito.
 
-            if (item.type === 'image_grid' && item.srcs) {
-                newItem.srcs = item.srcs.map(s => this._resolvePath(s, 'image'));
-            } else {
-                newItem.src = this._resolvePath(item.src, item.type);
-            }
-            return newItem;
-        });
-
-        // 2. Count types
-        let videoCount = 0;
-        let imageCount = 0;
-        const videos = [];
-        const images = [];
-
-        processedItems.forEach(item => {
-            if (item.type === 'video_hero') {
-                videoCount++;
-                videos.push(item);
-            } else if (item.type === 'image_full') {
-                imageCount++;
-                images.push({ type: 'image', src: item.src });
-            } else if (item.type === 'image_grid' && item.srcs) {
-                imageCount += item.srcs.length;
-                item.srcs.forEach(s => {
-                    images.push({ type: 'image', src: s });
-                });
-            }
-        });
-
-        const useCinemaMode = videoCount >= 2;
-        const useStripMode = imageCount > 3;
-
-        // 3. Build Content using PROCESSED items
-        if (useCinemaMode) {
-            this._buildCinemaMode(right, videos);
-
-            // FIX: If there are also images, show them too (don't hide them!)
-            const nonVideos = processedItems.filter(i => i.type !== 'video_hero');
-            if (nonVideos.length > 0) {
-                // Render remaining items below the cinema player
-                this._buildFallbackMode(right, nonVideos);
-            }
-
-        } else if (useStripMode) {
-            this._buildStripMode(right, images);
-        } else {
-            // Critical fix: pass processedItems, not raw content.col_right
-            this._buildFallbackMode(right, processedItems);
-        }
-
+        // 2. Append to Article
         article.appendChild(right);
 
+        // 3. Simple Entry Animation
         gsap.from(right, {
             opacity: 0,
             duration: 0.8,
             ease: "power2.out",
             delay: 0.1
-        });
-    },
-
-    _buildCinemaMode(container, videos) {
-        const cinemaViewer = document.createElement('div');
-        cinemaViewer.className = 'cinema-viewer';
-
-        const mainStage = document.createElement('video');
-        mainStage.className = 'cinema-main-stage';
-        mainStage.src = videos[0].src;
-        mainStage.autoplay = true;
-        mainStage.muted = true;
-        mainStage.loop = true;
-        mainStage.playsInline = true;
-
-        mainStage.play().catch(() => { });
-        cinemaViewer.appendChild(mainStage);
-
-        const playlist = document.createElement('div');
-        playlist.className = 'cinema-playlist';
-
-        videos.forEach((vid, index) => {
-            const btn = document.createElement('button');
-            btn.className = 'cinema-playlist-item' + (index === 0 ? ' active' : '');
-
-            btn.innerHTML = `
-                <span class="playlist-index">${String(index + 1).padStart(2, '0')}</span>
-                <div class="playlist-progress"><div class="playlist-progress-fill"></div></div>
-            `;
-
-            btn.addEventListener('click', () => {
-                if (mainStage.src.endsWith(vid.src.split('/').pop())) return;
-                mainStage.classList.add('fading');
-                gsap.delayedCall(0.4, () => {
-                    mainStage.src = vid.src;
-                    mainStage.play().catch(() => { });
-                    mainStage.classList.remove('fading');
-                });
-                playlist.querySelectorAll('.cinema-playlist-item').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
-            playlist.appendChild(btn);
-        });
-
-        cinemaViewer.appendChild(playlist);
-        container.appendChild(cinemaViewer);
-    },
-
-    _buildStripMode(container, images) {
-        const stripContainer = document.createElement('div');
-        stripContainer.className = 'media-strip-container';
-
-        const strip = document.createElement('div');
-        strip.className = 'media-strip';
-
-        images.forEach(img => {
-            const imgEl = document.createElement('img');
-            imgEl.src = img.src;
-            imgEl.alt = 'Project media';
-            imgEl.loading = 'lazy';
-            strip.appendChild(imgEl);
-        });
-        stripContainer.appendChild(strip);
-
-        const indicator = document.createElement('div');
-        indicator.className = 'strip-indicator';
-        indicator.innerHTML = `<span class="strip-current">01</span> / <span class="strip-total">${String(images.length).padStart(2, '0')}</span>`;
-        stripContainer.appendChild(indicator);
-
-        strip.addEventListener('scroll', () => {
-            const scrollLeft = strip.scrollLeft;
-            const firstChild = strip.children[0];
-            const itemWidth = firstChild ? (firstChild.offsetWidth + 16) : 1;
-            const currentIndex = Math.min(Math.round(scrollLeft / itemWidth) + 1, images.length);
-            indicator.querySelector('.strip-current').textContent = String(currentIndex).padStart(2, '0');
-        });
-
-        container.appendChild(stripContainer);
-    },
-
-    _buildFallbackMode(container, colRightItems) {
-        if (!colRightItems) return;
-
-        colRightItems.forEach(item => {
-            if (item.type === 'video_hero') {
-                const video = document.createElement('video');
-                video.className = 'dossier-video';
-                video.src = item.src;
-                video.autoplay = true;
-                video.muted = true;
-                video.loop = true;
-                video.playsInline = true;
-                video.play().catch(() => { });
-                container.appendChild(video);
-            } else if (item.type === 'image_grid' && item.srcs) {
-                const imgGrid = document.createElement('div');
-                imgGrid.className = 'dossier-image-grid';
-                item.srcs.forEach(src => {
-                    const img = document.createElement('img');
-                    img.src = src;
-                    img.loading = 'lazy';
-                    imgGrid.appendChild(img);
-                });
-                container.appendChild(imgGrid);
-            } else if (item.type === 'image_full') {
-                const img = document.createElement('img');
-                img.className = 'dossier-image-full';
-                img.src = item.src;
-                img.loading = 'lazy';
-                container.appendChild(img);
-            }
         });
     }
 
