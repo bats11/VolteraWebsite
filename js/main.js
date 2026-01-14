@@ -53,6 +53,8 @@ window.onload = function () {
         // Callback di chiusura UI: notifica la scena 3D
         window.dispatchEvent(new CustomEvent('vltProjectClose'));
         unlockScroll();
+    }, {
+        baseAssetPath: './assets/video/'
     });
 
     // Ascolta la selezione del progetto dalla scena 3D
