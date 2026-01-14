@@ -109,7 +109,7 @@ export class ShowcaseFactory {
                 const direction = index % 2 === 0 ? 1 : -1;
                 gsap.to(monolith.rotation, {
                     y: `+=${Math.PI * 2 * direction}`,
-                    duration: 120, // Slow, long decay style
+                    duration: 90, // Tuned for better presence (was 120)
                     repeat: -1,
                     ease: "none"
                 });
@@ -181,6 +181,11 @@ export class ShowcaseFactory {
     }
 
     // --- INTERNAL HELPERS ---
+
+    // Deterministic Pseudo-Random Helper
+    psrdnoise(t, seed = 0.0) {
+        return Math.abs(Math.sin(t * (37.0 + seed) + Math.cos(t * 13.0)) * 43758.5453) % 1.0;
+    }
 
     createFragmentedGeometry() {
         const group = new THREE.Group();
@@ -537,13 +542,20 @@ export class ShowcaseFactory {
 
         for (let i = 0; i < 4; i++) {
             const ref = refs[i];
-            const factor = 0.5 + Math.sin(time * speeds[i] + offsets[i]) * 0.3;
-            // Deterministic glitch using Sine of time * heavy multiplier
-            const glitch = Math.sin(time * 50 + i) * 0.05;
 
-            const oscX = ref.x + (cx - ref.x) * factor + glitch;
-            const oscY = ref.y + (cy - ref.y) * factor + glitch;
-            const oscZ = ref.z + (cz - ref.z) * factor + glitch;
+            // Base Harmonic Oscillation
+            const factor = 0.5 + Math.sin(time * speeds[i] + offsets[i]) * 0.3;
+
+            // Glitch Layer: High frequency noise ("frying matter")
+            // fract(sin(time * large_seed)) provides erratic 0..1 jumps
+            const glitchSignal = (Math.abs(Math.sin(time * 45.0 + i * 12.0)) % 1.0);
+            // Threshold for spikes
+            const spike = glitchSignal > 0.85 ? (glitchSignal - 0.85) * 0.4 : 0;
+            const glitchOffset = (this.psrdnoise(time * 30, i) - 0.5) * 0.08 + spike;
+
+            const oscX = ref.x + (cx - ref.x) * factor + glitchOffset;
+            const oscY = ref.y + (cy - ref.y) * factor + glitchOffset;
+            const oscZ = ref.z + (cz - ref.z) * factor + glitchOffset;
 
             const finalX = oscX + (cx - oscX) * inwardLerp;
             const finalY = oscY + (cy - oscY) * inwardLerp;
@@ -555,20 +567,26 @@ export class ShowcaseFactory {
             else { ox3 = finalX; oy3 = finalY; oz3 = finalZ; }
         }
 
-        // Write buffer (same mapping as before)
+        // Write buffer (optimized mapping)
+        // [Mapping is identical to previous, just cleaner layout]
+        // Face 1: 1, 2, 3
         posArr[0] = ox1; posArr[1] = oy1; posArr[2] = oz1;
         posArr[3] = ox2; posArr[4] = oy2; posArr[5] = oz2;
         posArr[6] = ox3; posArr[7] = oy3; posArr[8] = oz3;
+        // Face 2: 0, 2, 1
         posArr[9] = ox0; posArr[10] = oy0; posArr[11] = oz0;
         posArr[12] = ox2; posArr[13] = oy2; posArr[14] = oz2;
         posArr[15] = ox1; posArr[16] = oy1; posArr[17] = oz1;
+        // Face 3: 0, 3, 2
         posArr[18] = ox0; posArr[19] = oy0; posArr[20] = oz0;
         posArr[21] = ox3; posArr[22] = oy3; posArr[23] = oz3;
         posArr[24] = ox2; posArr[25] = oy2; posArr[26] = oz2;
+        // Face 4: 0, 1, 3
         posArr[27] = ox0; posArr[28] = oy0; posArr[29] = oz0;
         posArr[30] = ox1; posArr[31] = oy1; posArr[32] = oz1;
         posArr[33] = ox3; posArr[34] = oy3; posArr[35] = oz3;
 
+        // Sync lightning core targets
         this.lightningState.coreVerts[0].x = ox0; this.lightningState.coreVerts[0].y = oy0; this.lightningState.coreVerts[0].z = oz0;
         this.lightningState.coreVerts[1].x = ox1; this.lightningState.coreVerts[1].y = oy1; this.lightningState.coreVerts[1].z = oz1;
         this.lightningState.coreVerts[2].x = ox2; this.lightningState.coreVerts[2].y = oy2; this.lightningState.coreVerts[2].z = oz2;
@@ -583,20 +601,27 @@ export class ShowcaseFactory {
         const LIGHTNING_SEGMENTS = 8;
         const baseIdx = boltIndex * LIGHTNING_SEGMENTS * 6;
 
-        // Deterministic Pseudo-Random
-        const seed = time + boltIndex * 13.37;
-        const rand = (offset) => Math.sin(seed * offset * 43758.5453) * 0.5 + 0.5;
+        // Chaotic Jump: Seed changes completely every frame if this method is called.
+        // We use 'time' as a base, but since this is called only during active flicker, 
+        // we want it to look different each frame. 
+        // We multiply time by a large prime to scatter the seed frame-to-frame.
+        const frameSeed = time * 7919 + boltIndex * 17;
 
-        // Select edge deterministically
-        const edgeIdx = Math.floor(rand(1) * this.lightningState.edges.length);
+        // Pseudo-random local helper
+        const rand = (offset) => this.psrdnoise(frameSeed + offset);
+
+        // Select edge deterministically but chaotically
+        const edgeIdx = Math.floor(rand(10) * this.lightningState.edges.length);
         const [edgeA, edgeB] = this.lightningState.edges[edgeIdx];
-        const t = rand(2);
 
+        // Random point on edge
+        const t = rand(20);
         const startX = edgeA.x + (edgeB.x - edgeA.x) * t;
         const startY = edgeA.y + (edgeB.y - edgeA.y) * t;
         const startZ = edgeA.z + (edgeB.z - edgeA.z) * t;
 
-        const targetVert = this.lightningState.coreVerts[Math.floor(rand(3) * 4)];
+        // Target random core vertex
+        const targetVert = this.lightningState.coreVerts[Math.floor(rand(30) * 4)];
         const endX = targetVert.x;
         const endY = targetVert.y;
         const endZ = targetVert.z;
@@ -607,15 +632,19 @@ export class ShowcaseFactory {
 
         for (let i = 0; i < LIGHTNING_SEGMENTS; i++) {
             const segT = (i + 1) / LIGHTNING_SEGMENTS;
+
+            // Main Path
             let nextX = startX + (endX - startX) * segT;
             let nextY = startY + (endY - startY) * segT;
             let nextZ = startZ + (endZ - startZ) * segT;
 
             if (i < LIGHTNING_SEGMENTS - 1) {
-                const jitter = 0.4;
-                nextX += (rand(4 + i) - 0.5) * jitter;
-                nextY += (rand(5 + i) - 0.5) * jitter;
-                nextZ += (rand(6 + i) - 0.5) * jitter;
+                // Jitter: Chaotic spread
+                // Using noise instead of pure random for deterministic chaos
+                const jitterAmt = 0.5; // High jitter
+                nextX += (rand(100 + i * 3) - 0.5) * jitterAmt;
+                nextY += (rand(101 + i * 3) - 0.5) * jitterAmt;
+                nextZ += (rand(102 + i * 3) - 0.5) * jitterAmt;
             } else {
                 nextX = endX; nextY = endY; nextZ = endZ;
             }
@@ -629,10 +658,12 @@ export class ShowcaseFactory {
     }
 
     updateLightning(time) {
-        // Flicker based on time logic
-        const flickerSpeed = 5; // Hz equivalent
-        const noise = Math.sin(time * flickerSpeed);
-        const shouldFlicker = noise > 0.8; // High threshold for intermittent flicker
+        // High Intensity, Low Frequency trigger (Nervous)
+        // Use high multiplier on time to sample noise rapidly
+        const triggerNoise = this.psrdnoise(time * 35.0); // Fast noise
+
+        // Threshold: High value (e.g., > 0.85) creates sparse, sudden bursts
+        const shouldFlicker = triggerNoise > 0.85;
 
         if (shouldFlicker) {
             for (let i = 0; i < 6; i++) {
@@ -640,6 +671,9 @@ export class ShowcaseFactory {
             }
             this.lightningGeometry.attributes.position.needsUpdate = true;
             this.lightningMesh.visible = true;
+
+            // Optional: Modulate intensity or color slightly with the noise
+            // this.lightningMesh.material.uniforms.uColor.value... 
         } else {
             this.lightningMesh.visible = false;
         }
