@@ -79,7 +79,7 @@ export function initShowcaseMap(containerElement) {
 
         // --- ASYNC WIRING ---
         factory.build().then(data => {
-            interaction.setTargets(data.monoliths);
+            interaction.setTargets(data.monoliths, data.ring);
             interaction.setLabels(data.projectLabels);
             console.log('[Showcase] Modules wired successfully');
         });

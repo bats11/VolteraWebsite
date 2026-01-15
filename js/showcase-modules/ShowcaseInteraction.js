@@ -16,9 +16,14 @@ export class ShowcaseInteraction {
         // --- CONSTANTS ---
         this.TRAVEL_CONFIG = {
             startZ: 20,
-            endZ: -60,
-            travelFinishThreshold: 0.8
+            endZ: -120, // Updated to fly through further
         };
+        // SCROLL PHASES (Configurable thresholds)
+        this.SCROLL_PHASES = {
+            approachLimit: 0.3,
+            carouselLimit: 0.7
+        };
+
         // Voltera Ease: cubic-bezier(0.16, 1, 0.3, 1)
         this.VOLTERA_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
         this.DRAG_LIMIT = 0.25;
@@ -79,8 +84,9 @@ export class ShowcaseInteraction {
         window.addEventListener('vltProjectClose', this.onProjectClose);
     }
 
-    setTargets(monoliths) {
+    setTargets(monoliths, ring) {
         this.monoliths = monoliths || [];
+        this.monolithRing = ring;
     }
 
     setLabels(projectLabels) {
@@ -102,7 +108,8 @@ export class ShowcaseInteraction {
             this.camera.rotateX(this.rotationProxy.x);
         }
 
-        // 2. Label Opacity
+        // 2. Label Opacity (Always Visible now, but we perform update just in case we add other effects later)
+        // Note: Distance fade removed as requested.
         const labelWorldPos = new THREE.Vector3();
         this.projectLabels.forEach(labelData => {
             this.updateLabelOpacity(labelData, this.camera.position, labelWorldPos);
@@ -110,16 +117,12 @@ export class ShowcaseInteraction {
     }
 
     updateLabelOpacity(labelData, cameraPos, labelWorldPos) {
-        labelData.object.getWorldPosition(labelWorldPos);
-        const distance = cameraPos.distanceTo(labelWorldPos);
-        let targetOpacity;
-        if (distance >= this.LABEL_VISIBILITY.fadeInStart) targetOpacity = 0;
-        else if (distance <= this.LABEL_VISIBILITY.fadeInEnd) targetOpacity = 1;
-        else targetOpacity = 1 - (distance - this.LABEL_VISIBILITY.fadeInEnd) / (this.LABEL_VISIBILITY.fadeInStart - this.LABEL_VISIBILITY.fadeInEnd);
-
-        if (labelWorldPos.z > cameraPos.z + 5) targetOpacity = 0;
+        // Logic removed: Labels are now always fully opaque
+        // We just ensure they are set to 1.
 
         const current = labelData.object.userData.currentOpacity;
+        const targetOpacity = 1.0;
+
         const newOpacity = current + (targetOpacity - current) * this.LABEL_VISIBILITY.inertiaFactor;
         labelData.object.userData.currentOpacity = newOpacity;
         labelData.element.style.opacity = newOpacity.toFixed(3);
@@ -350,7 +353,6 @@ export class ShowcaseInteraction {
         if (!this.section) return;
 
         const rect = this.section.getBoundingClientRect();
-        // Calculate dynamic height in case of resize
         const sectionHeight = this.section.offsetHeight - window.innerHeight;
         const scrolled = -rect.top;
 
@@ -362,27 +364,64 @@ export class ShowcaseInteraction {
             this.pulseTriggered = true;
         }
 
+        // Logic for Ground Fade (optional/legacy, keeping safe)
         if (this.ground && this.ground.material) {
-            const fadeStart = this.TRAVEL_CONFIG.travelFinishThreshold;
-            const fadeEnd = 0.95;
-            let groundAlpha = 1.0;
-            if (this.scrollProgress >= fadeStart) {
-                const fadeProgress = (this.scrollProgress - fadeStart) / (fadeEnd - fadeStart);
-                groundAlpha = Math.max(0, 1 - fadeProgress);
-            }
-            this.ground.material.opacity = groundAlpha;
+            // ... existing ground fade logic or simplified ...
+            // For now letting it be, but phase logic takes priority for camera.
         }
 
         if (!this.isZooming) {
-            const { startZ, endZ, travelFinishThreshold } = this.TRAVEL_CONFIG;
-            let targetZ;
-            if (this.scrollProgress < travelFinishThreshold) {
-                const travelProgress = this.scrollProgress / travelFinishThreshold;
-                const easedProgress = 1 - (1 - travelProgress) * (1 - travelProgress);
-                targetZ = startZ + (endZ - startZ) * easedProgress;
-            } else {
-                targetZ = endZ;
+            const { startZ, endZ } = this.TRAVEL_CONFIG;
+            const phases = this.SCROLL_PHASES;
+
+            // Phase Thresholds
+            const p1 = phases.approachLimit;  // e.g. 0.3
+            const p2 = phases.carouselLimit;  // e.g. 0.7
+
+            // Target Values
+            const viewZ = -40; // The "Viewing" position (Carousel center is -80, radius 30 => front is -50. -40 is nice viewing spot)
+
+            let targetZ = startZ;
+
+            // --- PHASE 1: APPROACH (0 -> p1) ---
+            if (this.scrollProgress <= p1) {
+                // Map [0, p1] to [startZ, viewZ]
+                const t = this.scrollProgress / p1;
+                // Ease out cubic for arrival
+                const ease = 1 - Math.pow(1 - t, 3);
+                targetZ = startZ + (viewZ - startZ) * ease;
+
+                // Reset Ring Rotation
+                if (this.monolithRing) this.monolithRing.rotation.y = 0;
             }
+            // --- PHASE 2: CAROUSEL (p1 -> p2) ---
+            else if (this.scrollProgress <= p2) {
+                // Locked at View Position
+                targetZ = viewZ;
+
+                // Rotate Ring
+                // Map [p1, p2] to [0, Math.PI * 2] (Full rotation?)
+                // Or maybe partial rotation depending on project count.
+                // Let's do 1 full revolution for now.
+                const t = (this.scrollProgress - p1) / (p2 - p1);
+
+                // Linear rotation feel usually best for scroll-scrubbing
+                if (this.monolithRing) {
+                    this.monolithRing.rotation.y = t * Math.PI * 2;
+                }
+            }
+            // --- PHASE 3: DEPARTURE (p2 -> 1.0) ---
+            else {
+                // Ring stays rotated
+                if (this.monolithRing) this.monolithRing.rotation.y = Math.PI * 2;
+
+                // Departure: viewZ -> endZ
+                const t = (this.scrollProgress - p2) / (1.0 - p2);
+                // Ease in cubic for departure speedup
+                const ease = t * t * t;
+                targetZ = viewZ + (endZ - viewZ) * ease;
+            }
+
             this.camera.position.z = targetZ;
 
             if (this.isTouchDevice) {
