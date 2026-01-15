@@ -296,6 +296,11 @@ export class ShowcaseFactory {
     }
 
     createProjectLabel(project) {
+        // Wrapper for 3D positioning (handled by CSS2DRenderer)
+        const wrapper = document.createElement('div');
+        wrapper.className = 'project-label-wrapper';
+
+        // Inner Element for scaling/visuals (handled by Interaction)
         const container = document.createElement('div');
         container.className = 'project-tag';
 
@@ -308,10 +313,13 @@ export class ShowcaseFactory {
         `;
 
         container.dataset.projectId = project.id;
+        wrapper.appendChild(container);
 
-        const label = new CSS2DObject(container);
-        label.userData.currentOpacity = 0;
+        const label = new CSS2DObject(wrapper);
+        // Position raised to 4.5
+        label.position.set(0, 4.5, 0);
 
+        // Return inner container as 'element' for scaling interactions
         return { object: label, element: container };
     }
 

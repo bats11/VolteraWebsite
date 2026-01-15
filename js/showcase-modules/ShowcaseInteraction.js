@@ -108,24 +108,32 @@ export class ShowcaseInteraction {
             this.camera.rotateX(this.rotationProxy.x);
         }
 
-        // 2. Label Opacity (Always Visible now, but we perform update just in case we add other effects later)
-        // Note: Distance fade removed as requested.
+        // 2. Label Visuals (Scale & Z-Index)
         const labelWorldPos = new THREE.Vector3();
         this.projectLabels.forEach(labelData => {
-            this.updateLabelOpacity(labelData, this.camera.position, labelWorldPos);
+            // Get world position of the wrapper object
+            labelData.object.getWorldPosition(labelWorldPos);
+            this.updateLabelVisuals(labelData, this.camera.position, labelWorldPos);
         });
     }
 
-    updateLabelOpacity(labelData, cameraPos, labelWorldPos) {
-        // Logic removed: Labels are now always fully opaque
-        // We just ensure they are set to 1.
+    updateLabelVisuals(labelData, cameraPos, labelWorldPos) {
+        const distance = cameraPos.distanceTo(labelWorldPos);
 
-        const current = labelData.object.userData.currentOpacity;
-        const targetOpacity = 1.0;
+        // Visual Scaling Logic
+        const referenceDistance = 15;
+        let scale = referenceDistance / distance;
 
-        const newOpacity = current + (targetOpacity - current) * this.LABEL_VISIBILITY.inertiaFactor;
-        labelData.object.userData.currentOpacity = newOpacity;
-        labelData.element.style.opacity = newOpacity.toFixed(3);
+        // Clamp scale
+        scale = Math.max(0.4, Math.min(1.0, scale));
+
+        // Apply scale to the inner element
+        labelData.element.style.transform = `scale(${scale.toFixed(3)})`;
+        labelData.element.style.opacity = "1"; // Always visible as per request
+
+        // Z-Index Sorting
+        const zIndex = Math.floor(1000 - distance);
+        labelData.object.element.style.zIndex = zIndex; // Apply z-index to wrapper (CSS2DObject element)
     }
 
     // --- INPUT HANDLERS ---
