@@ -3397,6 +3397,8 @@ footer {
 
     width: 100%;
 
+    flex-shrink: 0;
+
 }
 
 
@@ -3497,7 +3499,9 @@ footer {
 
     order: -1;
 
-    overflow-y: auto;
+    height: auto;
+
+    flex-shrink: 0;
 
     display: flex;
 
@@ -3528,6 +3532,7 @@ footer {
     position: relative;
     overflow: hidden;
     background-color: #000;
+    flex-shrink: 0;
     /* Fondo scuro mentre carica */
     /* border-radius: 4px; Opzionale: se vuoi gli angoli smussati */
 }
