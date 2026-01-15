@@ -3375,7 +3375,7 @@ footer {
 
     display: flex;
 
-    flex-direction: column-reverse;
+    flex-direction: column;
 
     height: 100%;
 
@@ -3383,7 +3383,7 @@ footer {
 
     gap: 32px;
 
-    padding: 100px 5% 60px;
+    padding: 20px 5% 60px;
 
     overflow-y: auto;
 
@@ -3495,6 +3495,8 @@ footer {
 
 .dossier-right {
 
+    order: -1;
+
     overflow-y: auto;
 
     display: flex;
@@ -3519,7 +3521,24 @@ footer {
 
 }
 
+.dossier-video-hero {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    /* Forza il formato verticale */
+    position: relative;
+    overflow: hidden;
+    background-color: #000;
+    /* Fondo scuro mentre carica */
+    /* border-radius: 4px; Opzionale: se vuoi gli angoli smussati */
+}
 
+.dossier-video-element {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Riempie il 2:3 tagliando i lati eccedenti */
+    display: block;
+}
 
 
 
@@ -3543,7 +3562,14 @@ footer {
 
     }
 
+    .dossier-right {
+        order: 0;
+        /* Reset: su desktop il media deve stare a destra (secondo posto) */
 
+        /* Eventuali altre regole desktop... */
+        min-height: auto;
+        padding-bottom: 100px;
+    }
 
     .dossier-left {
 
@@ -3553,6 +3579,11 @@ footer {
 
         align-self: start;
 
+    }
+
+    .dossier-video-hero {
+        aspect-ratio: 16 / 9;
+        /* Torna panoramico su schermi grandi */
     }
 
 
