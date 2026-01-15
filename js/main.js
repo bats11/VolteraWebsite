@@ -24,9 +24,7 @@ function unlockScroll() {
 window.onload = function () {
     ResizeManager.init();
 
-    if (window.lucide) {
-        window.lucide.createIcons();
-    }
+    // Lucide removed (inline SVGs used)
 
     // AOX controller reference (declared early for resize callback access)
     let aoxController = null;
@@ -38,24 +36,17 @@ window.onload = function () {
     const atmospheric = initAtmosphericHero(atmosphericContainer);
     if (atmospheric) sceneControllers.set('canvas-container', atmospheric);
 
+    // --- LAZY LOAD SHOWCASE ---
     const showcaseContainer = document.getElementById('showcase-canvas');
-    const showcase = initShowcaseMap(showcaseContainer);
-    if (showcase) sceneControllers.set('showcase-canvas', showcase);
+    // REMOVED immediate init
 
     initThemeObserver();
     initAoxInteraction();
 
     initRevealTextAnimation();
 
-    // --- ORCHESTRAZIONE SHOWCASE UI ---
-    // Inizializza la UI (Dossier)
-    ShowcaseUI.init(() => {
-        // Callback di chiusura UI: notifica la scena 3D
-        window.dispatchEvent(new CustomEvent('vltProjectClose'));
-        unlockScroll();
-    }, {
-        baseAssetPath: './assets/video/'
-    });
+    // --- ORCHESTRAZIONE SHOWCASE UI (DEFERRED) ---
+    // Moved inside showcaseObserver callback below
 
     // Ascolta la selezione del progetto dalla scena 3D
     window.addEventListener('vltProjectSelect', (e) => {
@@ -63,6 +54,8 @@ window.onload = function () {
         ShowcaseUI.open(projectData);
         lockScroll();
     });
+
+    // Handle desktop→mobile resize: stop AOX scene safely
 
     // Handle desktop→mobile resize: stop AOX scene safely
 
@@ -92,6 +85,39 @@ window.onload = function () {
         if (el) visibilityObserver.observe(el);
     });
 
+    // --- LAZY LOAD SHOWCASE OBSERVER ---
+    const showcaseObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !sceneControllers.has('showcase-canvas')) {
+                // 1. Initialize Map
+                const showcase = initShowcaseMap(showcaseContainer);
+                if (showcase) {
+                    sceneControllers.set('showcase-canvas', showcase);
+
+                    // Start immediately if visible
+                    showcase.start();
+
+                    // 2. Force Resize to prevent black screen (User Request)
+                    window.dispatchEvent(new Event('resize'));
+
+                    // 3. Initialize UI (Coordinated)
+                    ShowcaseUI.init(() => {
+                        window.dispatchEvent(new CustomEvent('vltProjectClose'));
+                        unlockScroll();
+                    }, { baseAssetPath: './assets/video/' });
+
+                    // 4. Handoff to standard visibility observer
+                    visibilityObserver.observe(entry.target);
+                }
+
+                // Stop lazy observer
+                showcaseObserver.unobserve(entry.target);
+            }
+        });
+    }, { rootMargin: '0px 0px 500px 0px' });
+
+    if (showcaseContainer) showcaseObserver.observe(showcaseContainer);
+
     // --- ASYNC AOX (Parallel & Non-Blocking) ---
     // Initialize AOX Core unconditionally
     const aoxContainer = document.getElementById('aox-canvas-container');
@@ -120,9 +146,8 @@ const mobileMenu = document.getElementById('mobile-menu');
 
 window.toggleMenu = function () {
     mobileMenu.classList.toggle('active');
-    const isOpened = mobileMenu.classList.contains('active');
-    burger.innerHTML = isOpened ? '<i data-lucide="x"></i>' : '<i data-lucide="menu"></i>';
-    if (window.lucide) window.lucide.createIcons();
+    // Toggle class on burger to swap icons via CSS
+    if (burger) burger.classList.toggle('is-active');
 }
 
 if (burger) {

@@ -3646,6 +3646,31 @@ footer {
 
 
 
+/* --- ICONS & TOGGLE --- */
+.vlt-icon {
+    width: 1em;
+    height: 1em;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.menu-trigger .icon-close {
+    display: none;
+}
+
+.menu-trigger.is-active .icon-menu {
+    display: none;
+}
+
+.menu-trigger.is-active .icon-close {
+    display: block;
+}
+
 .u-margin-top-sm {
 
     margin-top: 32px !important;
