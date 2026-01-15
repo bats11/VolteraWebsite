@@ -22,7 +22,7 @@
                     "specs": [
                         "Unreal Engine 5",
                         "Pixel Streaming",
-                        "WebRTC",
+                        "high-end web experience",
                         "Real-Time Rendering"
                     ]
                 },
@@ -75,7 +75,7 @@
                     "description": "Piattaforma di formazione immersiva per i driver Amazon. Simulazioni realistiche di scenari di guida e consegna permettono un apprendimento sicuro e scalabile, riducendo i costi logistici del training tradizionale.",
                     "specs": [
                         "WebGL",
-                        "Three.js",
+                        "BabylonJS",
                         "Holographic UI",
                         "Training Analytics"
                     ]

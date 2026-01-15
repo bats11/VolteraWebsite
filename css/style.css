@@ -3373,9 +3373,9 @@ footer {
 
 .dossier-grid {
 
-    display: grid;
+    display: flex;
 
-    grid-template-columns: 1fr;
+    flex-direction: column-reverse;
 
     height: 100%;
 
@@ -3530,6 +3530,8 @@ footer {
 @media (min-width: 1024px) {
 
     .dossier-grid {
+
+        display: grid;
 
         grid-template-columns: 35% 65%;
 

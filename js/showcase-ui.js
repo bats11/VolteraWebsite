@@ -205,15 +205,49 @@ const ShowcaseUI = {
         const right = document.createElement('div');
         right.className = 'dossier-right';
 
-        // Qui andrà la tua nuova logica.
-        // Per ora il contenitore è vuoto e pulito.
+        // 2. Retrieve Media Items from JSON structure
+        // Navigazione sicura nell'oggetto htmlContent -> col_right
+        const mediaItems = data.htmlContent && data.htmlContent.col_right ? data.htmlContent.col_right : [];
 
-        // 2. Append to Article
+        // 3. Find the FIRST video item defined in the JSON
+        // Cerchiamo il primo oggetto che ha type 'video_hero'
+        const firstVideo = mediaItems.find(item => item.type === 'video_hero');
+
+        if (firstVideo) {
+            // Container specifico per il video
+            const videoContainer = document.createElement('div');
+            videoContainer.className = 'dossier-video-hero';
+
+            // Creazione Elemento Video
+            const video = document.createElement('video');
+
+            // Risoluzione Path:
+            // Se il JSON contiene "./assets/...", _resolvePath lo userà così com'è.
+            // Se contenesse solo "nomefile.mp4", aggiungerebbe il path di base.
+            video.src = this._resolvePath(firstVideo.src, 'video');
+
+            // Attributi per autoplay silenzioso (obbligatorio per mobile)
+            video.autoplay = true;
+            video.muted = true;
+            video.loop = true;
+            video.playsInline = true;
+
+            // Classe CSS per gestire dimensioni e aspect-ratio
+            video.className = 'dossier-video-element';
+
+            videoContainer.appendChild(video);
+            right.appendChild(videoContainer);
+        } else {
+            console.warn(`[ShowcaseUI] No video_hero found for project: ${data.id}`);
+        }
+
+        // 4. Append to Article
         article.appendChild(right);
 
-        // 3. Simple Entry Animation
+        // 5. Entry Animation (GSAP)
         gsap.from(right, {
             opacity: 0,
+            y: 20,
             duration: 0.8,
             ease: "power2.out",
             delay: 0.1
