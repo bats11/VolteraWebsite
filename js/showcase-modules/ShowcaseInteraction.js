@@ -2,33 +2,25 @@ import * as THREE from 'three';
 // gsap is expected to be global
 
 export class ShowcaseInteraction {
-    constructor(uiConfig, camera, scene, outlinePass, ground) {
+    constructor(uiConfig, rig, scene, outlinePass, ground) {
         // UI Config contains: { container, section, hud, cssLayer }
         this.container = uiConfig.container;
         this.section = uiConfig.section;
         this.hudElements = uiConfig.hud || {}; // { hud, hudRef, hudStatus }
 
-        this.camera = camera;
+        this.rig = rig; // Replaced this.camera with this.rig
         this.scene = scene;
         this.outlinePass = outlinePass;
         this.ground = ground;
 
         // --- CONSTANTS ---
-        this.TRAVEL_CONFIG = {
-            startZ: 20,
-            endZ: -120, // Updated to fly through further
-        };
-        // SCROLL PHASES (Configurable thresholds)
         this.SCROLL_PHASES = {
             approachLimit: 0.3,
             carouselLimit: 0.7
         };
 
-        // Voltera Ease: cubic-bezier(0.16, 1, 0.3, 1)
-        this.VOLTERA_EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
         this.DRAG_LIMIT = 0.25;
         this.DRAG_SENSITIVITY = 0.001;
-        this.LABEL_VISIBILITY = { fadeInStart: 25, fadeInEnd: 10, inertiaFactor: 0.08 };
 
         // --- STATE ---
         this.monoliths = [];
@@ -37,21 +29,12 @@ export class ShowcaseInteraction {
         this.mouse = new THREE.Vector2();
         this.mouseWorld = new THREE.Vector3(0, 0, 0);
 
-        this.isZooming = false; // "Cinematic Mode" flag
         this.isDragging = false;
         this.dragStart = { x: 0, y: 0 };
 
-        // GSAP quickTo proxies
-        this.rotationProxy = { x: 0, y: 0 };
-        // We initialize these in initListeners or later to ensure gsap is ready, 
-        // but safe to do here if gsap is global.
-
-        // Setup quickTo for camera rotation
-        this.rotateXTo = gsap.quickTo(this.rotationProxy, "x", { duration: 0.6, ease: this.VOLTERA_EASE });
-        this.rotateYTo = gsap.quickTo(this.rotationProxy, "y", { duration: 0.6, ease: this.VOLTERA_EASE });
-
-        this.initialCameraQuaternion = new THREE.Quaternion().copy(this.camera.quaternion);
-        this.cameraSnapshot = new THREE.Vector3();
+        // Input Rotation State (Accumulated Drag)
+        // We maintain this here and feed it to the Rig
+        this.inputRotation = { x: 0, y: 0 };
 
         this.currentHoveredMonolith = null;
         this.pulseTriggered = false;
@@ -99,21 +82,15 @@ export class ShowcaseInteraction {
     }
 
     update(time, delta) {
-        // 1. Apply Camera Rotation (from quickTo proxy)
-        // Only if not zooming/cinematic
-        if (!this.isZooming) {
-            this.camera.quaternion.copy(this.initialCameraQuaternion);
-            // Apply current proxy values
-            this.camera.rotateY(this.rotationProxy.y);
-            this.camera.rotateX(this.rotationProxy.x);
-        }
+        // Label Visuals (Scale & Z-Index)
+        // We access the wrapper group inside the rig for the camera
+        const cameraPos = this.rig.cameraWorldPosition; // Uses getter
 
-        // 2. Label Visuals (Scale & Z-Index)
         const labelWorldPos = new THREE.Vector3();
         this.projectLabels.forEach(labelData => {
             // Get world position of the wrapper object
             labelData.object.getWorldPosition(labelWorldPos);
-            this.updateLabelVisuals(labelData, this.camera.position, labelWorldPos);
+            this.updateLabelVisuals(labelData, cameraPos, labelWorldPos);
         });
     }
 
@@ -139,22 +116,25 @@ export class ShowcaseInteraction {
     // --- INPUT HANDLERS ---
 
     onMouseMove(event) {
-        if (this.isZooming) return;
+        if (this.rig.isZooming) return;
 
         if (this.isDragging) {
             const dx = event.clientX - this.dragStart.x;
             const dy = event.clientY - this.dragStart.y;
 
             // Calculate target rotation
-            let targetY = this.rotationProxy.y - dx * this.DRAG_SENSITIVITY;
-            let targetX = this.rotationProxy.x - dy * this.DRAG_SENSITIVITY;
+            let targetY = this.inputRotation.y - dx * this.DRAG_SENSITIVITY;
+            let targetX = this.inputRotation.x - dy * this.DRAG_SENSITIVITY;
 
             targetY = Math.max(-this.DRAG_LIMIT, Math.min(this.DRAG_LIMIT, targetY));
             targetX = Math.max(-this.DRAG_LIMIT, Math.min(this.DRAG_LIMIT, targetX));
 
-            // Feed into quickTo
-            this.rotateYTo(targetY);
-            this.rotateXTo(targetX);
+            // Update State
+            this.inputRotation.x = targetX;
+            this.inputRotation.y = targetY;
+
+            // Feed into Rig
+            this.rig.setRotationTarget(targetX, targetY);
 
             this.dragStart.x = event.clientX;
             this.dragStart.y = event.clientY;
@@ -164,9 +144,13 @@ export class ShowcaseInteraction {
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-        const planeZ = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-        this.raycaster.setFromCamera(this.mouse, this.camera);
-        this.raycaster.ray.intersectPlane(planeZ, this.mouseWorld);
+        // Raycasting for Hover
+        // Rig contains the camera, but raycaster needs the camera itself
+        this.raycaster.setFromCamera(this.mouse, this.rig.camera);
+
+        // Plane intersection for potential floor cursor logic
+        // const planeZ = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+        // this.raycaster.ray.intersectPlane(planeZ, this.mouseWorld);
 
         this.updateHoverState();
     }
@@ -176,16 +160,11 @@ export class ShowcaseInteraction {
         this.tapStartPos.x = event.clientX;
         this.tapStartPos.y = event.clientY;
 
-        if (!this.isTouchDevice && !this.isZooming) {
+        if (!this.isTouchDevice && !this.rig.isZooming) {
             this.isDragging = true;
             this.dragStart.x = event.clientX;
             this.dragStart.y = event.clientY;
             this.container.style.cursor = 'grabbing';
-
-            // When dragging starts, we might want to make the settle time longer? 
-            // Or keep it snappy. "active" state = 0.6s.
-            // When user releases, maybe we drift? 
-            // For now, keeping the configured quickTo duration.
         }
     }
 
@@ -201,36 +180,34 @@ export class ShowcaseInteraction {
 
         if (tapDuration < 300 && tapDistance < 10) {
             this.handleClick(event);
-        } else {
-            // Drag ended, let it settle.
-            // Option: Increase duration for a "drift" effect?
-            // this.rotateXTo.tween.duration(1.2); 
-            // Not readily available in quickTo API directly without creating new tween or recreating.
-            // We'll stick to uniform Voltera feel for now.
         }
     }
 
     handleClick(event) {
-        if (this.isZooming || this.monoliths.length === 0) return;
+        if (this.rig.isZooming || this.monoliths.length === 0) return;
 
         const rect = this.container.getBoundingClientRect();
         this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-        this.raycaster.setFromCamera(this.mouse, this.camera);
+        this.raycaster.setFromCamera(this.mouse, this.rig.camera);
         const intersects = this.raycaster.intersectObjects(this.monoliths, true);
 
         if (intersects.length > 0) {
             let obj = intersects[0].object;
             while (obj.parent && !obj.userData.id) obj = obj.parent;
-            if (obj.userData.id) this.zoomToProject(obj);
+            if (obj.userData.id) {
+                this.rig.zoomTo(obj, () => {
+                    window.dispatchEvent(new CustomEvent('vltProjectSelect', { detail: obj.userData }));
+                });
+            }
         }
     }
 
     updateHoverState() {
         if (this.monoliths.length === 0) return;
 
-        this.raycaster.setFromCamera(this.mouse, this.camera);
+        this.raycaster.setFromCamera(this.mouse, this.rig.camera);
         const intersects = this.raycaster.intersectObjects(this.monoliths, true);
 
         if (intersects.length > 0 && this.pulseTimeline && this.pulseTimeline.isActive()) {
@@ -260,6 +237,12 @@ export class ShowcaseInteraction {
     }
 
     updateBeaconHoverState(projectId, isHovered) {
+        // ... (Logic remains identical to original, just keeping it clean)
+        // For brevity in this file rewrite, I am omitting the unchanged complex animation helpers,
+        // BUT wait, I need to provide the FULL file content or `write_to_file` will replace it with truncated code?
+        // `write_to_file` replaces the ENTIRE file.
+        // I MUST RE-INCLUDE ALL HELPER METHODS.
+
         const EASE_IGNITION = "cubic-bezier(0.16, 1, 0.3, 1)";
         const EASE_DECAY = "power2.out";
 
@@ -329,31 +312,9 @@ export class ShowcaseInteraction {
         this.hudElements.hud.classList.remove('active');
     }
 
-    zoomToProject(monolith) {
-        this.cameraSnapshot.copy(this.camera.position);
-        this.isZooming = true; // Locks quickTo updates
-
-        const targetPos = monolith.position.clone();
-        targetPos.z += 5;
-        targetPos.y += 1;
-
-        gsap.to(this.camera.position, {
-            x: targetPos.x, y: targetPos.y, z: targetPos.z,
-            duration: 1.5, ease: this.VOLTERA_EASE,
-            onComplete: () => {
-                window.dispatchEvent(new CustomEvent('vltProjectSelect', { detail: monolith.userData }));
-            }
-        });
-    }
-
     onProjectClose() {
-        gsap.to(this.camera.position, {
-            x: this.cameraSnapshot.x, y: this.cameraSnapshot.y, z: this.cameraSnapshot.z,
-            duration: 1.2, ease: this.VOLTERA_EASE,
-            onComplete: () => {
-                this.isZooming = false; // Unlocks quickTo
-                this.updateCameraFromScroll(); // Reset position
-            }
+        this.rig.exitZoom(() => {
+            this.updateCameraFromScroll(); // Ensure we are back in sync
         });
     }
 
@@ -372,65 +333,33 @@ export class ShowcaseInteraction {
             this.pulseTriggered = true;
         }
 
-        // Logic for Ground Fade (optional/legacy, keeping safe)
-        if (this.ground && this.ground.material) {
-            // ... existing ground fade logic or simplified ...
-            // For now letting it be, but phase logic takes priority for camera.
-        }
+        // --- DELEGATE CAMERA TO RIG ---
+        this.rig.update(this.scrollProgress);
 
-        if (!this.isZooming) {
-            const { startZ, endZ } = this.TRAVEL_CONFIG;
+        // --- MANAGE RING ROTATION (SCENE LOGIC) ---
+        // This remains here or should move to scene-showcase, but it's fine here for now.
+        // It relies on phases similar to the camera.
+
+        if (!this.rig.isZooming) {
             const phases = this.SCROLL_PHASES;
+            const p1 = phases.approachLimit;
+            const p2 = phases.carouselLimit;
 
-            // Phase Thresholds
-            const p1 = phases.approachLimit;  // e.g. 0.3
-            const p2 = phases.carouselLimit;  // e.g. 0.7
-
-            // Target Values
-            const viewZ = -40; // The "Viewing" position (Carousel center is -80, radius 30 => front is -50. -40 is nice viewing spot)
-
-            let targetZ = startZ;
-
-            // --- PHASE 1: APPROACH (0 -> p1) ---
+            // APPROACH (0 -> p1): Reset Ring
             if (this.scrollProgress <= p1) {
-                // Map [0, p1] to [startZ, viewZ]
-                const t = this.scrollProgress / p1;
-                // Ease out cubic for arrival
-                const ease = 1 - Math.pow(1 - t, 3);
-                targetZ = startZ + (viewZ - startZ) * ease;
-
-                // Reset Ring Rotation
                 if (this.monolithRing) this.monolithRing.rotation.y = 0;
             }
-            // --- PHASE 2: CAROUSEL (p1 -> p2) ---
+            // CAROUSEL (p1 -> p2): Rotate Ring
             else if (this.scrollProgress <= p2) {
-                // Locked at View Position
-                targetZ = viewZ;
-
-                // Rotate Ring
-                // Map [p1, p2] to [0, Math.PI * 2] (Full rotation?)
-                // Or maybe partial rotation depending on project count.
-                // Let's do 1 full revolution for now.
                 const t = (this.scrollProgress - p1) / (p2 - p1);
-
-                // Linear rotation feel usually best for scroll-scrubbing
                 if (this.monolithRing) {
                     this.monolithRing.rotation.y = t * Math.PI * 2;
                 }
             }
-            // --- PHASE 3: DEPARTURE (p2 -> 1.0) ---
+            // DEPARTURE (p2 -> 1.0): Ring stays rotated
             else {
-                // Ring stays rotated
                 if (this.monolithRing) this.monolithRing.rotation.y = Math.PI * 2;
-
-                // Departure: viewZ -> endZ
-                const t = (this.scrollProgress - p2) / (1.0 - p2);
-                // Ease in cubic for departure speedup
-                const ease = t * t * t;
-                targetZ = viewZ + (endZ - viewZ) * ease;
             }
-
-            this.camera.position.z = targetZ;
 
             if (this.isTouchDevice) {
                 this.checkMobileHUDTrigger();
@@ -449,15 +378,18 @@ export class ShowcaseInteraction {
             .to(this.outlinePass, { edgeStrength: 4.0, duration: 0.1 })
             .to(this.outlinePass, { edgeStrength: 1.0, duration: 0.2 })
             .to(this.outlinePass, { edgeStrength: 4.0, duration: 0.1 })
-            .to(this.outlinePass, { edgeStrength: 0.0, duration: 2.0, ease: this.VOLTERA_EASE });
+            .to(this.outlinePass, { edgeStrength: 0.0, duration: 2.0, ease: "cubic-bezier(0.16, 1, 0.3, 1)" });
     }
 
     checkMobileHUDTrigger() {
         let closestMonolith = null;
         let closestDist = Infinity;
 
+        // We need RIG position now
+        const rigZ = this.rig.position.z;
+
         this.monoliths.forEach(m => {
-            const dist = Math.abs(m.position.z - this.camera.position.z);
+            const dist = Math.abs(m.position.z - rigZ);
             if (dist < closestDist && dist < 8) {
                 closestDist = dist;
                 closestMonolith = m;
@@ -465,6 +397,7 @@ export class ShowcaseInteraction {
         });
 
         if (closestMonolith && closestMonolith !== this.currentHoveredMonolith) {
+            // ... same logic as before ... (abbreviated for brevity in thought, but must be full in file)
             if (this.currentHoveredMonolith) this.updateBeaconHoverState(this.currentHoveredMonolith.userData.id, false);
             this.currentHoveredMonolith = closestMonolith;
             this.showHUD(closestMonolith.userData);
@@ -488,7 +421,6 @@ export class ShowcaseInteraction {
             if (m.userData.breathTimeline) m.userData.breathTimeline.kill();
         });
 
-        // QuickTo instances are just functions, but they create tweens on the target object.
-        // The orchestrator's ctx.revert() will handle cleaning up those underlying tweens.
+        // Rig disposal is handled by Orchestrator
     }
 }
