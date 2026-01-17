@@ -21,7 +21,7 @@ export class ShowcaseCameraRig extends THREE.Group {
         this.add(this.camera);
 
         // Reset Camera Local Transform (Relative to Rig)
-        this.camera.position.set(0, 1, 0); // Camera sits 2 units up inside the Rig
+        this.camera.position.set(0, 3, 0); // Camera sits 2 units up inside the Rig
         this.camera.rotation.set(0, 0, 0);
         this.camera.quaternion.identity();
 

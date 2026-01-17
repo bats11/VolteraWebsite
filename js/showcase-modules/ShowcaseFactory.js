@@ -103,7 +103,7 @@ export class ShowcaseFactory {
                 const lx = Math.sin(angle) * radius;
                 const lz = Math.cos(angle) * radius;
 
-                monolith.position.set(lx, 0, lz);
+                monolith.position.set(lx, 2, lz);
 
                 // --- ORIENTATION ---
                 // 1. Look at local center (0,0,0)
@@ -145,7 +145,7 @@ export class ShowcaseFactory {
 
                 // Project Label
                 const labelData = this.createProjectLabel(project);
-                labelData.object.position.set(0, 2.5, 0);
+                labelData.object.position.set(0, 4.5, 0);
                 monolith.add(labelData.object);
                 result.projectLabels.push(labelData);
             });

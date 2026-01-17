@@ -68,7 +68,7 @@ export function createStage(uiConfig, config) {
     // --- SCENE SETUP ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x080808);
-    scene.fog = new THREE.FogExp2(0x080808, 0.025);
+    scene.fog = new THREE.FogExp2(0x080808, 0);
 
     // --- CAMERA SETUP ---
     const camera = new THREE.PerspectiveCamera(
@@ -147,6 +147,21 @@ export function createStage(uiConfig, config) {
 
     scene.add(directionalLight);
     scene.add(directionalLight.target);
+
+    // --- CORE SPOTLIGHT (No Shadows, Perpendicular to Ground) ---
+    // Radius of Monolith Ring is 30. Spotlight Height is ~61.5 (60 - -1.5).
+    // tan(angle) = 32 / 61.5 ≈ 0.52  =>  angle ≈ Math.PI / 6
+    const coreSpotLight = new THREE.SpotLight(0xffffff, 300);
+    coreSpotLight.position.set(0, 60, -80);
+    coreSpotLight.target.position.set(0, -10, -80);
+    coreSpotLight.angle = Math.PI / 6; // Reduced to match ring size (~30 radius)
+    coreSpotLight.penumbra = 0.5;
+    coreSpotLight.decay = 1.0;
+    coreSpotLight.distance = 200;
+    coreSpotLight.castShadow = false;
+
+    scene.add(coreSpotLight);
+    scene.add(coreSpotLight.target);
 
     // --- NOCTURNAL PLANE (Ground) ---
     const groundGeometry = new THREE.PlaneGeometry(200, 200);
