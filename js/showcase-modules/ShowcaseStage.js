@@ -149,7 +149,7 @@ export function createStage(uiConfig, config) {
     scene.add(directionalLight.target);
 
     // --- NOCTURNAL PLANE (Ground) ---
-    const groundGeometry = new THREE.PlaneGeometry(200, 200);
+    const groundGeometry = new THREE.PlaneGeometry(300, 300);
     const groundMaterial = new THREE.MeshStandardMaterial({
         color: 0x050505,
         roughness: 0.9,
