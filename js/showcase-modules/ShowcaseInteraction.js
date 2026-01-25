@@ -197,12 +197,13 @@ export class ShowcaseInteraction {
             let obj = intersects[0].object;
             while (obj.parent && !obj.userData.id) obj = obj.parent;
             if (obj.userData.id) {
-                this.rig.zoomTo(obj, () => {
-                    window.dispatchEvent(new CustomEvent('vltProjectSelect', { detail: obj.userData }));
-                });
+                // Direct event dispatch without camera zoom
+                window.dispatchEvent(new CustomEvent('vltProjectSelect', { detail: obj.userData }));
             }
         }
     }
+
+
 
     updateHoverState() {
         if (this.monoliths.length === 0) return;
@@ -313,9 +314,8 @@ export class ShowcaseInteraction {
     }
 
     onProjectClose() {
-        this.rig.exitZoom(() => {
-            this.updateCameraFromScroll(); // Ensure we are back in sync
-        });
+        // No zoom exit needed, just ensure scroll sync
+        this.updateCameraFromScroll();
     }
 
     updateCameraFromScroll() {
