@@ -1897,6 +1897,10 @@ footer {
 
         width: 90%;
 
+        height: 45vh;
+
+        overflow-y: auto;
+
         margin-bottom: 20px;
 
         background: rgba(8, 8, 8, 0.3);
@@ -2665,8 +2669,9 @@ footer {
 
     align-items: center;
     position: relative;
-    
-    transform-origin: center bottom; /* Scaling anchor */
+
+    transform-origin: center bottom;
+    /* Scaling anchor */
 
 
 
