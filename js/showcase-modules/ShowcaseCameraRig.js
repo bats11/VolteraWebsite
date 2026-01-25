@@ -28,6 +28,7 @@ export class ShowcaseCameraRig extends THREE.Group {
         // --- 2. CONFIG ---
         this.TRAVEL_CONFIG = {
             startZ: config.startZ || 20,
+            viewZ: -30, // The "Viewing" position (Distance from center when rotating)
             endZ: config.endZ || -120, // Fly through further
         };
 
@@ -90,12 +91,11 @@ export class ShowcaseCameraRig extends THREE.Group {
 
     /**
      * Helper to calculate the theoretical Z position for a given scroll progress.
-     * Useful for returning from zoom to the correct location.
+     * Useful for returning from scroll to the correct location.
      */
     _calculateZForProgress(progress) {
-        const { startZ, endZ } = this.TRAVEL_CONFIG;
+        const { startZ, viewZ, endZ } = this.TRAVEL_CONFIG;
         const phases = this.SCROLL_PHASES;
-        const viewZ = -40; // The "Viewing" position
 
         let targetZ = startZ;
 

@@ -187,7 +187,7 @@ export function createStage(uiConfig, config) {
 
     // --- CAMERA SETUP ---
     const camera = new THREE.PerspectiveCamera(
-        50,
+        35,
         container.clientWidth / container.clientHeight,
         0.1,
         1000
