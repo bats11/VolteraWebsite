@@ -2664,8 +2664,9 @@ footer {
     flex-direction: column;
 
     align-items: center;
-
     position: relative;
+    
+    transform-origin: center bottom; /* Scaling anchor */
 
 
 

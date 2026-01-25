@@ -3,12 +3,13 @@ import ResizeManager from './resize-manager.js';
 import { createStage } from './showcase-modules/ShowcaseStage.js';
 import { ShowcaseFactory } from './showcase-modules/ShowcaseFactory.js';
 import { ShowcaseInteraction } from './showcase-modules/ShowcaseInteraction.js';
+import { ShowcaseCameraRig } from './showcase-modules/ShowcaseCameraRig.js';
 // gsap is assumed global
 
 /**
  * Showcase "The Infinite Map" - Three.js Scene Module
  * Orchestrator: Centralizes Time, DOM injection, and Lifecycle Management.
- * @param {HTMLElement} containerElement - The container element for the scene
+ * @param {HTMLElement} containerElement - The user container element for the scene
  */
 export function initShowcaseMap(containerElement) {
     // --- 1. DOM GATHERING & UI CONFIG ---
@@ -38,7 +39,7 @@ export function initShowcaseMap(containerElement) {
     let ctx = null; // GSAP Context for easy cleanup
 
     // --- MODULES (Placeholder refs) ---
-    let stage, interaction, factory, labelRenderer;
+    let stage, rig, interaction, factory, labelRenderer;
     let resizeUnsubscribe;
 
     // --- INITIALIZATION WRAPPED IN CONTEXT ---
@@ -50,6 +51,11 @@ export function initShowcaseMap(containerElement) {
     ctx = gsap.context(() => {
         // --- 2. STAGE ---
         stage = createStage(uiConfig, { startZ: 20, cameraY: 2 });
+
+        // --- 2.5 CAMERA RIG ---
+        // The Rig takes ownership of the camera and acts as the pivot
+        rig = new ShowcaseCameraRig(stage.camera, { startZ: 20 });
+        stage.scene.add(rig);
 
         // --- 3. CSS RENDERER ---
         if (uiConfig.cssLayer) {
@@ -65,7 +71,7 @@ export function initShowcaseMap(containerElement) {
         // --- 4. INTERACTION ---
         interaction = new ShowcaseInteraction(
             uiConfig,
-            stage.camera,
+            rig,        // Pass Rig instead of Camera
             stage.scene,
             stage.outlinePass,
             stage.ground
@@ -79,7 +85,7 @@ export function initShowcaseMap(containerElement) {
 
         // --- ASYNC WIRING ---
         factory.build().then(data => {
-            interaction.setTargets(data.monoliths);
+            interaction.setTargets(data.monoliths, data.ring);
             interaction.setLabels(data.projectLabels);
             console.log('[Showcase] Modules wired successfully');
         });
@@ -153,6 +159,10 @@ export function initShowcaseMap(containerElement) {
             // Reverse disposal
             interaction.dispose();
             factory.dispose();
+
+            // Dispose Rig (removes camera from it)
+            if (rig) rig.dispose();
+
             stage.dispose();
 
             if (labelRenderer && labelRenderer.domElement.parentNode) {

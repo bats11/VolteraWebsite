@@ -47,23 +47,33 @@ export class ShowcaseFactory {
 
     // --- PUBLIC METHODS ---
 
+
     /**
      * Builds the scene content: Monoliths, Core, Lightning.
-     * @returns {Promise<{monoliths: Array, projectLabels: Array}>}
+     * @returns {Promise<{monoliths: Array, projectLabels: Array, ring: THREE.Group}>}
      */
     async build() {
         const result = {
             monoliths: [],
-            projectLabels: []
+            projectLabels: [],
+            ring: null
         };
+
+        // Create the Ring Group
+        this.monolithRing = new THREE.Group();
+        this.monolithRing.position.set(0, 0, -80);
+        this.scene.add(this.monolithRing);
+        result.ring = this.monolithRing;
 
         // 1. Load Data & Create Monoliths
         try {
             const projects = await fetchProjectsData('data/projects.json');
+            const count = projects.length;
+            const totalSlots = count + 1; // Add one extra slot for the gap
+            const radius = 30; // 30 units radius
 
             projects.forEach((project, index) => {
                 let monolith;
-                const position = new THREE.Vector3(project.position.x, project.position.y, project.position.z);
 
                 // Instantiate Geometry based on type
                 switch (project.geometry) {
@@ -86,7 +96,23 @@ export class ShowcaseFactory {
                         monolith = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), this.sharedMaterial);
                 }
 
-                monolith.position.copy(position);
+                monolith.scale.set(1.5, 1.5, 1.5);
+
+                // --- CIRCULAR POSITIONING ---
+                // Calculate angle: distribute over N+1 slots
+                const angle = (index / totalSlots) * Math.PI * 2;
+
+                // Local position within the ring group
+                const lx = Math.sin(angle) * radius;
+                const lz = Math.cos(angle) * radius;
+
+                monolith.position.set(lx, 8, lz);
+
+                // --- ORIENTATION ---
+                // 1. Look at local center (0,0,0)
+                monolith.lookAt(0, 0, 0);
+                // 2. Flip 180 deg to face OUTWARDS (toward camera)
+                monolith.rotation.y += Math.PI;
 
                 // DATA BINDING
                 monolith.userData = { ...project };
@@ -100,28 +126,34 @@ export class ShowcaseFactory {
                     intensity: project.intensity
                 });
 
-                this.scene.add(monolith);
+                // Add to Ring Group instead of direct scene
+                this.monolithRing.add(monolith);
+
                 result.monoliths.push(monolith);
                 this.monoliths.push(monolith); // Local ref
 
                 // GSAP Infinite Rotation
-                // Alternating direction based on index
+                // Note: Monoliths now rotate with the ring, but we might keep local spin? 
+                // User requirement implies "Ring Rotation". Personal spin might be distracting or desired.
+                // Keeping existing personal spin for 'aliveness' but maybe slower?
+                // The prompt didn't explicitly ask to remove individual spin, only to rotate the ring.
+                // I'll keep it but perhaps slower or as is to maintain visual fidelity.
                 const direction = index % 2 === 0 ? 1 : -1;
                 gsap.to(monolith.rotation, {
                     y: `+=${Math.PI * 2 * direction}`,
-                    duration: 90, // Tuned for better presence (was 120)
+                    duration: 90,
                     repeat: -1,
                     ease: "none"
                 });
 
                 // Project Label
                 const labelData = this.createProjectLabel(project);
-                labelData.object.position.set(0, 2.5, 0);
+                labelData.object.position.set(0, 4.5, 0);
                 monolith.add(labelData.object);
                 result.projectLabels.push(labelData);
             });
 
-            console.log(`[ShowcaseFactory] Created ${projects.length} monoliths.`);
+            console.log(`[ShowcaseFactory] Created ${projects.length} monoliths in ring formation.`);
         } catch (err) {
             console.error('[ShowcaseFactory] Failed to load projects data:', err);
         }
@@ -267,6 +299,11 @@ export class ShowcaseFactory {
     }
 
     createProjectLabel(project) {
+        // Wrapper for 3D positioning (handled by CSS2DRenderer)
+        const wrapper = document.createElement('div');
+        wrapper.className = 'project-label-wrapper';
+
+        // Inner Element for scaling/visuals (handled by Interaction)
         const container = document.createElement('div');
         container.className = 'project-tag';
 
@@ -279,10 +316,13 @@ export class ShowcaseFactory {
         `;
 
         container.dataset.projectId = project.id;
+        wrapper.appendChild(container);
 
-        const label = new CSS2DObject(container);
-        label.userData.currentOpacity = 0;
+        const label = new CSS2DObject(wrapper);
+        // Position raised to 4.5
+        label.position.set(0, 4.5, 0);
 
+        // Return inner container as 'element' for scaling interactions
         return { object: label, element: container };
     }
 
