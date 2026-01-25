@@ -267,10 +267,10 @@ export function createStage(uiConfig, config) {
     // Radius of Monolith Ring is 30. Spotlight Height is ~61.5 (60 - -1.5).
     // tan(angle) = 32 / 61.5 ≈ 0.52  =>  angle ≈ Math.PI / 6
     const coreSpotLight = new THREE.SpotLight(0xffffff, 600);
-    coreSpotLight.position.set(0, 60, -80);
-    coreSpotLight.target.position.set(0, -10, -80);
-    coreSpotLight.angle = Math.PI / 4.5; // Widened to fully illuminate the ring (radius 30)
-    coreSpotLight.penumbra = 0.5;
+    coreSpotLight.position.set(0, 60, -110);
+    coreSpotLight.target.position.set(0, -10, -110);
+    coreSpotLight.angle = THREE.MathUtils.degToRad(60); // Wider cone covers everything
+    coreSpotLight.penumbra = 0.4; // Sharper edge, more intensity at the ring radius
     coreSpotLight.decay = 1.0;
     coreSpotLight.distance = 200;
     coreSpotLight.castShadow = true;
