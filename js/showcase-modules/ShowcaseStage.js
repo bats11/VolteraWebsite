@@ -395,6 +395,17 @@ export function createStage(uiConfig, config) {
         composer,
         outlinePass,
         ground,
+        coreSpotLight,
+        update: (time) => {
+            if (coreSpotLight) {
+                // Irregular breathing: sum of two sine waves with prime-ish ratios
+                const mainWave = Math.sin(time * 0.8);      // Main breath (8s)
+                const microWave = Math.sin(time * 0.37);    // Secondary drift
+
+                // Base 600, fluctuation +/- 180 total, but pattern repeats much less frequently
+                coreSpotLight.intensity = 600 + (mainWave * 120) + (microWave * 60);
+            }
+        },
         dispose
     };
 }

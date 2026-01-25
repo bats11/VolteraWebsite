@@ -120,6 +120,9 @@ export function initShowcaseMap(containerElement) {
         const delta = time - lastTime;
         lastTime = time;
 
+        // 0. Update Stage (Spotlight breathing, etc.)
+        stage.update(time);
+
         // 1. Update Factory (Deterministic Vertex Anim & Logic)
         factory.update(time, delta);
 
