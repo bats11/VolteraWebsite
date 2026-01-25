@@ -245,10 +245,10 @@ export function createStage(uiConfig, config) {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 10);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0);
     directionalLight.position.set(10, 20, 10);
     directionalLight.target.position.set(0, 0, 0);
-    directionalLight.castShadow = true;
+    directionalLight.castShadow = false;
 
     // Shadow Configuration
     directionalLight.shadow.mapSize.width = 2048;
@@ -269,11 +269,18 @@ export function createStage(uiConfig, config) {
     const coreSpotLight = new THREE.SpotLight(0xffffff, 600);
     coreSpotLight.position.set(0, 60, -80);
     coreSpotLight.target.position.set(0, -10, -80);
-    coreSpotLight.angle = Math.PI / 6; // Reduced to match ring size (~30 radius)
+    coreSpotLight.angle = Math.PI / 4.5; // Widened to fully illuminate the ring (radius 30)
     coreSpotLight.penumbra = 0.5;
     coreSpotLight.decay = 1.0;
     coreSpotLight.distance = 200;
-    coreSpotLight.castShadow = false;
+    coreSpotLight.castShadow = true;
+
+    // Shadow Configuration for Spotlight
+    coreSpotLight.shadow.mapSize.width = 2048;
+    coreSpotLight.shadow.mapSize.height = 2048;
+    coreSpotLight.shadow.camera.near = 10;
+    coreSpotLight.shadow.camera.far = 200;
+    coreSpotLight.shadow.bias = -0.001; // Reduce shadow acne
 
     scene.add(coreSpotLight);
     scene.add(coreSpotLight.target);
