@@ -80,9 +80,9 @@ function generateProceduralTextures(size = 1024) {
 
         // --- LAYER 2: Coarse Noise (Prime Chaos) ---
         // Using 3 waves with prime frequencies to break symmetry and patterns.
-        const wave1 = Math.sin(u * Math.PI * 2 * 3 + v * Math.PI * 2 * 2);
-        const wave2 = Math.cos(u * Math.PI * 2 * 7 - v * Math.PI * 2 * 5);
-        const wave3 = Math.sin((u + v) * Math.PI * 2 * 11);
+        const wave1 = Math.sin(u * Math.PI * 2 * 1.8 + v * Math.PI * 2 * 1.4);
+        const wave2 = Math.cos(u * Math.PI * 2 * 3.5 - v * Math.PI * 2 * 2.5);
+        const wave3 = Math.sin((u + v) * Math.PI * 2 * 3.0);
 
         // Normalize coarse noise to 0-1 range
         // Sum range is [-3, 3] approx -> /3 -> [-1, 1] -> *0.5+0.5 -> [0, 1]
@@ -94,8 +94,8 @@ function generateProceduralTextures(size = 1024) {
 
         // --- RANGE CLAMPING ---
         // Map Result -> [0.4, 0.9] to avoid mirrors (0.0) or flat matte (1.0)
-        let finalValue = 0.4 + (rawValue * 0.5);
-        finalValue = Math.max(0.4, Math.min(0.9, finalValue));
+        let finalValue = 0.1 + (rawValue * 0.7);
+        finalValue = Math.max(0.1, Math.min(0.9, finalValue));
 
         buffer[i] = finalValue;
 
@@ -266,7 +266,7 @@ export function createStage(uiConfig, config) {
     // --- CORE SPOTLIGHT (No Shadows, Perpendicular to Ground) ---
     // Radius of Monolith Ring is 30. Spotlight Height is ~61.5 (60 - -1.5).
     // tan(angle) = 32 / 61.5 ≈ 0.52  =>  angle ≈ Math.PI / 6
-    const coreSpotLight = new THREE.SpotLight(0xffffff, 400);
+    const coreSpotLight = new THREE.SpotLight(0xffffff, 600);
     coreSpotLight.position.set(0, 60, -80);
     coreSpotLight.target.position.set(0, -10, -80);
     coreSpotLight.angle = Math.PI / 6; // Reduced to match ring size (~30 radius)
