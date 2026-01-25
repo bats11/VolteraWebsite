@@ -95,6 +95,8 @@ export class ShowcaseFactory {
                         monolith = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), this.sharedMaterial);
                 }
 
+                monolith.scale.set(1.5, 1.5, 1.5);
+
                 // --- CIRCULAR POSITIONING ---
                 // Calculate angle: distribute evenly 360 degrees
                 const angle = (index / count) * Math.PI * 2;
@@ -103,7 +105,7 @@ export class ShowcaseFactory {
                 const lx = Math.sin(angle) * radius;
                 const lz = Math.cos(angle) * radius;
 
-                monolith.position.set(lx, 2, lz);
+                monolith.position.set(lx, 8, lz);
 
                 // --- ORIENTATION ---
                 // 1. Look at local center (0,0,0)

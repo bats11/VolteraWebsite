@@ -49,6 +49,121 @@ const backdropFragmentShader = `
 `;
 
 /**
+ * Generates procedural Roughness and Normal maps for the ground
+ * Combined noise algorithm (Fine + Coarse) with Range Clamping (0.4-0.9)
+ * @param {number} size - Texture size (default 1024)
+ * @returns {Object} { roughnessMap, normalMap }
+ */
+function generateProceduralTextures(size = 1024) {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+
+    const imgData = ctx.createImageData(size, size);
+    const data = imgData.data;
+
+    // Buffer to store height values for normal calculation
+    const buffer = new Float32Array(size * size);
+
+    for (let i = 0; i < size * size; i++) {
+        const x = i % size;
+        const y = Math.floor(i / size);
+
+        // Normalized coordinates (0 to 1) for Seamless Logic
+        const u = x / size;
+        const v = y / size;
+
+        // --- LAYER 1: Fine Noise (Asphalt Grain) ---
+        // Attenuated random to reduce "TV Static" look
+        const fineNoise = (Math.random() * 0.5) + 0.5;
+
+        // --- LAYER 2: Coarse Noise (Prime Chaos) ---
+        // Using 3 waves with prime frequencies to break symmetry and patterns.
+        const wave1 = Math.sin(u * Math.PI * 2 * 3 + v * Math.PI * 2 * 2);
+        const wave2 = Math.cos(u * Math.PI * 2 * 7 - v * Math.PI * 2 * 5);
+        const wave3 = Math.sin((u + v) * Math.PI * 2 * 11);
+
+        // Normalize coarse noise to 0-1 range
+        // Sum range is [-3, 3] approx -> /3 -> [-1, 1] -> *0.5+0.5 -> [0, 1]
+        const coarseNoise = ((wave1 + wave2 + wave3) / 3.0) * 0.5 + 0.5;
+
+        // --- COMPOSITION ---
+        // Reduced Contrast: 85% Fine Noise, 15% Coarse Noise (just for subtle variation)
+        let rawValue = (fineNoise * 0.85) + (coarseNoise * 0.15);
+
+        // --- RANGE CLAMPING ---
+        // Map Result -> [0.4, 0.9] to avoid mirrors (0.0) or flat matte (1.0)
+        let finalValue = 0.4 + (rawValue * 0.5);
+        finalValue = Math.max(0.4, Math.min(0.9, finalValue));
+
+        buffer[i] = finalValue;
+
+        // Write Roughness (Grayscale)
+        const pixelIdx = i * 4;
+        const gray = Math.floor(finalValue * 255);
+        data[pixelIdx] = gray;     // R
+        data[pixelIdx + 1] = gray; // G
+        data[pixelIdx + 2] = gray; // B
+        data[pixelIdx + 3] = 255;  // A
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+    const roughnessMap = new THREE.CanvasTexture(canvas);
+
+    // --- GENERATE NORMAL MAP ---
+    // Calculate normals from the height buffer
+    const canvasNormal = document.createElement('canvas');
+    canvasNormal.width = size;
+    canvasNormal.height = size;
+    const ctxNormal = canvasNormal.getContext('2d');
+    const normalImgData = ctxNormal.createImageData(size, size);
+    const normalData = normalImgData.data;
+
+    const strength = 3.0; // Bump strength
+
+    for (let i = 0; i < size * size; i++) {
+        const x = i % size;
+        const y = Math.floor(i / size);
+
+        // Neighbor lookups (wrapping)
+        const xL = (x - 1 + size) % size;
+        const xR = (x + 1) % size;
+        const yU = (y - 1 + size) % size;
+        const yD = (y + 1) % size;
+
+        const hL = buffer[y * size + xL];
+        const hR = buffer[y * size + xR];
+        const hU = buffer[yU * size + x];
+        const hD = buffer[yD * size + x];
+
+        // Differentiate (Sobel-like)
+        const dx = (hL - hR) * strength;
+        const dy = (hU - hD) * strength;
+
+        // Construct Normal Vector
+        const nz = 1.0;
+        const len = Math.sqrt(dx * dx + dy * dy + nz * nz);
+
+        // Pack into [0, 255]
+        const nx = ((dx / len) + 1.0) * 0.5 * 255;
+        const ny = ((dy / len) + 1.0) * 0.5 * 255;
+        const n_z = ((nz / len) + 1.0) * 0.5 * 255;
+
+        const pixelIdx = i * 4;
+        normalData[pixelIdx] = Math.floor(nx);
+        normalData[pixelIdx + 1] = Math.floor(ny);
+        normalData[pixelIdx + 2] = Math.floor(n_z);
+        normalData[pixelIdx + 3] = 255;
+    }
+
+    ctxNormal.putImageData(normalImgData, 0, 0);
+    const normalMap = new THREE.CanvasTexture(canvasNormal);
+
+    return { roughnessMap, normalMap };
+}
+
+/**
  * Creates the complete stage infrastructure for the Showcase scene
  * @param {HTMLElement} containerElement - The container element for the renderer
  * @param {Object} config - Configuration object
@@ -68,7 +183,7 @@ export function createStage(uiConfig, config) {
     // --- SCENE SETUP ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x080808);
-    scene.fog = new THREE.FogExp2(0x080808, 0);
+    scene.fog = new THREE.FogExp2(0x080808, 0.01);
 
     // --- CAMERA SETUP ---
     const camera = new THREE.PerspectiveCamera(
@@ -130,7 +245,7 @@ export function createStage(uiConfig, config) {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 4);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 10);
     directionalLight.position.set(10, 20, 10);
     directionalLight.target.position.set(0, 0, 0);
     directionalLight.castShadow = true;
@@ -151,7 +266,7 @@ export function createStage(uiConfig, config) {
     // --- CORE SPOTLIGHT (No Shadows, Perpendicular to Ground) ---
     // Radius of Monolith Ring is 30. Spotlight Height is ~61.5 (60 - -1.5).
     // tan(angle) = 32 / 61.5 ≈ 0.52  =>  angle ≈ Math.PI / 6
-    const coreSpotLight = new THREE.SpotLight(0xffffff, 300);
+    const coreSpotLight = new THREE.SpotLight(0xffffff, 400);
     coreSpotLight.position.set(0, 60, -80);
     coreSpotLight.target.position.set(0, -10, -80);
     coreSpotLight.angle = Math.PI / 6; // Reduced to match ring size (~30 radius)
@@ -164,11 +279,25 @@ export function createStage(uiConfig, config) {
     scene.add(coreSpotLight.target);
 
     // --- NOCTURNAL PLANE (Ground) ---
-    const groundGeometry = new THREE.PlaneGeometry(200, 200);
+    // Generate Procedural Maps
+    const { roughnessMap, normalMap } = generateProceduralTextures(1024);
+
+    // Configure Maps (Anisotropy & Tiling)
+    const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+    [roughnessMap, normalMap].forEach(t => {
+        t.wrapS = THREE.RepeatWrapping;
+        t.wrapT = THREE.RepeatWrapping;
+        t.repeat.set(6, 6); // Wider tiling (6x6) to hide repetition
+        t.anisotropy = maxAnisotropy;
+    });
+
+    const groundGeometry = new THREE.PlaneGeometry(400, 400);
     const groundMaterial = new THREE.MeshStandardMaterial({
-        color: 0x050505,
-        roughness: 0.9,
-        metalness: 0.1,
+        color: 0x080808,       // Very dark base
+        roughness: 1.0,        // Controlled by map
+        metalness: 0.7,        // High metalness for specular highlights
+        roughnessMap: roughnessMap,
+        normalMap: normalMap,
         dithering: true,
         transparent: true,
         opacity: 1.0

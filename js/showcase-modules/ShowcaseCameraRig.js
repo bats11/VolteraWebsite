@@ -21,7 +21,7 @@ export class ShowcaseCameraRig extends THREE.Group {
         this.add(this.camera);
 
         // Reset Camera Local Transform (Relative to Rig)
-        this.camera.position.set(0, 3, 0); // Camera sits 2 units up inside the Rig
+        this.camera.position.set(0, 10, 0); // Camera sits 2 units up inside the Rig
         this.camera.rotation.set(0, 0, 0);
         this.camera.quaternion.identity();
 
@@ -73,7 +73,7 @@ export class ShowcaseCameraRig extends THREE.Group {
         // Applied to Child Camera from Proxy
         // We always apply the proxy values. The input feeding into the proxy 
         // determines if it moves or returns to center.
-        this.camera.rotation.x = this.rotationProxy.x + 0.1;
+        this.camera.rotation.x = this.rotationProxy.x - 0.1;
         this.camera.rotation.y = this.rotationProxy.y;
     }
 
