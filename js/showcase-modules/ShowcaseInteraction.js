@@ -345,36 +345,36 @@ export class ShowcaseInteraction {
             const p1 = phases.approachLimit;
             const p2 = phases.carouselLimit;
 
+            const numMonoliths = this.monoliths.length;
+            const totalSlots = numMonoliths + 1;
+            const stepAngle = (Math.PI * 2) / totalSlots;
+
+            let targetY = 0;
+
             // APPROACH (0 -> p1): Reset Ring
             if (this.scrollProgress <= p1) {
-                if (this.monolithRing) this.monolithRing.rotation.y = 0;
+                targetY = 0;
             }
-            // CAROUSEL (p1 -> p2): Rotate Ring
+            // CAROUSEL (p1 -> p2): Rotate Ring to snapped index
             else if (this.scrollProgress <= p2) {
                 const t = (this.scrollProgress - p1) / (p2 - p1);
-                if (this.monolithRing) {
-                    const numMonoliths = this.monoliths.length;
-                    const totalSlots = numMonoliths + 1;
-                    const stepAngle = (Math.PI * 2) / totalSlots;
-
-                    // Stepped ("Snappy") Rotation
-                    const floatIndex = t * numMonoliths;
-                    const targetIndex = Math.round(floatIndex);
-
-                    // Negative rotation to bring target to camera (Z-axis)
-                    this.monolithRing.rotation.y = -(targetIndex * stepAngle);
-                }
+                const floatIndex = t * numMonoliths;
+                const targetIndex = Math.round(floatIndex);
+                targetY = -(targetIndex * stepAngle);
             }
             // DEPARTURE (p2 -> 1.0): Ring stays rotated at final gap
             else {
-                if (this.monolithRing) {
-                    const numMonoliths = this.monoliths.length;
-                    const totalSlots = numMonoliths + 1;
-                    const stepAngle = (Math.PI * 2) / totalSlots;
+                targetY = -(numMonoliths * stepAngle);
+            }
 
-                    // Final position: The exact empty slot
-                    this.monolithRing.rotation.y = -(numMonoliths * stepAngle);
-                }
+            // APPLICA TRANSIZIONE FLUIDA CON GSAP (Voltera Ease)
+            if (this.monolithRing) {
+                gsap.to(this.monolithRing.rotation, {
+                    y: targetY,
+                    duration: 0.8, // Durata della transizione tra uno scatto e l'altro
+                    ease: "cubic-bezier(0.16, 1, 0.3, 1)",
+                    overwrite: 'auto'
+                });
             }
 
             if (this.isTouchDevice) {
