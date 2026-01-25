@@ -353,12 +353,28 @@ export class ShowcaseInteraction {
             else if (this.scrollProgress <= p2) {
                 const t = (this.scrollProgress - p1) / (p2 - p1);
                 if (this.monolithRing) {
-                    this.monolithRing.rotation.y = t * Math.PI * 2;
+                    const numMonoliths = this.monoliths.length;
+                    const totalSlots = numMonoliths + 1;
+                    const stepAngle = (Math.PI * 2) / totalSlots;
+
+                    // Stepped ("Snappy") Rotation
+                    const floatIndex = t * numMonoliths;
+                    const targetIndex = Math.round(floatIndex);
+
+                    // Negative rotation to bring target to camera (Z-axis)
+                    this.monolithRing.rotation.y = -(targetIndex * stepAngle);
                 }
             }
-            // DEPARTURE (p2 -> 1.0): Ring stays rotated
+            // DEPARTURE (p2 -> 1.0): Ring stays rotated at final gap
             else {
-                if (this.monolithRing) this.monolithRing.rotation.y = Math.PI * 2;
+                if (this.monolithRing) {
+                    const numMonoliths = this.monoliths.length;
+                    const totalSlots = numMonoliths + 1;
+                    const stepAngle = (Math.PI * 2) / totalSlots;
+
+                    // Final position: The exact empty slot
+                    this.monolithRing.rotation.y = -(numMonoliths * stepAngle);
+                }
             }
 
             if (this.isTouchDevice) {

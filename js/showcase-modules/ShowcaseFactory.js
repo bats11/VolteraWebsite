@@ -69,6 +69,7 @@ export class ShowcaseFactory {
         try {
             const projects = await fetchProjectsData('data/projects.json');
             const count = projects.length;
+            const totalSlots = count + 1; // Add one extra slot for the gap
             const radius = 30; // 30 units radius
 
             projects.forEach((project, index) => {
@@ -98,8 +99,8 @@ export class ShowcaseFactory {
                 monolith.scale.set(1.5, 1.5, 1.5);
 
                 // --- CIRCULAR POSITIONING ---
-                // Calculate angle: distribute evenly 360 degrees
-                const angle = (index / count) * Math.PI * 2;
+                // Calculate angle: distribute over N+1 slots
+                const angle = (index / totalSlots) * Math.PI * 2;
 
                 // Local position within the ring group
                 const lx = Math.sin(angle) * radius;
