@@ -79,9 +79,9 @@ function generateProceduralTextures(size = 1024) {
         const fineNoise = (Math.random() * 0.5) + 0.5;
 
         // --- LAYER 2: Coarse Noise (Prime Chaos) ---
-        // Using 3 waves with prime frequencies to break symmetry and patterns.
-        const wave1 = Math.sin(u * Math.PI * 2 * 1.8 + v * Math.PI * 2 * 1.4);
-        const wave2 = Math.cos(u * Math.PI * 2 * 3.5 - v * Math.PI * 2 * 2.5);
+        // Using integer frequencies to ensure seamless tiling (f(0) == f(1))
+        const wave1 = Math.sin(u * Math.PI * 2 * 2.0 + v * Math.PI * 2 * 1.0);
+        const wave2 = Math.cos(u * Math.PI * 2 * 3.0 - v * Math.PI * 2 * 2.0);
         const wave3 = Math.sin((u + v) * Math.PI * 2 * 3.0);
 
         // Normalize coarse noise to 0-1 range
@@ -93,9 +93,9 @@ function generateProceduralTextures(size = 1024) {
         let rawValue = (fineNoise * 0.85) + (coarseNoise * 0.15);
 
         // --- RANGE CLAMPING ---
-        // Map Result -> [0.4, 0.9] to avoid mirrors (0.0) or flat matte (1.0)
+        // Map Result -> [0.3, 0.9] to avoid mirrors (0.0) or flat matte (1.0)
         let finalValue = 0.1 + (rawValue * 0.7);
-        finalValue = Math.max(0.1, Math.min(0.9, finalValue));
+        finalValue = Math.max(0.3, Math.min(0.9, finalValue));
 
         buffer[i] = finalValue;
 
@@ -120,7 +120,7 @@ function generateProceduralTextures(size = 1024) {
     const normalImgData = ctxNormal.createImageData(size, size);
     const normalData = normalImgData.data;
 
-    const strength = 3.0; // Bump strength
+    const strength = 0.8; // Bump strength (Lowered to reduce aliasing/shimmering)
 
     for (let i = 0; i < size * size; i++) {
         const x = i % size;
@@ -211,7 +211,17 @@ export function createStage(uiConfig, config) {
     container.appendChild(renderer.domElement);
 
     // --- EFFECT COMPOSER ---
-    const composer = new EffectComposer(renderer);
+    // Create a Multi-Sample Render Target to restore Antialiasing (MSAA)
+    const renderTarget = new THREE.WebGLRenderTarget(
+        container.clientWidth,
+        container.clientHeight,
+        {
+            samples: 4, // 4x MSAA
+            type: THREE.HalfFloatType // High precision for interactions with Bloom
+        }
+    );
+
+    const composer = new EffectComposer(renderer, renderTarget);
     const renderPass = new RenderPass(scene, camera);
     renderPass.clearColor = new THREE.Color(0x080808);
     renderPass.clearAlpha = 1;
@@ -245,23 +255,7 @@ export function createStage(uiConfig, config) {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0);
-    directionalLight.position.set(10, 20, 10);
-    directionalLight.target.position.set(0, 0, 0);
-    directionalLight.castShadow = false;
 
-    // Shadow Configuration
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
-    directionalLight.shadow.camera.near = 0.5;
-    directionalLight.shadow.camera.far = 500;
-    directionalLight.shadow.camera.left = -200;
-    directionalLight.shadow.camera.right = 200;
-    directionalLight.shadow.camera.top = 200;
-    directionalLight.shadow.camera.bottom = -200;
-
-    scene.add(directionalLight);
-    scene.add(directionalLight.target);
 
     // --- CORE SPOTLIGHT (No Shadows, Perpendicular to Ground) ---
     // Radius of Monolith Ring is 30. Spotlight Height is ~61.5 (60 - -1.5).
@@ -287,7 +281,7 @@ export function createStage(uiConfig, config) {
 
     // --- NOCTURNAL PLANE (Ground) ---
     // Generate Procedural Maps
-    const { roughnessMap, normalMap } = generateProceduralTextures(1024);
+    const { roughnessMap, normalMap } = generateProceduralTextures(2048);
 
     // Configure Maps (Anisotropy & Tiling)
     const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
