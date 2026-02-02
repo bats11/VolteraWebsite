@@ -340,8 +340,7 @@ export class ShowcaseFactory {
             color: 0xffffff,
             emissive: 0xffffff,
             emissiveIntensity: this.NEON_CONFIG.baseIntensity,
-            toneMapped: false,
-            fog: true
+            toneMapped: false
         });
         this.propMaterials.push(material);
 
@@ -497,7 +496,6 @@ export class ShowcaseFactory {
             emissiveMap: videoTexture,
             emissiveIntensity: 12,
             side: THREE.DoubleSide,
-            fog: true,
             toneMapped: false
         });
         this.disposables.push(coreMaterial);
@@ -523,30 +521,24 @@ export class ShowcaseFactory {
 
         const lightningMaterial = new THREE.ShaderMaterial({
             uniforms: THREE.UniformsUtils.merge([
-                THREE.UniformsLib['fog'],
                 { uColor: { value: new THREE.Color(3.0, 3.5, 5.0) } }
             ]),
             vertexShader: `
-                #include <fog_pars_vertex>
                 void main() {
                     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
                     gl_Position = projectionMatrix * mvPosition;
-                    #include <fog_vertex>
                 }
             `,
             fragmentShader: `
-                #include <fog_pars_fragment>
                 uniform vec3 uColor;
                 void main() {
                     gl_FragColor = vec4(uColor, 1.0);
-                    #include <fog_fragment>
                 }
             `,
             transparent: true,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
-            toneMapped: false,
-            fog: true
+            toneMapped: false
         });
         this.disposables.push(lightningMaterial);
 

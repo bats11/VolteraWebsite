@@ -183,7 +183,7 @@ export function createStage(uiConfig, config) {
     // --- SCENE SETUP ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x080808);
-    scene.fog = new THREE.FogExp2(0x080808, 0.01);
+
 
     // --- CAMERA SETUP ---
     const camera = new THREE.PerspectiveCamera(
@@ -313,7 +313,7 @@ export function createStage(uiConfig, config) {
     // --- BACKDROP SPHERE (Vertical Gradient Shader) ---
     const backdropGeometry = new THREE.SphereGeometry(500, 32, 32);
     const backdropUniforms = {
-        uHeight: { value: 200.0 },
+        uHeight: { value: 100.0 },
         uOffset: { value: 50.0 },
         uColorTop: { value: new THREE.Color(0x1a1a1a) },
         uColorBottom: { value: new THREE.Color(0x000000) }
@@ -323,7 +323,6 @@ export function createStage(uiConfig, config) {
         vertexShader: backdropVertexShader,
         fragmentShader: backdropFragmentShader,
         side: THREE.BackSide,
-        fog: false,
         toneMapped: false
     });
     const backdropMesh = new THREE.Mesh(backdropGeometry, backdropMaterial);
