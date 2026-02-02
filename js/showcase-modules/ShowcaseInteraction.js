@@ -38,8 +38,13 @@ export class ShowcaseInteraction {
 
         this.currentHoveredMonolith = null;
         this.pulseTriggered = false;
+        this.currentHoveredMonolith = null;
+        this.pulseTriggered = false;
         this.pulseTimeline = null;
         this.scrollProgress = 0;
+
+        // --- VISIBILITY STATE ---
+        this.currentActiveIndex = -1;
 
         // --- CLICK HANDLING STATE ---
         this.tapStartTime = 0;
@@ -79,6 +84,8 @@ export class ShowcaseInteraction {
     resize(width, height) {
         // Recalculate generic scroll progress to avoid jumps
         this.updateCameraFromScroll();
+        // Force update visibility based on current state (often 0 on reload if at top)
+        // this.updateVisibleLabels(this.currentActiveIndex); // Already handled in scroll update
     }
 
     update(time, delta) {
@@ -106,11 +113,23 @@ export class ShowcaseInteraction {
 
         // Apply scale to the inner element
         labelData.element.style.transform = `scale(${scale.toFixed(3)})`;
-        labelData.element.style.opacity = "1"; // Always visible as per request
+        // Opacity is now handled by updateVisibleLabels(index)
+        // labelData.element.style.opacity = "1"; 
 
         // Z-Index Sorting
         const zIndex = Math.floor(1000 - distance);
         labelData.object.element.style.zIndex = zIndex; // Apply z-index to wrapper (CSS2DObject element)
+    }
+
+    updateVisibleLabels(activeIndex) {
+        if (this.currentActiveIndex === activeIndex) return;
+        this.currentActiveIndex = activeIndex;
+
+        this.projectLabels.forEach((labelData, index) => {
+            const isActive = (index === activeIndex);
+            labelData.element.style.opacity = isActive ? '1' : '0';
+            labelData.element.style.pointerEvents = isActive ? 'auto' : 'none';
+        });
     }
 
     // --- INPUT HANDLERS ---
@@ -354,6 +373,7 @@ export class ShowcaseInteraction {
             // APPROACH (0 -> p1): Reset Ring
             if (this.scrollProgress <= p1) {
                 targetY = 0;
+                this.updateVisibleLabels(0); // Force text 0
             }
             // CAROUSEL (p1 -> p2): Rotate Ring to snapped index
             else if (this.scrollProgress <= p2) {
@@ -361,10 +381,14 @@ export class ShowcaseInteraction {
                 const floatIndex = t * numMonoliths;
                 const targetIndex = Math.round(floatIndex);
                 targetY = -(targetIndex * stepAngle);
+
+                // Update Labels
+                this.updateVisibleLabels(targetIndex);
             }
             // DEPARTURE (p2 -> 1.0): Ring stays rotated at final gap
             else {
                 targetY = -(numMonoliths * stepAngle);
+                this.updateVisibleLabels(-1); // Hide all
             }
 
             // APPLICA TRANSIZIONE FLUIDA CON GSAP (Voltera Ease)

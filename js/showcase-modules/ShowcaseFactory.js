@@ -315,6 +315,11 @@ export class ShowcaseFactory {
             </div>
         `;
 
+        // INITIAL VISIBILITY STATE: Hidden & Non-interactive
+        container.style.opacity = '0';
+        container.style.pointerEvents = 'none';
+        container.style.transition = 'opacity 0.3s ease';
+
         container.dataset.projectId = project.id;
         wrapper.appendChild(container);
 
