@@ -79,6 +79,15 @@ export class ShowcaseInteraction {
 
     setLabels(projectLabels) {
         this.projectLabels = projectLabels || [];
+
+        // Force visibility of the first label immediately
+        // This ensures that even before the first scroll/frame, the first label is primed to show.
+        // If the user is already scrolled away, the subsequent updateCameraFromScroll will handle it.
+        this.currentActiveIndex = -1;
+        this.updateVisibleLabels(0);
+
+        // Then sync with actual scroll position
+        this.updateCameraFromScroll();
     }
 
     resize(width, height) {
@@ -122,11 +131,14 @@ export class ShowcaseInteraction {
     }
 
     updateVisibleLabels(activeIndex) {
-        if (this.currentActiveIndex === activeIndex) return;
+        // Removed guard clause to ensure DOM is always updated, 
+        // preventing desync where state says 0 but DOM is hidden.
         this.currentActiveIndex = activeIndex;
 
         this.projectLabels.forEach((labelData, index) => {
             const isActive = (index === activeIndex);
+
+            // Force apply every time to ensure initial state logic catches up
             labelData.element.style.opacity = isActive ? '1' : '0';
             labelData.element.style.pointerEvents = isActive ? 'auto' : 'none';
         });
