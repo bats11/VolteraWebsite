@@ -148,7 +148,13 @@ html {
 
 
 /* --- VOLTERA MOTION SYSTEM (Anti-FOUC & Init States) --- */
-.vlt-reveal-vision,
+.vlt-reveal-vision {
+    opacity: 0;
+    transform: translateY(100px);
+    /* Hero title: movimento più ampio */
+    will-change: opacity, transform;
+}
+
 .vlt-reveal-message,
 .vlt-reveal-safe {
     opacity: 0;

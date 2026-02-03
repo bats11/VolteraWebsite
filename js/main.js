@@ -341,7 +341,7 @@ function initVolteraMotion() {
     // 1. REVEAL VISION (Hero)
     gsap.utils.toArray('.vlt-reveal-vision').forEach(el => {
         gsap.to(el, {
-            opacity: 1, y: 0, duration: 1.8, ease: "voltera",
+            opacity: 1, y: 0, duration: 2.2, ease: "voltera",
             scrollTrigger: { trigger: el, start: "top 85%" }
         });
     });
