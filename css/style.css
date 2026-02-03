@@ -166,11 +166,19 @@ html {
     will-change: opacity;
 }
 
+/* Slide-in da Destra */
+.vlt-slide-in-right {
+    opacity: 0;
+    transform: translateX(100px);
+    will-change: opacity, transform;
+}
+
 /* Fallback per browser vecchi o se JS è bloccato (Accessibilità) */
 .no-js .vlt-reveal-vision,
 .no-js .vlt-reveal-message,
 .no-js .vlt-stagger-item,
-.no-js .vlt-scramble {
+.no-js .vlt-scramble,
+.no-js .vlt-slide-in-right {
     opacity: 1;
     transform: none;
 }

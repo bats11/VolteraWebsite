@@ -354,6 +354,24 @@ function initVolteraMotion() {
         });
     });
 
+    // 2.5 SLIDE-IN FROM RIGHT (Metodo)
+    gsap.utils.toArray('.vlt-slide-in-right').forEach(el => {
+        gsap.to(el, {
+            opacity: 1,
+            x: 0,
+            duration: 1.6,
+            ease: "voltera",
+            scrollTrigger: {
+                trigger: el,
+                start: "top 85%",
+                markers: true,
+                id: "debug-slide",
+                onEnter: () => console.log("GSAP: Slide-in animation START"),
+                onEnterBack: () => console.log("GSAP: Slide-in animation REVERSE")
+            }
+        });
+    });
+
     // 3. STAGGER ITEMS (Griglie AOX e Partner)
     // CRITICO: Qui applichiamo la correzione per i pannelli e l'hover
     const gridContainers = ['.aox-tiles-grid', '.partner-grid-standard'];
