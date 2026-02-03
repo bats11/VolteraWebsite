@@ -401,8 +401,8 @@ function initVolteraMotion() {
                 const el = entry.target;
                 // 1. Rendi visibile l'elemento
                 gsap.to(el, { opacity: 1, duration: 0.1 });
-                // 2. Avvia lo scramble (durata più lunga per testi lunghi, es. 2000ms)
-                textScramble(el, 2000);
+                // 2. Avvia lo scramble (durata calibrata per leggibilità)
+                textScramble(el, 1200);
                 // 3. Stop observing (One-shot)
                 scrambleTextObserver.unobserve(el);
             }
