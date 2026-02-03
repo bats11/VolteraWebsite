@@ -38,6 +38,9 @@ window.onload = function () {
     // Attivazione Motion System
     initVolteraMotion();
 
+    // Custom HUD Cursor (Desktop only)
+    initCustomCursor();
+
     // Lucide removed (inline SVGs used)
 
     // AOX controller reference (declared early for resize callback access)
@@ -463,5 +466,65 @@ function initVolteraMotion() {
             }
         });
         el.addEventListener('mouseenter', () => textScramble(el, 700));
+    });
+}
+
+// --- 6. CUSTOM HUD CURSOR (Text Only) ---
+function initCustomCursor() {
+    // Skip on mobile devices
+    if (isMobile()) return;
+
+    const cursor = document.getElementById('vlt-cursor');
+    const cursorHud = cursor?.querySelector('.cursor-hud');
+    const cursorLabel = cursor?.querySelector('.cursor-label');
+    const heroSection = document.querySelector('.hero-section');
+
+    if (!cursor || !cursorHud || !cursorLabel || !heroSection) return;
+
+    let hasMovedOnce = false;
+
+    // Mouse tracking - instant HUD position update
+    document.addEventListener('mousemove', (e) => {
+        const x = e.clientX;
+        const y = e.clientY;
+
+        // First move: fade-in cursor
+        if (!hasMovedOnce) {
+            hasMovedOnce = true;
+            cursor.style.opacity = '1';
+        }
+
+        // Native left/top positioning - zero latency
+        cursorHud.style.left = x + 'px';
+        cursorHud.style.top = (y - 25) + 'px';
+    });
+
+    // Hero mouseenter: show HUD with scramble
+    heroSection.addEventListener('mouseenter', () => {
+        cursor.classList.add('is-on-hero');
+        cursorLabel.dataset.originalText = 'DRAG // EXPLORE';
+        textScramble(cursorLabel, 500);
+    });
+
+    // Hero mouseleave: reset to IDLE
+    heroSection.addEventListener('mouseleave', () => {
+        cursor.classList.remove('is-on-hero', 'is-clicking');
+        cursorLabel.textContent = '';
+        delete cursorLabel.dataset.originalText;
+    });
+
+    // Click interaction with scramble sync
+    heroSection.addEventListener('mousedown', () => {
+        cursor.classList.add('is-clicking');
+        cursorLabel.textContent = '';
+        cursorLabel.dataset.originalText = 'ROTATING';
+        textScramble(cursorLabel, 300);
+    });
+
+    heroSection.addEventListener('mouseup', () => {
+        cursor.classList.remove('is-clicking');
+        cursorLabel.textContent = '';
+        cursorLabel.dataset.originalText = 'DRAG // EXPLORE';
+        textScramble(cursorLabel, 300);
     });
 }

@@ -540,6 +540,97 @@ body.scroll-lock {
 
 
 
+/* --- 2.5 VLT CUSTOM HUD CURSOR (Text Only) --- */
+
+/* Base Container - Hidden until first mouse move */
+#vlt-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    pointer-events: none;
+    mix-blend-mode: exclusion;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+/* HUD Container - Hidden in IDLE state */
+.cursor-hud {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transform: translateX(-50%);
+    opacity: 0;
+    scale: 0.5;
+    transition: opacity 0.3s var(--ease-voltera), scale 0.3s var(--ease-voltera), gap 0.2s ease;
+    will-change: left, top;
+}
+
+/* Brackets & Label Typography */
+.bracket-l,
+.bracket-r {
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #fff;
+    transition: transform 0.2s var(--ease-voltera);
+}
+
+.bracket-l {
+    transform: translateX(-6px);
+}
+
+.bracket-r {
+    transform: translateX(6px);
+}
+
+.cursor-label {
+    font-family: var(--font-main);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fff;
+    white-space: nowrap;
+}
+
+/* HERO STATE - HUD visible with expanded brackets */
+#vlt-cursor.is-on-hero .cursor-hud {
+    opacity: 1;
+    scale: 1;
+}
+
+#vlt-cursor.is-on-hero .bracket-l {
+    transform: translateX(-10px);
+}
+
+#vlt-cursor.is-on-hero .bracket-r {
+    transform: translateX(10px);
+}
+
+/* CLICKING STATE - "Bite" effect, brackets close in */
+#vlt-cursor.is-clicking .bracket-l {
+    transform: translateX(-2px);
+}
+
+#vlt-cursor.is-clicking .bracket-r {
+    transform: translateX(2px);
+}
+
+#vlt-cursor.is-clicking .cursor-hud {
+    gap: 3px;
+}
+
+/* Mobile: Hide custom cursor completely */
+@media (max-width: 767px) {
+    #vlt-cursor {
+        display: none;
+    }
+}
+
+
+
 /* --- 3. TIPOGRAFIA HOMEPAGE STANDARD --- */
 
 /* Extracting Heading Styles for Visual Classes */
