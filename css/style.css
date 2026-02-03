@@ -162,7 +162,8 @@ html {
     will-change: opacity, transform;
 }
 
-.vlt-scramble {
+.vlt-scramble,
+.vlt-scramble-text {
     opacity: 0;
     will-change: opacity;
 }
@@ -180,6 +181,7 @@ html {
 .no-js .vlt-reveal-safe,
 .no-js .vlt-stagger-item,
 .no-js .vlt-scramble,
+.no-js .vlt-scramble-text,
 .no-js .vlt-slide-in-right {
     opacity: 1;
     transform: none;

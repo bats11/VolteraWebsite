@@ -394,6 +394,25 @@ function initVolteraMotion() {
         revealSafeObserver.observe(el);
     });
 
+    // 2.7 SCRAMBLE TEXT PARAGRAPHS (Long text, progressive reveal, safe observer)
+    const scrambleTextObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const el = entry.target;
+                // 1. Rendi visibile l'elemento
+                gsap.to(el, { opacity: 1, duration: 0.1 });
+                // 2. Avvia lo scramble (durata più lunga per testi lunghi, es. 2000ms)
+                textScramble(el, 2000);
+                // 3. Stop observing (One-shot)
+                scrambleTextObserver.unobserve(el);
+            }
+        });
+    }, { threshold: 0.2 }); // Attiva quando il 20% del paragrafo è visibile
+
+    document.querySelectorAll('.vlt-scramble-text').forEach(el => {
+        scrambleTextObserver.observe(el);
+    });
+
     // 3. STAGGER ITEMS (Griglie AOX e Partner)
     // CRITICO: Qui applichiamo la correzione per i pannelli e l'hover
     const gridContainers = ['.aox-tiles-grid', '.partner-grid-standard'];
