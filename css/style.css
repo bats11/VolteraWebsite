@@ -149,7 +149,8 @@ html {
 
 /* --- VOLTERA MOTION SYSTEM (Anti-FOUC & Init States) --- */
 .vlt-reveal-vision,
-.vlt-reveal-message {
+.vlt-reveal-message,
+.vlt-reveal-safe {
     opacity: 0;
     transform: translateY(40px);
     will-change: opacity, transform;
@@ -176,6 +177,7 @@ html {
 /* Fallback per browser vecchi o se JS è bloccato (Accessibilità) */
 .no-js .vlt-reveal-vision,
 .no-js .vlt-reveal-message,
+.no-js .vlt-reveal-safe,
 .no-js .vlt-stagger-item,
 .no-js .vlt-scramble,
 .no-js .vlt-slide-in-right {

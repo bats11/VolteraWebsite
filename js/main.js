@@ -375,6 +375,25 @@ function initVolteraMotion() {
         slideObserver.observe(el);
     });
 
+    // 2.6 REVEAL-SAFE (Alternative to vlt-reveal-message for post-showcase sections)
+    const revealSafeObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                gsap.to(entry.target, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 1.2,
+                    ease: "voltera"
+                });
+                revealSafeObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 }); // 10% visibile
+
+    document.querySelectorAll('.vlt-reveal-safe').forEach(el => {
+        revealSafeObserver.observe(el);
+    });
+
     // 3. STAGGER ITEMS (Griglie AOX e Partner)
     // CRITICO: Qui applichiamo la correzione per i pannelli e l'hover
     const gridContainers = ['.aox-tiles-grid', '.partner-grid-standard'];
