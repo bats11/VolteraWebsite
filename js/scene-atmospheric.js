@@ -50,6 +50,20 @@ export function initAtmosphericHero(containerElement) {
     const particles = [];
     let particleGeometry, particleMaterial, particleSystem;
 
+    // --- MAGNETIC CURSOR STATE ---
+    let mouseX = 0, mouseY = 0;
+    let currentOffsetX = 0, currentOffsetZ = 0, currentOffsetY = 0;
+    let prevOffsetX = 0, prevOffsetZ = 0; // For velocity-based tilt
+    const LERP_FACTOR = 0.04; // Smooth, "pastoso" movement (Voltera inertia)
+    const MAGNETIC_STRENGTH = 2.5; // Base influence strength
+    const MAX_OFFSET = 3.5; // Clamp: prevent satellite from escaping too far
+
+    // Event listener for mouse position
+    window.addEventListener('vltMouseMove', (e) => {
+        mouseX = e.detail.x;
+        mouseY = e.detail.y;
+    });
+
     const container = containerElement;
     if (!container) return;
 
@@ -286,7 +300,7 @@ export function initAtmosphericHero(containerElement) {
     scene.add(ring);
 
     const floatGeo = new THREE.OctahedronGeometry(0.5, 0);
-    floatingObj = new THREE.Mesh(floatGeo, new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.2, metalness: 0.8 }));
+    floatingObj = new THREE.Mesh(floatGeo, new THREE.MeshStandardMaterial({ color: 0x4a6a8a, roughness: 0.2, metalness: 0.8 }));
     scene.add(floatingObj);
 
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshLambertMaterial({
@@ -532,12 +546,43 @@ export function initAtmosphericHero(containerElement) {
         const time = performance.now() * 0.001;
         controls.update();
 
+        // --- MAGNETIC CURSOR OFFSET ---
+        // Calculate target offset from mouse position
+        const targetOffsetX = THREE.MathUtils.clamp(mouseX * MAGNETIC_STRENGTH, -MAX_OFFSET, MAX_OFFSET);
+        const targetOffsetZ = THREE.MathUtils.clamp(mouseY * MAGNETIC_STRENGTH, -MAX_OFFSET, MAX_OFFSET);
+        const targetOffsetY = mouseY * 0.5; // Subtle Y influence
+
+        // Store previous offset for velocity calculation (before lerp)
+        prevOffsetX = currentOffsetX;
+        prevOffsetZ = currentOffsetZ;
+
+        // Smooth lerp: "L'Inerzia Voltera" - pastoso, pesante
+        currentOffsetX = THREE.MathUtils.lerp(currentOffsetX, targetOffsetX, LERP_FACTOR);
+        currentOffsetZ = THREE.MathUtils.lerp(currentOffsetZ, targetOffsetZ, LERP_FACTOR);
+        currentOffsetY = THREE.MathUtils.lerp(currentOffsetY, targetOffsetY, LERP_FACTOR);
+
+        // Calculate velocity for tilt (delta = current - previous)
+        const velocityX = currentOffsetX - prevOffsetX;
+        const velocityZ = currentOffsetZ - prevOffsetZ;
+
         const radius = 5;
         const speed = 0.4;
-        floatingObj.position.x = Math.sin(time * speed) * radius;
-        floatingObj.position.z = Math.cos(time * speed) * radius;
-        floatingObj.position.y = POS_PYRAMID.y + 1.5 + Math.sin(time * 1.5) * 1;
-        floatingObj.rotation.x += 0.02; floatingObj.rotation.y += 0.03;
+        // Base orbital position + magnetic offset (lerped)
+        floatingObj.position.x = Math.sin(time * speed) * radius + currentOffsetX;
+        floatingObj.position.z = Math.cos(time * speed) * radius + currentOffsetZ;
+        floatingObj.position.y = POS_PYRAMID.y + 1.5 + Math.sin(time * 1.5) * 1 + currentOffsetY;
+
+        // Velocity-based tilt: gives sense of "mass" (Vision-First Voltera)
+        // Tilt towards movement direction, scaled and clamped for subtlety
+        const TILT_STRENGTH = 8; // How much velocity affects rotation
+        const MAX_TILT = 0.4; // Max tilt in radians (~23 degrees)
+        const targetTiltZ = THREE.MathUtils.clamp(-velocityX * TILT_STRENGTH, -MAX_TILT, MAX_TILT);
+        const targetTiltX = THREE.MathUtils.clamp(velocityZ * TILT_STRENGTH, -MAX_TILT, MAX_TILT);
+
+        // Lerp tilt for smooth transition (faster than position for responsiveness)
+        floatingObj.rotation.x = THREE.MathUtils.lerp(floatingObj.rotation.x, targetTiltX, 0.08);
+        floatingObj.rotation.z = THREE.MathUtils.lerp(floatingObj.rotation.z, targetTiltZ, 0.08);
+        floatingObj.rotation.y += 0.03; // Keep Y rotation spinning
 
         // Rotate pyramid around vertical axis
         pyramidGroup.rotation.y += 0.002;

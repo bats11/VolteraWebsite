@@ -24,6 +24,17 @@ function unlockScroll() {
 window.onload = function () {
     ResizeManager.init();
 
+    // --- MAGNETIC CURSOR (Voltera Hero) ---
+    document.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth) * 2 - 1;  // -1 to +1
+        const y = -(e.clientY / window.innerHeight) * 2 + 1; // -1 to +1 (inverted for 3D)
+        window.dispatchEvent(new CustomEvent('vltMouseMove', { detail: { x, y } }));
+    });
+
+    document.addEventListener('mouseleave', () => {
+        window.dispatchEvent(new CustomEvent('vltMouseMove', { detail: { x: 0, y: 0 } }));
+    });
+
     // Attivazione Motion System
     initVolteraMotion();
 
