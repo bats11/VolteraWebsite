@@ -166,38 +166,13 @@ html {
     will-change: opacity;
 }
 
-/* ARCHITECTURAL REVEAL - Titoli Light Sections (Impatto Totale) */
-.vlt-reveal-arch {
-    opacity: 0;
-    visibility: hidden;
-    /* Extra sicurezza anti-FOUC */
-    clip-path: inset(0 0 100% 0);
-    /* Maschera dal basso */
-    transform: translateY(50px);
-    will-change: opacity, clip-path, transform, visibility;
-}
-
-/* TEXT MIST - Apparizione eterea con blur */
-.vlt-text-mist {
-    opacity: 0;
-    visibility: hidden;
-    /* Extra sicurezza anti-FOUC */
-    filter: blur(20px);
-    transform: translateY(30px);
-    will-change: opacity, filter, transform, visibility;
-}
-
 /* Fallback per browser vecchi o se JS è bloccato (Accessibilità) */
 .no-js .vlt-reveal-vision,
 .no-js .vlt-reveal-message,
 .no-js .vlt-stagger-item,
-.no-js .vlt-scramble,
-.no-js .vlt-reveal-arch,
-.no-js .vlt-text-mist {
+.no-js .vlt-scramble {
     opacity: 1;
     transform: none;
-    clip-path: none;
-    filter: none;
 }
 
 

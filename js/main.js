@@ -24,6 +24,9 @@ function unlockScroll() {
 window.onload = function () {
     ResizeManager.init();
 
+    // Attivazione Motion System
+    initVolteraMotion();
+
     // Lucide removed (inline SVGs used)
 
     // AOX controller reference (declared early for resize callback access)
@@ -108,9 +111,6 @@ window.onload = function () {
 
                     // 4. Handoff to standard visibility observer
                     visibilityObserver.observe(entry.target);
-
-                    // 5. Ricalcola posizioni ScrollTrigger dopo che Showcase ha preso altezza 600vh
-                    setTimeout(() => { ScrollTrigger.refresh(); }, 500);
                 }
 
                 // Stop lazy observer
@@ -139,17 +139,8 @@ window.onload = function () {
                     aox.start();
                 }
             }
-
-            // Ricalcola le posizioni degli ScrollTrigger dopo il caricamento 3D
-            ScrollTrigger.refresh();
         }
     });
-
-    // Attivazione Motion System (alla fine per garantire DOM pronto)
-    initVolteraMotion();
-
-    // Forza un refresh finale dopo un breve ritardo per sicurezza
-    setTimeout(() => { ScrollTrigger.refresh(); }, 1000);
 };
 
 // --- 2. MOBILE MENU ---
@@ -402,43 +393,5 @@ function initVolteraMotion() {
             }
         });
         el.addEventListener('mouseenter', () => textScramble(el, 700));
-    });
-
-    // 5. ARCHITECTURAL REVEAL (Titoli Sezioni Light - Impatto Totale)
-    const archElements = gsap.utils.toArray('.vlt-reveal-arch');
-    archElements.forEach((el, index) => {
-        gsap.to(el, {
-            opacity: 1,
-            visibility: 'visible', // Sblocca visibility insieme a opacity
-            clipPath: "inset(0 0 0% 0)", // Apre la maschera dal basso
-            y: 0,
-            duration: 1.8, // Più pesante ed elegante
-            delay: index * 0.2, // Stagger manuale tra elementi
-            ease: "voltera",
-            scrollTrigger: {
-                trigger: el,
-                start: "top 85%", // Trigger più bilanciato
-                toggleActions: "play none none reset", // Reset permette riattivazione
-                refreshPriority: 1 // Priorità alta nel ricalcolo
-            }
-        });
-    });
-
-    // 6. TEXT MIST (Apparizione eterea con blur)
-    gsap.utils.toArray('.vlt-text-mist').forEach(el => {
-        gsap.to(el, {
-            opacity: 1,
-            visibility: 'visible', // Sblocca visibility insieme a opacity
-            filter: "blur(0px)",
-            y: 0,
-            duration: 2.0,
-            ease: "voltera",
-            scrollTrigger: {
-                trigger: el,
-                start: "top 90%",
-                toggleActions: "play none none reset", // Reset permette riattivazione
-                refreshPriority: 1 // Priorità alta nel ricalcolo
-            }
-        });
     });
 }
