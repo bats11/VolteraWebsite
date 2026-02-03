@@ -147,6 +147,34 @@ html {
 }
 
 
+/* --- VOLTERA MOTION SYSTEM (Anti-FOUC & Init States) --- */
+.vlt-reveal-vision,
+.vlt-reveal-message {
+    opacity: 0;
+    transform: translateY(40px);
+    will-change: opacity, transform;
+}
+
+.vlt-stagger-item {
+    opacity: 0;
+    transform: translateY(30px);
+    will-change: opacity, transform;
+}
+
+.vlt-scramble {
+    opacity: 0;
+    will-change: opacity;
+}
+
+/* Fallback per browser vecchi o se JS è bloccato (Accessibilità) */
+.no-js .vlt-reveal-vision,
+.no-js .vlt-reveal-message,
+.no-js .vlt-stagger-item,
+.no-js .vlt-scramble {
+    opacity: 1;
+    transform: none;
+}
+
 
 /* Theme-Specific Selection (Spazio Chiaro) - Chrome Engraved Effect */
 

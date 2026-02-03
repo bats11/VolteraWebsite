@@ -24,6 +24,9 @@ function unlockScroll() {
 window.onload = function () {
     ResizeManager.init();
 
+    // Attivazione Motion System
+    initVolteraMotion();
+
     // Lucide removed (inline SVGs used)
 
     // AOX controller reference (declared early for resize callback access)
@@ -288,3 +291,107 @@ function initAoxInteraction() {
     }
 }
 
+/* =========================================
+   VOLTERA MOTION SYSTEM - LOGICA ANIMAZIONI
+   ========================================= */
+
+/**
+ * Funzione Scramble: trasforma il testo in caratteri casuali 
+ * prima di rivelare quello originale.
+ */
+function textScramble(element, duration = 1200) {
+    const chars = '!<>-_\\/[]{}—=+*^?#_';
+    const original = element.dataset.originalText || element.textContent;
+
+    // Memorizziamo il testo originale per poter ripetere l'effetto
+    if (!element.dataset.originalText) {
+        element.dataset.originalText = original;
+    }
+
+    const start = performance.now();
+
+    (function update() {
+        const timePassed = performance.now() - start;
+        const progress = Math.min(timePassed / duration, 1);
+
+        element.textContent = original.split('').map((c, i) => {
+            if (c === ' ') return ' ';
+            // Se il progresso supera la posizione della lettera, mostra quella vera
+            return progress > (i / original.length) ? c : chars[Math.floor(Math.random() * chars.length)];
+        }).join('');
+
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            element.textContent = original;
+        }
+    })();
+}
+
+/**
+ * Inizializzazione di tutte le animazioni ScrollTrigger
+ * FIX v2: Auto-pulizia per ripristinare le funzionalità AOX (Hover & Pannelli)
+ */
+function initVolteraMotion() {
+    console.log("⚡ Voltera Motion System: Attivato (Clean Mode)");
+
+    gsap.registerPlugin(ScrollTrigger, CustomEase);
+    CustomEase.create("voltera", "0.16, 1, 0.3, 1");
+
+    // 1. REVEAL VISION (Hero)
+    gsap.utils.toArray('.vlt-reveal-vision').forEach(el => {
+        gsap.to(el, {
+            opacity: 1, y: 0, duration: 1.8, ease: "voltera",
+            scrollTrigger: { trigger: el, start: "top 85%" }
+        });
+    });
+
+    // 2. REVEAL MESSAGE (Titoli)
+    gsap.utils.toArray('.vlt-reveal-message').forEach(el => {
+        gsap.to(el, {
+            opacity: 1, y: 0, duration: 1.2, ease: "voltera",
+            scrollTrigger: { trigger: el, start: "top 90%" }
+        });
+    });
+
+    // 3. STAGGER ITEMS (Griglie AOX e Partner)
+    // CRITICO: Qui applichiamo la correzione per i pannelli e l'hover
+    const gridContainers = ['.aox-tiles-grid', '.partner-grid-standard'];
+
+    gridContainers.forEach(selector => {
+        const grid = document.querySelector(selector);
+        if (grid) {
+            const items = grid.querySelectorAll('.vlt-stagger-item');
+            gsap.to(items, {
+                opacity: 1,
+                y: 0,
+                duration: 1.0,
+                stagger: 0.15,
+                ease: "voltera",
+                scrollTrigger: {
+                    trigger: grid,
+                    start: "top 75%"
+                },
+                // --- FIX SALVA-VITA ---
+                // Appena l'animazione finisce, rimuoviamo ogni traccia di GSAP e della classe CSS.
+                // Questo ripristina position: static (per i pannelli) e l'opacità gestita dal CSS (per l'hover).
+                onComplete: () => {
+                    gsap.set(items, { clearProps: "all" });
+                    items.forEach(item => item.classList.remove('vlt-stagger-item'));
+                }
+            });
+        }
+    });
+
+    // 4. TEXT SCRAMBLE
+    gsap.utils.toArray('.vlt-scramble').forEach(el => {
+        ScrollTrigger.create({
+            trigger: el, start: "top 95%", once: true,
+            onEnter: () => {
+                gsap.to(el, { opacity: 1, duration: 0.3 });
+                textScramble(el, 1500);
+            }
+        });
+        el.addEventListener('mouseenter', () => textScramble(el, 700));
+    });
+}
