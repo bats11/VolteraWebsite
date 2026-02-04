@@ -254,16 +254,25 @@ function initAoxInteraction() {
 
     tiles.forEach(tile => {
         // Desktop hover (bypassed on tablet)
+        let hoverTimeout;
         tile.addEventListener('mouseenter', () => {
             if (isTablet) return; // Bypass on tablet
-            const ambito = tile.dataset.ambito;
-            window.dispatchEvent(new CustomEvent('aoxStateChange', {
-                detail: { ambito }
-            }));
+
+            // Debounce: Wait 100ms before firing 3D state change
+            hoverTimeout = setTimeout(() => {
+                const ambito = tile.dataset.ambito;
+                window.dispatchEvent(new CustomEvent('aoxStateChange', {
+                    detail: { ambito }
+                }));
+            }, 100);
         });
 
         tile.addEventListener('mouseleave', () => {
             if (isTablet) return; // Bypass on tablet
+
+            // Cancel pending start if user left quickly
+            if (hoverTimeout) clearTimeout(hoverTimeout);
+
             window.dispatchEvent(new CustomEvent('aoxStateChange', {
                 detail: { ambito: null }
             }));
@@ -287,12 +296,12 @@ function initAoxInteraction() {
                 // Activate clicked tile
                 tile.classList.add('is-active');
                 const ambito = tile.dataset.ambito;
-                // 50ms delay: allows CSS .is-active to render before 3D morphing
+                // 150ms delay: allows CSS .is-active to render before 3D morphing
                 setTimeout(() => {
                     window.dispatchEvent(new CustomEvent('aoxStateChange', {
                         detail: { ambito }
                     }));
-                }, 50);
+                }, 150);
             }
         });
     });
@@ -428,32 +437,49 @@ function initVolteraMotion() {
 
     // 3. STAGGER ITEMS (Griglie AOX e Partner)
     // CRITICO: Qui applichiamo la correzione per i pannelli e l'hover
-    const gridContainers = ['.aox-tiles-grid', '.partner-grid-standard'];
+    // FIX v3: Split logic to optimize AOX separately
 
-    gridContainers.forEach(selector => {
-        const grid = document.querySelector(selector);
-        if (grid) {
-            const items = grid.querySelectorAll('.vlt-stagger-item');
+    // 3A. Partner Grid (Standard)
+    const partnerGrid = document.querySelector('.partner-grid-standard');
+    if (partnerGrid) {
+        const items = partnerGrid.querySelectorAll('.vlt-stagger-item');
+        gsap.to(items, {
+            opacity: 1, y: 0, duration: 1.0, stagger: 0.15, ease: "voltera",
+            scrollTrigger: { trigger: partnerGrid, start: "top 75%" },
+            onComplete: () => {
+                gsap.set(items, { clearProps: "all" });
+                items.forEach(item => item.classList.remove('vlt-stagger-item'));
+            }
+        });
+    }
+
+    // 3B. AOX Grid (Device-Dependent Strategy)
+    const aoxGrid = document.querySelector('.aox-tiles-grid');
+    if (aoxGrid) {
+        const items = aoxGrid.querySelectorAll('.vlt-stagger-item');
+
+        if (window.innerWidth > 1024) {
+            // DESKTOP (> 1024px): PRIORITÀ 3D
+            // Immediate visibility, zero animation overhead
+            gsap.set(items, { opacity: 1, y: 0, clearProps: "all" });
+            items.forEach(item => item.classList.remove('vlt-stagger-item'));
+        } else {
+            // MOBILE/TABLET (<= 1024px): PRIORITÀ UX
+            // Keep stagger animation
             gsap.to(items, {
                 opacity: 1,
                 y: 0,
                 duration: 1.0,
                 stagger: 0.15,
-                ease: "voltera",
-                scrollTrigger: {
-                    trigger: grid,
-                    start: "top 75%"
-                },
-                // --- FIX SALVA-VITA ---
-                // Appena l'animazione finisce, rimuoviamo ogni traccia di GSAP e della classe CSS.
-                // Questo ripristina position: static (per i pannelli) e l'opacità gestita dal CSS (per l'hover).
+                ease: "power2.out",
+                scrollTrigger: { trigger: aoxGrid, start: "top 75%" },
                 onComplete: () => {
                     gsap.set(items, { clearProps: "all" });
                     items.forEach(item => item.classList.remove('vlt-stagger-item'));
                 }
             });
         }
-    });
+    }
 
     // 4. TEXT SCRAMBLE
     gsap.utils.toArray('.vlt-scramble').forEach(el => {
