@@ -25,7 +25,15 @@ export async function initAoxCore(containerElement) {
     let rafId = null;
 
     const container = containerElement;
-    if (!container) return;
+    if (!container) return null;
+
+    // --- MOBILE OPTIMIZATION ---
+    // Disattiva completamente su mobile (< 768px)
+    // Attivo su Tablet (>= 768px) e Desktop
+    if (window.innerWidth < 768) {
+        console.log('[AOX] Mobile device detected (<768px). Scene disabled.');
+        return null;
+    }
 
     // --- MORPH TARGETS: Load JSON files with silent fail ---
     const morphTargets = {};

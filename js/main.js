@@ -131,7 +131,12 @@ window.onload = function () {
                 showcaseObserver.unobserve(entry.target);
             }
         });
-    }, { rootMargin: '0px 0px 500px 0px' });
+    }, {
+        // Dynamic threshold for performance:
+        // <= 1024px (Tablet/Mobile): 100px buffer (Save GPU)
+        // > 1024px (Desktop): 500px buffer (Smoother load)
+        rootMargin: window.innerWidth <= 1024 ? '0px 0px 100px 0px' : '0px 0px 500px 0px'
+    });
 
     if (showcaseContainer) showcaseObserver.observe(showcaseContainer);
 
