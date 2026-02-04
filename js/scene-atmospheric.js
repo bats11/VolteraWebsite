@@ -97,6 +97,12 @@ export function initAtmosphericHero(containerElement) {
     controls.maxPolarAngle = (Math.PI / 180) * MAX_ANGLE_DEGREES;
     controls.minPolarAngle = 0;
 
+    // Mobile: Disable controls to allow native scroll
+    if (window.innerWidth <= 1024) {
+        controls.enabled = false;
+        renderer.domElement.style.touchAction = 'auto';
+    }
+
     const renderScene = new RenderPass(scene, camera);
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
     bloomPass.threshold = 0.3;
@@ -524,6 +530,15 @@ export function initAtmosphericHero(containerElement) {
         // Resize composer to match device resolution
         const pixelRatio = renderer.getPixelRatio();
         composer.setSize(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
+
+        // Responsive Controls
+        if (window.innerWidth <= 1024) {
+            controls.enabled = false;
+            renderer.domElement.style.touchAction = 'auto';
+        } else {
+            controls.enabled = true;
+            renderer.domElement.style.touchAction = 'none';
+        }
 
         particleSystem.visible = false;
     });
