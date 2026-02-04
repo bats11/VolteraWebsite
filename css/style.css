@@ -101,17 +101,33 @@ body.light-theme {
 
 
 html {
-
     scroll-behavior: smooth;
+    /* BASE (Mobile/Generic) - Desktop overrides below */
+}
 
-    width: 100%;
+/* --- MOBILE LAYOUT LOCK (< 1024px) --- */
+@media (max-width: 1023px) {
 
-    max-width: 100%;
+    html,
+    body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        position: relative;
+    }
+}
 
-    overflow-x: hidden;
+/* --- DESKTOP LAYOUT RESTORE (> 1024px) --- */
+@media (min-width: 1024px) {
 
-    position: relative;
-
+    html,
+    body {
+        width: auto;
+        max-width: none;
+        overflow: visible;
+        /* CORE FIX: Must be visible for sticky children */
+        position: static;
+    }
 }
 
 
@@ -246,13 +262,7 @@ body {
 
     -webkit-font-smoothing: antialiased;
 
-    width: 100%;
-
-    max-width: 100%;
-
-    overflow-x: hidden;
-
-    position: relative;
+    /* Removed global width/overflow restrictions - governed by Media Queries above */
 
     transition: background-color 2.5s var(--ease-out-expo), color 2.5s var(--ease-out-expo) !important;
 
@@ -268,6 +278,59 @@ body.scroll-lock {
 
 }
 
+
+
+/* ============================================
+   RESPONSIVE VISIBILITY UTILITIES
+   Logica: Mobile-First (default) → Desktop override
+   Breakpoint: 1024px (Tablet/Desktop split)
+   ============================================ */
+
+/* --- BASE (Mobile/Tablet < 1024px) --- */
+.desktop-only {
+    display: none !important;
+}
+
+.mobile-only {
+    display: block;
+}
+
+/* --- SHOWCASE MOBILE PLACEHOLDER (Mobile default) --- */
+#showcase-mobile-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-color, #080808);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.showcase-mobile-placeholder {
+    text-align: center;
+    opacity: 0.4;
+}
+
+.placeholder-label {
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-secondary, #888888);
+}
+
+/* --- DESKTOP (≥ 1024px) --- */
+@media (min-width: 1024px) {
+    .desktop-only {
+        display: block !important;
+    }
+
+    .mobile-only {
+        display: none !important;
+    }
+}
 
 
 /* --- 2. STILI HERO SECTION (ATMOSPHERIC) --- */

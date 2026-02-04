@@ -269,8 +269,16 @@
         <!-- 4.5 SHOWCASE - THE INFINITE MAP -->
         <section id="showcase">
             <div class="showcase-sticky">
-                <div id="showcase-canvas"></div>
-                <div id="showcase-css-layer"></div>
+                <!-- DESKTOP: Three.js Canvas -->
+                <div id="showcase-canvas" class="desktop-only"></div>
+                <div id="showcase-css-layer" class="desktop-only"></div>
+
+                <!-- MOBILE: Placeholder Container (sviluppi futuri) -->
+                <div id="showcase-mobile-container" class="mobile-only">
+                    <div class="showcase-mobile-placeholder">
+                        <p class="placeholder-label">SHOWCASE // MOBILE VIEW</p>
+                    </div>
+                </div>
 
                 <!-- SEO: Static Project Library (Hidden but indexable) -->
                 <div id="project-library" hidden aria-hidden="true" style="display: none;">
@@ -372,7 +380,7 @@
                 </div>
 
                 <!-- UI Overlay -->
-                <div class="showcase-ui">
+                <div class="showcase-ui desktop-only">
                     <h2 class="showcase-label">PROJECT_ARCHIVE // REALIZZAZIONE AMBIENTI VIRTUALI E PHYGITAL</h2>
                     <div id="showcase-hud">
                         <span class="hud-ref"></span>

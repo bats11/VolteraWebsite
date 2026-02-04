@@ -103,28 +103,38 @@ window.onload = function () {
     });
 
     // --- LAZY LOAD SHOWCASE OBSERVER ---
+    const SHOWCASE_DESKTOP_BREAKPOINT = 1024;
+
     const showcaseObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting && !sceneControllers.has('showcase-canvas')) {
-                // 1. Initialize Map
-                const showcase = initShowcaseMap(showcaseContainer);
-                if (showcase) {
-                    sceneControllers.set('showcase-canvas', showcase);
+                // GATEKEEPER: Only init Three.js on Desktop
+                if (window.innerWidth >= SHOWCASE_DESKTOP_BREAKPOINT) {
+                    console.log('🎨 Showcase Mode: DESKTOP (Three.js enabled)');
+                    // 1. Initialize Map
+                    const showcase = initShowcaseMap(showcaseContainer);
+                    if (showcase) {
+                        sceneControllers.set('showcase-canvas', showcase);
 
-                    // Start immediately if visible
-                    showcase.start();
+                        // Start immediately if visible
+                        showcase.start();
 
-                    // 2. Force Resize to prevent black screen (User Request)
-                    window.dispatchEvent(new Event('resize'));
+                        // 2. Force Resize to prevent black screen (User Request)
+                        window.dispatchEvent(new Event('resize'));
 
-                    // 3. Initialize UI (Coordinated)
-                    ShowcaseUI.init(() => {
-                        window.dispatchEvent(new CustomEvent('vltProjectClose'));
-                        unlockScroll();
-                    }, { baseAssetPath: './assets/video/' });
+                        // 3. Initialize UI (Coordinated)
+                        ShowcaseUI.init(() => {
+                            window.dispatchEvent(new CustomEvent('vltProjectClose'));
+                            unlockScroll();
+                        }, { baseAssetPath: './assets/video/' });
 
-                    // 4. Handoff to standard visibility observer
-                    visibilityObserver.observe(entry.target);
+                        // 4. Handoff to standard visibility observer
+                        visibilityObserver.observe(entry.target);
+                    }
+                } else {
+                    console.log('🎨 Showcase Mode: MOBILE (Three.js skipped, UI only)');
+                    // On mobile, we might just want to unobserve or handle UI logic if needed
+                    // For now, simply unobserving to prevent repeat checks
                 }
 
                 // Stop lazy observer
@@ -132,10 +142,7 @@ window.onload = function () {
             }
         });
     }, {
-        // Dynamic threshold for performance:
-        // <= 1024px (Tablet/Mobile): 100px buffer (Save GPU)
-        // > 1024px (Desktop): 500px buffer (Smoother load)
-        rootMargin: window.innerWidth <= 1024 ? '0px 0px 100px 0px' : '0px 0px 500px 0px'
+        rootMargin: '0px 0px 500px 0px' // Restore fixed margin for consistent pre-loading
     });
 
     if (showcaseContainer) showcaseObserver.observe(showcaseContainer);
