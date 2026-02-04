@@ -139,6 +139,10 @@ window.onload = function () {
     // Initialize AOX Core unconditionally
     const aoxContainer = document.getElementById('aox-canvas-container');
     initAoxCore(aoxContainer).then(aox => {
+        // EVENTO GLOBALE DI STATO (segnala al DOM che la GPU è pronta)
+        window.aoxIsReady = true;
+        window.dispatchEvent(new Event('aoxReady'));
+
         if (aox) {
             aoxController = aox;
             const id = 'aox-canvas-container';
@@ -486,8 +490,18 @@ function initVolteraMotion() {
         ScrollTrigger.create({
             trigger: el, start: "top 95%", once: true,
             onEnter: () => {
-                gsap.to(el, { opacity: 1, duration: 0.3 });
-                textScramble(el, 1500);
+                const playAnim = () => {
+                    gsap.to(el, { opacity: 1, duration: 0.3 });
+                    textScramble(el, 1500);
+                };
+
+                // DESKTOP: Attendi caricamento 3D per non rubare CPU
+                if (window.innerWidth > 1024 && !window.aoxIsReady) {
+                    window.addEventListener('aoxReady', playAnim, { once: true });
+                } else {
+                    // MOBILE/READY: Vai subito
+                    playAnim();
+                }
             }
         });
         el.addEventListener('mouseenter', () => textScramble(el, 700));
