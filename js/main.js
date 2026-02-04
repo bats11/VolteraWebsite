@@ -487,6 +487,12 @@ function initVolteraMotion() {
 
     // 4. TEXT SCRAMBLE
     gsap.utils.toArray('.vlt-scramble').forEach(el => {
+        // PERFORMANCE FIX: Skip AOX elements (static display for 3D priority)
+        if (el.closest('#aox')) {
+            gsap.set(el, { opacity: 1 });
+            return;
+        }
+
         ScrollTrigger.create({
             trigger: el, start: "top 95%", once: true,
             onEnter: () => {
