@@ -104,6 +104,14 @@ html {
 
     scroll-behavior: smooth;
 
+    width: 100%;
+
+    max-width: 100%;
+
+    overflow-x: hidden;
+
+    position: relative;
+
 }
 
 
@@ -238,7 +246,13 @@ body {
 
     -webkit-font-smoothing: antialiased;
 
+    width: 100%;
+
+    max-width: 100%;
+
     overflow-x: hidden;
+
+    position: relative;
 
     transition: background-color 2.5s var(--ease-out-expo), color 2.5s var(--ease-out-expo) !important;
 
@@ -383,6 +397,10 @@ body.scroll-lock {
     margin-bottom: 2rem;
 
     text-transform: uppercase;
+
+    word-break: break-word;
+
+    margin-left: -2px;
 
 }
 
@@ -737,7 +755,7 @@ nav {
 
     left: 0;
 
-    width: 100%;
+    width: 100vw;
 
     padding: var(--space-sm) 5%;
 
@@ -853,7 +871,9 @@ nav {
 
     gap: 32px;
 
-    transition: right 0.6s var(--ease-out-expo);
+    visibility: hidden;
+
+    transition: right 0.6s var(--ease-out-expo), visibility 0.6s var(--ease-out-expo);
 
 }
 
@@ -862,6 +882,8 @@ nav {
 .mobile-overlay.active {
 
     right: 0;
+
+    visibility: visible;
 
 }
 
