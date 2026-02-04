@@ -316,23 +316,22 @@ function initAoxInteraction() {
 function textScramble(element, duration = 1200) {
     const chars = '!<>-_\\/[]{}—=+*^?#_';
     const original = element.dataset.originalText || element.textContent;
-
-    // Memorizziamo il testo originale per poter ripetere l'effetto
-    if (!element.dataset.originalText) {
-        element.dataset.originalText = original;
-    }
+    if (!element.dataset.originalText) element.dataset.originalText = original;
 
     const start = performance.now();
+    let frameCount = 0; // Contatore frame
 
     (function update() {
         const timePassed = performance.now() - start;
         const progress = Math.min(timePassed / duration, 1);
 
-        element.textContent = original.split('').map((c, i) => {
-            if (c === ' ') return ' ';
-            // Se il progresso supera la posizione della lettera, mostra quella vera
-            return progress > (i / original.length) ? c : chars[Math.floor(Math.random() * chars.length)];
-        }).join('');
+        // OTTIMIZZAZIONE: Aggiorna il testo solo ogni 4 frame (risparmia il 75% di CPU)
+        if (frameCount++ % 4 === 0) {
+            element.textContent = original.split('').map((c, i) => {
+                if (c === ' ') return ' ';
+                return progress > (i / original.length) ? c : chars[Math.floor(Math.random() * chars.length)];
+            }).join('');
+        }
 
         if (progress < 1) {
             requestAnimationFrame(update);
@@ -527,4 +526,20 @@ function initCustomCursor() {
         cursorLabel.dataset.originalText = 'DRAG // EXPLORE';
         textScramble(cursorLabel, 300);
     });
+    // CTA Button interaction: Hide HUD on hover
+    const ctaButton = heroSection.querySelector('.cta-button');
+    if (ctaButton) {
+        ctaButton.addEventListener('mouseenter', (e) => {
+            e.stopPropagation(); // Prevent hero enter from firing again
+            cursor.classList.remove('is-on-hero');
+            cursorLabel.textContent = '';
+        });
+
+        ctaButton.addEventListener('mouseleave', (e) => {
+            e.stopPropagation();
+            cursor.classList.add('is-on-hero');
+            cursorLabel.dataset.originalText = 'DRAG // EXPLORE';
+            textScramble(cursorLabel, 500);
+        });
+    }
 }
